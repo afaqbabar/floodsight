@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FloodSight – See floods before they happen</title>
   <meta name="description" content="FloodSight is a European flood intelligence platform powered by ECMWF & Copernicus data. Monitor, predict, and act with real-time alerts and an easy developer API." />
-  <link rel="canonical" href="https://floodsight.com/" />
+  <!---- <link rel="canonical" href="https://floodsight.com/"> -->
+  <link rel="canonical" href="https://floodsight.netlify.app/">
   <link rel="icon" href="/favicon.ico" />
   <meta property="og:title" content="FloodSight – See floods before they happen" />
   <meta property="og:description" content="Real-time flood monitoring, forecasting, and alerts for resilient cities and businesses." />
@@ -16,6 +17,9 @@
   <meta name="twitter:title" content="FloodSight – See floods before they happen" />
   <meta name="twitter:description" content="Real-time flood monitoring, forecasting, and alerts for resilient cities and businesses." />
   <meta name="twitter:image" content="/og-image.jpg" />
+  <meta property="og:image" content="https://floodsight.netlify.app/assets/og-image.jpg">
+  <meta name="twitter:image" content="https://floodsight.netlify.app/assets/og-image.jpg">
+
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -285,38 +289,56 @@ Authorization: Bearer &lt;your_api_key&gt;</code></pre>
       <div class="container">
         <h2 id="signup-title">Get early access</h2>
         <p>Join the pilot with EU municipalities and smart-city labs. We’ll notify you when your API key is ready.</p>
-        <form class="form" action="/api/subscribe" method="post">
-          <div class="form__row">
-            <label for="name">Name</label>
-            <input id="name" name="name" type="text" autocomplete="name" required />
-          </div>
-          <div class="form__row">
-            <label for="email">Work email</label>
-            <input id="email" name="email" type="email" autocomplete="email" required />
-          </div>
-          <div class="form__row">
-            <label for="org">Organization</label>
-            <input id="org" name="org" type="text" autocomplete="organization" />
-          </div>
-          <div class="form__row">
-            <label for="use">Primary use case</label>
-            <select id="use" name="use">
-              <option>Municipality dashboard</option>
-              <option>InsurTech / risk</option>
-              <option>IoT / field ops</option>
-              <option>Research / academic</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div class="form__row">
-            <label for="msg">Anything else?</label>
-            <textarea id="msg" name="message" rows="4" placeholder="Tell us about your region, data sources, or alerting needs…"></textarea>
-          </div>
-          <div class="form__actions">
-            <button class="btn btn--primary" type="submit">Request access</button>
-          </div>
-          <p class="form__foot small">By submitting this form, you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.</p>
-        </form>
+        <form class="form" name="early-access" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+  <input type="hidden" name="form-name" value="early-access">
+
+  <!-- anti-bot hidden field -->
+  <p class="sr-only">
+    <label>Don’t fill this out: <input name="bot-field" /></label>
+  </p>
+
+  <div class="form__row">
+    <label for="name">Name</label>
+    <input id="name" name="name" type="text" autocomplete="name" required />
+  </div>
+
+  <div class="form__row">
+    <label for="email">Work email</label>
+    <input id="email" name="email" type="email" autocomplete="email" required />
+  </div>
+
+  <div class="form__row">
+    <label for="org">Organization</label>
+    <input id="org" name="org" type="text" autocomplete="organization" />
+  </div>
+
+  <div class="form__row">
+    <label for="use">Primary use case</label>
+    <select id="use" name="use">
+      <option>Municipality dashboard</option>
+      <option>InsurTech / risk</option>
+      <option>IoT / field ops</option>
+      <option>Research / academic</option>
+      <option>Other</option>
+    </select>
+  </div>
+
+  <div class="form__row">
+    <label for="msg">Anything else?</label>
+    <textarea id="msg" name="message" rows="4"
+      placeholder="Tell us about your region, data sources, or alerting needs…"></textarea>
+  </div>
+
+  <div class="form__actions">
+    <button class="btn btn--primary" type="submit">Request access</button>
+  </div>
+
+  <p class="form__foot small">
+    By submitting this form, you agree to our
+    <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
+  </p>
+</form>
+
       </div>
     </section>
 
