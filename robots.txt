@@ -1,5 +1,4 @@
-# robots.txt for FloodSight
 User-agent: *
 Allow: /
 
-Sitemap: https://floodsight.netlify.app/sitemap.xml
+Sitemap: https://floodsight.vercel.app/sitemap.xml
