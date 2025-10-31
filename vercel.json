@@ -18,8 +18,12 @@
   ],
   "rewrites": [
     { "source": "/impressum", "destination": "/impressum.html" },
-    { "source": "/privacy", "destination": "/privacy.html" },
-    { "source": "/terms", "destination": "/terms.html" },
-    { "source": "/security", "destination": "/security.html" }
+    { "source": "/privacy",   "destination": "/privacy.html" },
+    { "source": "/terms",     "destination": "/terms.html" },
+    { "source": "/security",  "destination": "/security.html" }
+  ],
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true },
+    { "source": "/404",        "destination": "/404.html", "permanent": false }
   ]
 }
