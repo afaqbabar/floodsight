@@ -1,0 +1,52 @@
+<svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="600" height="400" fill="#0b1220"/>
+  
+  <!-- Grid lines (map-like) -->
+  <g opacity="0.2" stroke="#47c7f5" stroke-width="1">
+    <line x1="0" y1="100" x2="600" y2="100"/>
+    <line x1="0" y1="200" x2="600" y2="200"/>
+    <line x1="0" y1="300" x2="600" y2="300"/>
+    <line x1="150" y1="0" x2="150" y2="400"/>
+    <line x1="300" y1="0" x2="300" y2="400"/>
+    <line x1="450" y1="0" x2="450" y2="400"/>
+  </g>
+  
+  <!-- River path (curved line) -->
+  <path d="M50 200 Q150 150, 250 180 T450 160 T580 200" stroke="#47c7f5" stroke-width="3" fill="none" opacity="0.6"/>
+  
+  <!-- Station markers -->
+  <g fill="#47c7f5">
+    <circle cx="150" cy="160" r="6"/>
+    <circle cx="250" cy="180" r="6"/>
+    <circle cx="350" cy="170" r="6"/>
+    <circle cx="450" cy="160" r="6"/>
+  </g>
+  
+  <!-- Alert markers (red) -->
+  <g fill="#f54747">
+    <circle cx="250" cy="180" r="8" opacity="0.8"/>
+    <circle cx="250" cy="180" r="12" opacity="0.3"/>
+  </g>
+  
+  <!-- Warning markers (yellow) -->
+  <g fill="#f5c147">
+    <circle cx="350" cy="170" r="8" opacity="0.8"/>
+  </g>
+  
+  <!-- Chart area (bottom right) -->
+  <rect x="380" y="260" width="200" height="120" rx="8" fill="#111a2d" opacity="0.8"/>
+  <path d="M400 340 L420 330 L440 345 L460 320 L480 335 L500 310 L520 325 L540 315" 
+        stroke="#47c7f5" stroke-width="2" fill="none"/>
+  <text x="460" y="295" font-family="system-ui" font-size="12" fill="#a2b2d6">Water Level</text>
+  
+  <!-- Location labels -->
+  <text x="150" y="145" font-family="system-ui" font-size="10" fill="#a2b2d6" text-anchor="middle">Station A</text>
+  <text x="250" y="165" font-family="system-ui" font-size="10" fill="#a2b2d6" text-anchor="middle">Station B</text>
+  <text x="350" y="155" font-family="system-ui" font-size="10" fill="#a2b2d6" text-anchor="middle">Station C</text>
+  <text x="450" y="145" font-family="system-ui" font-size="10" fill="#a2b2d6" text-anchor="middle">Station D</text>
+  
+  <!-- Title -->
+  <text x="300" y="40" font-family="system-ui" font-size="16" font-weight="600" fill="#e7eefc" text-anchor="middle">FloodSight Dashboard Preview</text>
+</svg>
+

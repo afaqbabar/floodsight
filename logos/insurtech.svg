@@ -1,0 +1,11 @@
+<svg width="120" height="42" viewBox="0 0 120 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shield icon -->
+  <path d="M20 12 L20 18 C20 24 16 28 12 30 C8 28 4 24 4 18 L4 12 L12 10 L20 12 Z" 
+        fill="none" stroke="#a2b2d6" stroke-width="1.5" opacity="0.8"/>
+  <path d="M8 20 L11 23 L16 16" stroke="#a2b2d6" stroke-width="1.5" stroke-linecap="round" 
+        stroke-linejoin="round" opacity="0.8"/>
+  
+  <!-- Text -->
+  <text x="28" y="26" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#a2b2d6">InsurTech</text>
+</svg>
+
