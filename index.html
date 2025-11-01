@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FloodSight – See floods before they happen</title>
   <meta name="description" content="FloodSight is a European flood intelligence platform powered by ECMWF & Copernicus data. Monitor, predict, and act with real-time alerts and an easy developer API." />
-  <!---- <link rel="canonical" href="https://floodsight.com/"> -->
   <link rel="icon" href="/favicon.ico" />
   <meta property="og:title" content="FloodSight – See floods before they happen" />
   <meta property="og:description" content="Real-time flood monitoring, forecasting, and alerts for resilient cities and businesses." />
@@ -87,7 +86,7 @@
             </div>
           </div>
           <figure class="hero__media" aria-describedby="hero-caption">
-            <img src="/hero-map-placeholder.svg" alt="Map preview with river stations and flood levels" />
+            <img src="/hero-map-placeholder.svg" alt="Map preview with river stations and flood levels" width="600" height="400" />
             <figcaption id="hero-caption" class="sr-only">A map-based interface showing stations with colored status markers and a water-level chart.</figcaption>
           </figure>
         </div>
@@ -99,10 +98,10 @@
       <div class="container">
         <p class="eyebrow">Trusted by teams building climate resilience</p>
         <ul class="logo-row" role="list">
-          <li><img src="/logos/citylab.svg" alt="CityLab" /></li>
-          <li><img src="/logos/insurtech.svg" alt="InsurTech" /></li>
-          <li><img src="/logos/university.svg" alt="University" /></li>
-          <li><img src="/logos/iot.svg" alt="IoT Integrator" /></li>
+          <li><img src="/logos/citylab.svg" alt="CityLab" width="120" height="42" loading="lazy" /></li>
+          <li><img src="/logos/insurtech.svg" alt="InsurTech" width="120" height="42" loading="lazy" /></li>
+          <li><img src="/logos/university.svg" alt="University" width="120" height="42" loading="lazy" /></li>
+          <li><img src="/logos/iot.svg" alt="IoT Integrator" width="120" height="42" loading="lazy" /></li>
         </ul>
       </div>
     </section>
@@ -376,14 +375,7 @@ Authorization: Bearer &lt;your_api_key&gt;</code></pre>
     </div>
   </footer>
 
-  <!-- JS will be added later; for now, optional small inline to set the footer year without extra scripts. -->
-   <script defer src="assets/js/floodsight.js"></script>
-
-  <script>
-    (function(){
-      var el = document.querySelector('[data-year]');
-      if (el) el.textContent = new Date().getFullYear();
-    })();
-  </script>
+  <!-- Modular JavaScript (ES modules) -->
+  <script type="module" src="/assets/js/main.js"></script>
 </body>
 </html>

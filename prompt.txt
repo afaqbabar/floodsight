@@ -1,0 +1,95 @@
+1. 
+Project: FloodSight landing site & minimal app
+Repo: https://github.com/afaqbabar/floodsight
+Hosting: Vercel
+
+Your job in this workspace:
+
+Understand the codebase
+
+Read README.*, index.html, /assets, /css, floodsight.js, any /pages (privacy, terms/impressum), and deployment files (vercel.json, .env* if any).
+
+Generate a concise, bullet-point Codebase Overview (files, responsibilities, data flow).
+
+Fix & improve
+
+Routing & links: Ensure all nav/footer links work on Vercel (e.g., /impressum, /privacy, /terms). Add clean routes or anchors so 404s don’t happen.
+
+SEO: Add <title>, meta description, Open Graph/Twitter cards, canonical link, robots.txt, sitemap.xml. Validate that i18n toggle doesn’t hide metadata.
+
+Performance: Lighthouse pass ≥ 90 for Performance/Best Practices/SEO; ≥ 85 Accessibility. Lazy-load images, compress assets, defer non-critical JS, remove unused CSS.
+
+Mobile layout: Fix any mobile misalignment and CLS (use responsive grid/flex, proper image sizing, no layout jank).
+
+Forms: Make forms submit safely (Netlify removed → use Vercel). Add a no-backend mode (mailto: or Formspree) behind a config flag.
+
+I18n copy: Ensure DE/EN toggles work on all pages; persist selection in localStorage.
+
+Legal pages: Ensure Impressum (DE), Privacy/Datenschutz, and Terms exist and link correctly. Add basic accessible headings and landmarks.
+
+JS quality: Refactor floodsight.js into modules: dom.js (selectors & helpers), i18n.js, forms.js, analytics.js (optional), routes.js. No global leaks; use ES modules.
+
+Build/deploy: Provide a minimal script (npm run build if applicable) or document static export. Confirm vercel.json routes, trailingSlash, and headers (security headers).
+
+Safety & quality gates
+
+Add Prettier + ESLint with sensible web defaults.
+
+Add a lightweight Playwright smoke test for critical links (home → privacy → impressum).
+
+Add HTML validity check (e.g., npm run lint:html with html-validate).
+
+Produce a Lighthouse report (CI-free local run; include instructions and results markdown).
+
+Deliverables
+
+A short PLAN.md describing changes.
+
+A DIFF summary of all modified/added files.
+
+Updated files implementing the plan.
+
+A TESTING.md with: how to run locally, how to build, how to run Playwright, and a lighthouse checklist.
+
+If something is unclear, make the smallest reasonable assumption and proceed.
+
+Constraints
+
+Keep stack simple (static site). Don’t introduce frameworks unless truly needed.
+
+No tracking by default. If adding analytics hooks, guard them behind an env/config flag that is off.
+
+Acceptance criteria
+
+All links work on Vercel.
+
+Lighthouse thresholds met (see above).
+
+npm run format and npm run lint pass.
+
+I18n toggle persists and doesn’t break SEO/social previews.
+
+Legal pages present and accessible.
+
+README.md shows clear local dev + deploy steps for Vercel.
+
+Now do this sequence automatically:
+
+Generate the Codebase Overview.
+
+Propose a one-screen PLAN.md. Wait for my “approve” keyword.
+
+After I say approve, implement changes, 
+
+2. 
+then output:
+
+DIFF summary
+
+Updated files
+
+TESTING.md
+
+Lighthouse instructions/results
+
+Any notes for Vercel (vercel.json routes)
