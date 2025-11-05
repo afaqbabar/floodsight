@@ -22,13 +22,17 @@ jobs:
 
   secret-scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      security-events: write
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - name: Gitleaks (secrets scanning)
         uses: gitleaks/gitleaks-action@v2
-        with:
-          args: detect --no-banner --source . --redact --exit-code 1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   sast-js:
     runs-on: ubuntu-latest
