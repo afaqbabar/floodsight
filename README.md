@@ -39,29 +39,40 @@ npm run dev
 
 ```
 floodsight/
-├── index.html              # Main landing page
-├── impressum.html          # Legal imprint (DE)
-├── privacy.html            # Privacy policy (EN/DE)
-├── terms.html              # Terms of service
-├── security.html           # Security disclosure
-├── thanks.html             # Form success page
-├── 404.html                # Custom 404 page
-├── assets/
-│   ├── css/
-│   │   └── floodsight.css  # Styles
-│   └── js/
-│       ├── main.js         # Entry point (ES module)
-│       ├── nav.js          # Navigation logic
-│       ├── forms.js        # Form validation
-│       ├── utils.js        # Utilities
-│       └── dom.js          # DOM helpers
-├── scripts/
+├── 📁 public/              # Static site content
+│   ├── index.html          # Main landing page
+│   ├── impressum.html      # Legal imprint (DE)
+│   ├── privacy.html        # Privacy policy (EN/DE)
+│   ├── terms.html          # Terms of service
+│   ├── security.html       # Security disclosure
+│   ├── thanks.html         # Form success page
+│   ├── 404.html            # Custom 404 page
+│   ├── assets/
+│   │   ├── css/
+│   │   │   └── floodsight.css  # Styles
+│   │   └── js/
+│   │       ├── main.js     # Entry point (ES module)
+│   │       ├── nav.js      # Navigation logic
+│   │       ├── forms.js    # Form validation
+│   │       ├── utils.js    # Utilities
+│   │       └── dom.js      # DOM helpers
+│   ├── logos/              # Brand logos
+│   ├── sitemap.xml         # SEO sitemap
+│   └── robots.txt          # Crawler directives
+├── 📁 docs/                # Documentation
+│   ├── TESTING.md
+│   ├── DEPLOYMENT_GUIDE.md
+│   └── ...
+├── 📁 deploy/              # Kubernetes & Flux configs
+│   ├── k8s/
+│   └── flux/
+├── 📁 scripts/
 │   └── lighthouse.js       # Lighthouse CI runner
-├── tests/
+├── 📁 tests/
 │   └── smoke.spec.js       # Playwright tests
 ├── vercel.json             # Vercel config (routes, headers)
-├── sitemap.xml             # SEO sitemap
-├── robots.txt              # Crawler directives
+├── vite.config.js          # Build configuration
+├── Dockerfile.nginx        # Container build
 └── package.json            # Dependencies & scripts
 ```
 
