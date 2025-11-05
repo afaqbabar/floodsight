@@ -296,8 +296,90 @@ See [deploy/flux/README.md](deploy/flux/README.md) for details.
 ### Release flow
 
 - **Push to main** → CI builds/pushes `:latest` and `:dev-<sha>` to GHCR
-- **Tag `v0.1.x`** → optionally configure CI to add image tag `:v0.1.x`
+- **Tag `v0.1.x`** → CI adds semver tags (`:v0.1.x`, `:0.1`, etc.)
 - **Flux Image Automation** → bumps `overlays/prod` to the newest semver tag automatically
+
+---
+
+## 🔀 Dual Deployment Setup
+
+FloodSight uses **two parallel deployment flows** from the same repository:
+
+| Target | Purpose | Trigger | Managed by |
+|--------|----------|----------|-------------|
+| **Vercel** | Public landing page (static) | Push to `main` | Vercel auto-build |
+| **k3s + FluxCD** | Local/Edge runtime (containerized) | Push to `main` or tag `v*` | FluxCD GitOps |
+
+### How It Works
+
+Each environment is **isolated and independent**:
+
+- **Vercel** ignores `deploy/`, `.github/`, Docker files via `.vercelignore`
+  - Builds directly from `public/` static assets
+  - Serves the marketing site at floodsight.vercel.app
+  
+- **FluxCD on k3s** ignores `vercel.json` and Vercel-specific configs
+  - Pulls multi-arch images from `ghcr.io/afaqbabar/floodsight-frontend`
+  - Runs containerized nginx serving the Vite-built site
+  - Auto-updates when new semver tags are pushed
+
+### Raspberry Pi Setup (k3s)
+
+**Prerequisites:**
+```bash
+# Install k3s on Raspberry Pi
+curl -sfL https://get.k3s.io | sh -
+alias kubectl='sudo k3s kubectl'
+
+# Install FluxCD
+curl -s https://fluxcd.io/install.sh | sudo bash
+```
+
+**Bootstrap Flux:**
+```bash
+flux bootstrap github \
+  --owner=afaqbabar \
+  --repository=floodsight \
+  --branch=main \
+  --path=deploy/k8s/overlays/prod \
+  --personal
+```
+
+**For private GHCR images**, create a pull secret:
+```bash
+kubectl -n floodsight create secret docker-registry ghcr-creds \
+  --docker-server=ghcr.io \
+  --docker-username=afaqbabar \
+  --docker-password=<PAT_with_read:packages> \
+  --docker-email=your@email.com
+
+# Then add to deploy/k8s/base/frontend-deployment.yaml:
+# spec:
+#   template:
+#     spec:
+#       imagePullSecrets:
+#         - name: ghcr-creds
+```
+
+**Verify deployment:**
+```bash
+# Check Flux status
+flux check
+flux get kustomizations -n flux-system
+flux get imagerepositories -n flux-system
+
+# Check app
+kubectl get all -n floodsight
+kubectl get svc -n floodsight  # Get service IP/port
+```
+
+### Benefits
+
+✅ **Local testing** on real hardware (Raspberry Pi)  
+✅ **Public presence** via Vercel's global CDN  
+✅ **Single source of truth** - one repo, two outputs  
+✅ **GitOps-driven** k8s updates on every tag  
+✅ **Multi-arch support** - runs on amd64 and arm64  
 
 ---
 

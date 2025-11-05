@@ -1,7 +1,41 @@
+# Dependencies and build artifacts
 node_modules
 dist
 .git
 .gitignore
+
+# Docker files (don't copy into image)
 Dockerfile
 Dockerfile.nginx
+docker-compose.yml
 
+# Vercel-specific files (not needed in container)
+.vercel
+vercel.json
+.vercelignore
+
+# Kubernetes & GitOps (not needed in container image)
+deploy/
+flux.yaml
+kustomization.yaml
+
+# CI/CD
+.github/
+
+# Documentation
+docs/
+*.md
+
+# Test files
+tests/
+playwright.config.js
+playwright-report/
+test-results/
+
+# Local/IDE files
+.DS_Store
+.vscode/
+.idea/
+*.log
+.env.local
+.env*.local
