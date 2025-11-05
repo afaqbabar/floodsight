@@ -185,6 +185,47 @@ Results saved to `lighthouse-report/`.
 
 ---
 
+## 🛡️ Security & CI
+
+### Continuous Integration
+
+[![CI Status](https://github.com/afaqbabar/floodsight/actions/workflows/ci.yml/badge.svg)](https://github.com/afaqbabar/floodsight/actions/workflows/ci.yml)
+
+Automated checks on every PR and push to `main`:
+- **Link check** (Lychee) – Detects broken links in HTML/Markdown
+- **Secret scan** (Gitleaks) – Prevents accidental credential leaks
+- **SAST** (Semgrep) – Static analysis for JavaScript security issues
+- **HTML lint** (HTMLHint) – Validates HTML structure
+- **Lighthouse** (LHCI) – Performance, accessibility, and SEO audit
+
+### Security Headers
+
+Production site enforces strict security headers via `vercel.json`:
+- **HSTS** (2 years, preload-ready)
+- **CSP** (Content Security Policy)
+- **X-Frame-Options** (DENY)
+- **Permissions-Policy** (restricts geolocation, camera, microphone)
+
+Verify headers:
+```bash
+curl -I https://floodsight.vercel.app | grep -i -E "content-security-policy|strict-transport-security|x-frame-options"
+```
+
+### Reporting Vulnerabilities
+
+See [SECURITY.md](./SECURITY.md) for responsible disclosure guidelines.
+
+### Environment Variables (Vercel)
+
+If you need to add secrets later (e.g., analytics tokens):
+1. Go to Vercel project settings → Environment Variables
+2. Add variables (e.g., `ANALYTICS_KEY`)
+3. Reference in code or via Vercel build-time injection
+
+No secrets are required for the current static site.
+
+---
+
 ## 📄 License
 
 MIT License - see [LICENSE](./LICENSE) (if applicable)
