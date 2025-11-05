@@ -3,10 +3,11 @@
 /**
  * Build Metadata Generator
  * Generates health.json and version.txt with build information
+ * Outputs to public/ folder so Vite includes them in dist/
  */
 
 import { writeFileSync, mkdirSync } from 'fs';
-import { dirname, join } from 'path';
+import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -24,21 +25,17 @@ const metadata = {
 };
 
 // Ensure public/assets directory exists
-const assetsDir = join(rootDir, 'public', 'assets');
-try {
-  mkdirSync(assetsDir, { recursive: true });
-} catch (err) {
-  // Directory might already exist, that's fine
-}
+const assetsDir = resolve(rootDir, 'public', 'assets');
+mkdirSync(assetsDir, { recursive: true });
 
-// Write health.json
+// Write health.json to public/assets/
 const healthJsonPath = join(assetsDir, 'health.json');
 writeFileSync(healthJsonPath, JSON.stringify(metadata, null, 2), 'utf8');
 console.log('✅ Generated:', healthJsonPath);
 
-// Write version.txt (one-liner for easy curl checks)
-const versionText = `${metadata.app} | commit:${metadata.commit.slice(0, 7)} | tag:${metadata.tag} | built:${metadata.builtAt}`;
-const versionTxtPath = join(rootDir, 'public', 'version.txt');
+// Write version.txt to public/
+const versionText = `commit=${metadata.commit.slice(0, 7)} tag=${metadata.tag} builtAt=${metadata.builtAt}`;
+const versionTxtPath = resolve(rootDir, 'public', 'version.txt');
 writeFileSync(versionTxtPath, versionText + '\n', 'utf8');
 console.log('✅ Generated:', versionTxtPath);
 

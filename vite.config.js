@@ -16,6 +16,7 @@ export default {
         terms: resolve(__dirname, 'public/terms.html'),
         security: resolve(__dirname, 'public/security.html'),
         thanks: resolve(__dirname, 'public/thanks.html'),
+        health: resolve(__dirname, 'public/health.html'),
         '404': resolve(__dirname, 'public/404.html'),
         'verify-assets': resolve(__dirname, 'public/verify-assets.html'),
         'google5b12900a10441c99': resolve(__dirname, 'public/google5b12900a10441c99.html')
