@@ -52,5 +52,3 @@ curl -I https://floodsight.vercel.app | grep -i -E "content-security-policy|stri
 ---
 
 **Last updated:** November 5, 2025
-
-

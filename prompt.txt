@@ -100,7 +100,7 @@ If the images are used in the landing page (like partner logos or hero placehold
 After fixing, ensure there are **no 404s** in the browser console and all visual elements still render cleanly.
 
 Then:
-- Update the commit with a short summary (e.g. “Fix: missing SVG assets”).
+- Update the commit with a short summary (e.g. "Fix: missing SVG assets").
 - Push the changes to main.
 - Confirm that the site redeploys successfully on Vercel.
 3.
