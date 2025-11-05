@@ -215,6 +215,150 @@ npm run lighthouse
 
 ---
 
+## 🤖 CI Workflow (GitHub Actions)
+
+### Overview
+
+FloodSight uses GitHub Actions to automatically run quality checks on every pull request, push to `main`, and weekly (Sunday 2 AM UTC).
+
+**Workflow file**: `.github/workflows/ci.yml`
+
+### Jobs
+
+1. **link-check** (Lychee)
+   - Scans all `.html` and `.md` files for broken links
+   - Timeout: 20s per link, 5 concurrent
+   - Uses `GITHUB_TOKEN` to avoid rate limits
+
+2. **secret-scan** (Gitleaks)
+   - Scans full git history for leaked secrets (API keys, tokens, passwords)
+   - Exits with error if secrets found
+
+3. **sast-js** (Semgrep)
+   - Static analysis for JavaScript security issues
+   - Config: `p/ci` (community rules)
+
+4. **html-lint** (HTMLHint)
+   - Validates HTML structure using `.htmlhintrc` rules
+   - Checks: tag pairing, unique IDs, alt text, spec char escaping
+
+5. **lighthouse** (LHCI)
+   - Runs Lighthouse audit on production URL (`https://floodsight.vercel.app`)
+   - Uploads report to temporary public storage (link in logs)
+
+### Viewing Results
+
+1. Go to **GitHub → Actions** tab
+2. Click on latest workflow run
+3. Expand each job to see details
+4. For Lighthouse, click "Run Lighthouse CI" → find LHCI report URL
+
+### Running Locally (Pre-commit Hooks)
+
+Optional: Install pre-commit hooks to catch issues before pushing.
+
+```bash
+# Install pre-commit
+pip install pre-commit
+
+# Install hooks
+pre-commit install
+
+# Run manually
+pre-commit run --all-files
+```
+
+**Hooks** (`.pre-commit-config.yaml`):
+- Lychee (link check)
+- Trailing whitespace
+- End-of-file fixer
+- Large file check (max 500KB)
+
+---
+
+## 🔒 Header Verification
+
+### Browser DevTools
+
+1. Open https://floodsight.vercel.app in Chrome/Firefox
+2. Open DevTools → Network tab
+3. Reload page
+4. Click on document request (first row, usually `floodsight.vercel.app`)
+5. Scroll to **Response Headers**
+6. Verify:
+   - `strict-transport-security: max-age=63072000; includeSubDomains; preload`
+   - `content-security-policy: default-src 'self'; ...`
+   - `x-frame-options: DENY`
+   - `x-content-type-options: nosniff`
+   - `permissions-policy: geolocation=(), microphone=(), camera=()`
+
+### Command Line (curl)
+
+```bash
+curl -I https://floodsight.vercel.app
+```
+
+**Expected output** (abbreviated):
+```
+HTTP/2 200
+strict-transport-security: max-age=63072000; includeSubDomains; preload
+x-content-type-options: nosniff
+x-frame-options: DENY
+referrer-policy: no-referrer-when-downgrade
+permissions-policy: geolocation=(), microphone=(), camera=()
+x-xss-protection: 0
+content-security-policy: default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'
+```
+
+**Filter specific headers**:
+```bash
+curl -I https://floodsight.vercel.app | grep -i -E "content-security-policy|strict-transport-security|x-content-type-options|x-frame-options"
+```
+
+### Testing CSP Violations
+
+If CSP breaks something (e.g., blocks external scripts):
+1. Temporarily switch to **report-only mode** in `vercel.json`:
+   ```json
+   { "key": "Content-Security-Policy-Report-Only", "value": "..." }
+   ```
+2. Deploy and test site
+3. Check browser console for CSP violations
+4. Adjust CSP directives as needed
+5. Switch back to enforcing mode
+
+---
+
+## 🔍 Lighthouse CI Output
+
+### What to Look For
+
+After CI runs, check the Lighthouse job logs for:
+- **Report URL**: `https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/...`
+- **Scores**: Performance, Accessibility, Best Practices, SEO
+- **Key Metrics**: FCP, LCP, TBT, CLS
+
+**Target Scores**:
+- Performance: ≥90
+- Accessibility: ≥85
+- Best Practices: ≥90
+- SEO: ≥90
+
+### Common Issues
+
+**CSP warnings**:
+- "Missing Content-Security-Policy" → ✅ Fixed in this PR
+- "Unsafe inline script" → ⚠️ Acceptable for static sites with ES modules
+
+**Performance**:
+- "Eliminate render-blocking resources" → Check CSS inlining or defer non-critical styles
+- "Serve images in next-gen formats" → Convert to WebP (future enhancement)
+
+**Accessibility**:
+- "Background and foreground colors do not have sufficient contrast ratio" → Use [WebAIM contrast checker](https://webaim.org/resources/contrastchecker/)
+
+---
+
 ## 🐛 Debugging Failed Tests
 
 ### Playwright Test Fails

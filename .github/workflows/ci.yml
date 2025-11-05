@@ -1,0 +1,58 @@
+name: ci
+on:
+  pull_request:
+  push: { branches: [main] }
+  schedule:
+    - cron: "0 2 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check links with lychee
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: --verbose --no-progress --max-concurrency 5 --retry-wait-time 2 --timeout 20s "*.html" "**/*.md"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Gitleaks (secrets scanning)
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: detect --no-banner --source . --redact --exit-code 1
+
+  sast-js:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Semgrep scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          auditOn: push
+          config: p/ci
+
+  html-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm i -g htmlhint
+      - run: htmlhint "**/*.html"
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: Run Lighthouse CI on production
+        run: npx @lhci/cli autorun --collect.url=https://floodsight.vercel.app --upload.target=temporary-public-storage
+
