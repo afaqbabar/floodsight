@@ -1,0 +1,30 @@
+{
+  "name": "floodsight",
+  "version": "1.0.0",
+  "description": "FloodSight landing page - European flood intelligence platform",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "format": "prettier --write \"**/*.{html,css,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{html,css,js,json,md}\"",
+    "lint": "eslint \"assets/js/**/*.js\"",
+    "lint:html": "html-validate \"*.html\"",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "lighthouse": "node scripts/lighthouse.js"
+  },
+  "keywords": ["flood", "monitoring", "API", "climate"],
+  "author": "FloodSight",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "eslint": "^8.55.0",
+    "html-validate": "^8.9.0",
+    "lighthouse": "^11.4.0",
+    "prettier": "^3.1.1",
+    "vite": "^5.4.0"
+  }
+}
+

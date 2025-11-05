@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Page Not Found – FloodSight</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="/assets/css/floodsight.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header" role="banner" aria-label="Main">
+    <div class="container">
+      <div class="brand">
+        <a class="brand__link" href="/" aria-label="FloodSight home">
+          <svg class="brand__logo" width="32" height="32" viewBox="0 0 24 24" role="img" aria-label="FloodSight logo">
+            <path fill="currentColor" d="M12 3c3 3.6 6 5.4 9 5.4-1.8 3-4.2 5.4-9 12C7.2 13.8 4.8 11.4 3 8.4 6 8.4 9 6.6 12 3z"/>
+          </svg>
+          <span class="brand__name">FloodSight</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="container" style="padding: 80px 16px; text-align: center;">
+    <div style="max-width: 600px; margin: 0 auto;">
+      <h1 style="font-size: clamp(32px, 5vw, 56px); margin: 0 0 16px;">404</h1>
+      <p class="lead" style="font-size: 20px; margin: 0 0 24px;">Page not found</p>
+      <p style="color: var(--muted); margin: 0 0 32px;">
+        The page you're looking for doesn't exist or has been moved.
+      </p>
+      
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <a class="btn btn--primary" href="/">Go to homepage</a>
+        <a class="btn btn--ghost" href="/#contact">Contact us</a>
+      </div>
+
+      <div style="margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border);">
+        <p class="small" style="margin: 0 0 16px;">Quick links:</p>
+        <nav aria-label="Quick navigation">
+          <ul style="list-style: none; padding: 0; margin: 0; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+            <li><a href="/#features" style="color: var(--muted); text-decoration: none;">Features</a></li>
+            <li><a href="/#pricing" style="color: var(--muted); text-decoration: none;">Pricing</a></li>
+            <li><a href="/#demo" style="color: var(--muted); text-decoration: none;">Demo</a></li>
+            <li><a href="/impressum" style="color: var(--muted); text-decoration: none;">Impressum</a></li>
+            <li><a href="/privacy" style="color: var(--muted); text-decoration: none;">Privacy</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <p class="small" style="text-align: center; margin: 0;">
+        © <span id="year">2025</span> FloodSight. All rights reserved.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
+

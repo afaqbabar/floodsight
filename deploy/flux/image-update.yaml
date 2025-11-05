@@ -1,0 +1,22 @@
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageUpdateAutomation
+metadata:
+  name: floodsight-updater
+  namespace: flux-system
+spec:
+  interval: 1m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    commit:
+      author:
+        name: fluxcdbot
+        email: flux@example.com
+      messageTemplate: "chore(images): update {{range .Changed.Entries}}{{.ImageRef}}{{end}}"
+    push:
+      branch: main
+  update:
+    strategy: Setters
+    path: ./deploy/k8s/overlays/prod
+
