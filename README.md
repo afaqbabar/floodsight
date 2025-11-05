@@ -18,8 +18,7 @@ FloodSight is a European flood intelligence platform powered by ECMWF & Copernic
 
 ### Prerequisites
 
-- **Python 3** (for local dev server)
-- **Node.js 18+** (for tooling: linting, testing, lighthouse)
+- **Node.js 18+** (for Vite dev server, building, linting, testing)
 
 ### Local Development
 
@@ -31,9 +30,9 @@ cd floodsight
 # Install dependencies
 npm install
 
-# Start development server
+# Start development server (Vite)
 npm run dev
-# Opens at http://localhost:8000
+# Opens at http://localhost:5173
 ```
 
 ### Project Structure
@@ -72,7 +71,9 @@ floodsight/
 
 ```bash
 # Development
-npm run dev              # Start local server (port 8000)
+npm run dev              # Start Vite dev server (port 5173)
+npm run build            # Build production bundle to dist/
+npm run preview          # Preview production build (port 4173)
 
 # Code Quality
 npm run format           # Format code with Prettier
@@ -223,6 +224,69 @@ If you need to add secrets later (e.g., analytics tokens):
 3. Reference in code or via Vercel build-time injection
 
 No secrets are required for the current static site.
+
+---
+
+## 🐳 Containers & GitOps
+
+### Build locally
+
+```bash
+npm i
+npm run build      # Builds to dist/ with Vite
+npm run preview    # Preview production build at http://localhost:4173
+```
+
+### Docker
+
+Build and run the containerized site with nginx:
+
+```bash
+# Build image
+docker build -f Dockerfile.nginx -t ghcr.io/afaqbabar/floodsight-frontend:dev-local .
+
+# Run container
+docker run -p 8080:80 ghcr.io/afaqbabar/floodsight-frontend:dev-local
+
+# Or use docker-compose
+docker-compose up
+```
+
+Visit http://localhost:8080
+
+### Kubernetes
+
+Deploy to Kubernetes using Kustomize:
+
+```bash
+# Dev environment
+kubectl apply -k deploy/k8s/overlays/dev
+
+# Production environment
+kubectl apply -k deploy/k8s/overlays/prod
+```
+
+### Flux (GitOps)
+
+Bootstrap Flux on your cluster once:
+
+```bash
+curl -s https://fluxcd.io/install.sh | sudo bash
+flux bootstrap github \
+  --owner=afaqbabar \
+  --repository=floodsight \
+  --branch=main \
+  --path=deploy/k8s/overlays/prod \
+  --personal
+```
+
+See [deploy/flux/README.md](deploy/flux/README.md) for details.
+
+### Release flow
+
+- **Push to main** → CI builds/pushes `:latest` and `:dev-<sha>` to GHCR
+- **Tag `v0.1.x`** → optionally configure CI to add image tag `:v0.1.x`
+- **Flux Image Automation** → bumps `overlays/prod` to the newest semver tag automatically
 
 ---
 

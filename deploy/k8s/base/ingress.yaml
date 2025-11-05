@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: floodsight
+  namespace: floodsight
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: floodsight.example.com # TODO: set your domain
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port: { number: 80 }
+

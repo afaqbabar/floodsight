@@ -82,6 +82,32 @@ Propose a one-screen PLAN.md. Wait for my “approve” keyword.
 After I say approve, implement changes, 
 
 2. 
+We deployed FloodSight successfully to Vercel and Lighthouse scores are excellent. 
+However, there are some 404 errors for missing SVG assets:
+
+- /hero-map-placeholder.svg
+- /logos/citylab.svg
+- /logos/insurtech.svg
+- /logos/university.svg
+- /logos/iot.svg
+
+Fix these missing assets. 
+
+If the images are used in the landing page (like partner logos or hero placeholders), do one of the following:
+1. Preferably add simple placeholder SVGs (grey or white logos) inside /public/logos/ and /public/.
+2. If any image is not needed, remove or comment out the <img> tags in index.html.
+
+After fixing, ensure there are **no 404s** in the browser console and all visual elements still render cleanly.
+
+Then:
+- Update the commit with a short summary (e.g. "Fix: missing SVG assets").
+- Push the changes to main.
+- Confirm that the site redeploys successfully on Vercel.
+3.
+verify in browser console that no 404 errors remain after deployment
+
+
+4. 
 then output:
 
 DIFF summary
@@ -93,3 +119,811 @@ TESTING.md
 Lighthouse instructions/results
 
 Any notes for Vercel (vercel.json routes)
+#######################################
+
+Devsecops
+
+Project: FloodSight landing site (static HTML/CSS/JS)
+Repo: https://github.com/afaqbabar/floodsight
+
+Hosting: Vercel
+Goal: Add a lightweight, no-friction DevSecOps baseline suitable for a static site without changing the stack.
+
+Read & understand
+
+Read README.*, index.html, /assets, /css, any *.js (e.g., floodsight.js), legal pages (/privacy.html, /terms.html, /impressum.html), and existing vercel.json.
+
+Produce a short Codebase Overview (files, responsibilities, nav/links, deployment specifics).
+
+What to implement (security + quality)
+
+Security headers on Vercel (extend, don’t replace)
+
+Keep the existing vercel.json content (rewrites/routes).
+
+Add a "headers" section that applies to /(.*) with:
+
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+
+X-Content-Type-Options: nosniff
+
+X-Frame-Options: DENY
+
+Referrer-Policy: no-referrer-when-downgrade
+
+Permissions-Policy: geolocation=(), microphone=(), camera=()
+
+X-XSS-Protection: 0
+
+Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'
+
+If CSP breaks anything, temporarily switch to Content-Security-Policy-Report-Only, test, then re-tighten.
+
+GitHub Actions CI (create .github/workflows/ci.yml)
+Jobs to add:
+
+Link check with Lychee (scan *.html, **/*.md; sensible timeouts; use ${{ secrets.GITHUB_TOKEN }}).
+
+Secrets scan with Gitleaks (use full history, --redact, --exit-code 1).
+
+SAST for JS/HTML with Semgrep (config: p/ci).
+
+HTML lint with HTMLHint (add a small .htmlhintrc).
+
+Lighthouse (production URL) using npx @lhci/cli autorun against https://floodsight.vercel.app.
+
+Trigger on pull_request, push to main, and a weekly cron.
+
+.htmlhintrc (root)
+
+Rules: attr-no-duplication, doctype-html5, tag-pair, id-unique, spec-char-escape, img-alt-require, etc. (common-sense defaults).
+
+SECURITY.md (root)
+
+How to report vulnerabilities (email or GitHub Security Advisory).
+
+Statement of practice: no secrets in repo; CI = Lychee + Gitleaks + Semgrep + HTMLHint + Lighthouse; headers via vercel.json.
+
+(Optional, local) .pre-commit-config.yaml
+
+Hooks: lychee, trailing whitespace, EOF fixer, large files.
+
+Add instructions in TESTING.md for enabling locally.
+
+Minimal docs
+
+PLAN.md (one-screen plan of changes).
+
+TESTING.md with: how to run locally, what CI does, how to check headers (DevTools + curl -I), and how to read Lighthouse output.
+
+Update README.md with a short “Security & CI” section and how to add env vars in Vercel (if needed later).
+
+Do not break routes
+
+Ensure existing rewrites for /privacy, /terms, /impressum still work.
+
+If any links 404, fix paths or create routes (prefer clean routes that map to HTML files).
+
+Constraints
+
+Do not introduce frameworks or a build system; keep it static.
+
+Keep CI fast (< ~3–4 min).
+
+Don’t commit secrets; use GitHub/Vercel envs if needed later.
+
+Keep diffs minimal and well-scoped.
+
+Acceptance criteria
+
+Security headers present on production (verified by DevTools/curl -I).
+
+CI passes: Lychee, Gitleaks, Semgrep, HTMLHint, Lighthouse.
+
+No broken links (site & console clean of 404s).
+
+No change in visual layout; mobile still OK.
+
+Clear docs (PLAN.md, TESTING.md, README section).
+
+Delivery format & sequence
+
+Output:
+
+Codebase Overview (bullets)
+
+PLAN.md proposal (one screen)
+
+DIFF summary (file list + brief changes)
+
+Exact file contents for:
+
+.github/workflows/ci.yml
+
+.htmlhintrc
+
+SECURITY.md
+
+(optional) .pre-commit-config.yaml
+
+Updated vercel.json (merged headers, not replaced)
+
+README and TESTING updates
+
+Wait for my keyword: approve
+
+After I say approve:
+
+Create a branch security-setup
+
+Apply all changes
+
+Open a PR titled “Add lightweight DevSecOps (headers + CI)” with a concise description
+
+Post CI run results, Lighthouse link, and header verification snippet (e.g., curl -I output)
+
+If CI flags anything, fix and update the PR until green
+
+After merge:
+
+Confirm Vercel deployment is live
+
+Re-check headers and console (no 404s)
+
+Templates (use these exact contents unless repo needs minor tweaks)
+
+.github/workflows/ci.yml
+
+name: ci
+on:
+  pull_request:
+  push: { branches: [main] }
+  schedule:
+    - cron: "0 2 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check links with lychee
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: --verbose --no-progress --max-concurrency 5 --retry-wait-time 2 --timeout 20s ".*\\.html" "**/*.md"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Gitleaks (secrets scanning)
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: detect --no-banner --source . --redact --exit-code 1
+
+  sast-js:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Semgrep scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          auditOn: push
+          config: p/ci
+
+  html-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm i -g htmlhint
+      - run: htmlhint "**/*.html"
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: Run Lighthouse CI on production
+        run: npx @lhci/cli autorun --collect.url=https://floodsight.vercel.app --upload.target=temporary-public-storage
+
+
+.htmlhintrc
+
+{
+  "attr-lowercase": true,
+  "attr-no-duplication": true,
+  "doctype-first": false,
+  "doctype-html5": true,
+  "tagname-lowercase": true,
+  "tag-pair": true,
+  "tag-self-close": false,
+  "id-unique": true,
+  "spec-char-escape": true,
+  "head-script-disabled": false,
+  "img-alt-require": true
+}
+
+
+SECURITY.md
+
+# Security Policy
+
+## Reporting a vulnerability
+Please email security@floodsight.app or open a private GitHub Security Advisory. Do **not** file public issues for sensitive reports.
+
+## Practices
+- No secrets in the repository; use GitHub Actions Secrets and Vercel Environment Variables.
+- CI runs: Link check (Lychee), Secret scan (Gitleaks), Static analysis (Semgrep), HTML lint (HTMLHint), Lighthouse (production).
+- Security headers are enforced via `vercel.json`.
+
+## Scope
+Static site (HTML/CSS/JS). Issues are typically: missing headers, broken links, unsafe external assets, or leaked secrets.
+
+
+vercel.json (merge example)
+
+Keep existing keys (rewrites/routes). Add this headers block; do not remove current content.
+
+{
+  "rewrites": [
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/terms", "destination": "/terms.html" },
+    { "source": "/impressum", "destination": "/impressum.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "no-referrer-when-downgrade" },
+        { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" },
+        { "key": "X-XSS-Protection", "value": "0" },
+        { "key": "Content-Security-Policy",
+          "value": "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
+        }
+      ]
+    }
+  ]
+}
+
+
+PLAN.md (sample)
+
+# PLAN
+- Add DevSecOps baseline for static Vercel site:
+  1) Security headers via `vercel.json` (merge, not replace)
+  2) CI: Lychee, Gitleaks, Semgrep, HTMLHint, Lighthouse
+  3) Docs: TESTING.md + README updates; SECURITY.md
+- Keep stack simple; no framework or build changes.
+- Validate: headers visible on prod; CI green; no 404s.
+
+
+TESTING.md (sample)
+
+# Testing & Verification
+
+## Headers
+- Browser: DevTools → Network → Document → Response Headers (check CSP, HSTS, etc.)
+- CLI: `curl -I https://floodsight.vercel.app | grep -i -E "content-security-policy|strict-transport-security|x-content-type-options|x-frame-options"`
+
+## CI
+- See GitHub → Actions → `ci` workflow for:
+  - Lychee, Gitleaks, Semgrep, HTMLHint, Lighthouse
+- Re-run workflow on latest commit or open a PR.
+
+## Lighthouse
+- Run in Chrome Lighthouse panel or rely on CI step (LHCI output link in logs).
+
+## Optional pre-commit
+- `pip install pre-commit && pre-commit install`
+- Hooks: lychee, whitespace, EOF fixer, large files.
+
+If anything is unclear
+
+Make the smallest reasonable assumption and proceed.
+
+Maintain small, readable commits with clear messages.
+
+############
+Update the Gitleaks job in .github/workflows/ci.yml to use the new syntax:
+
+remove the deprecated args: input
+
+add permissions: { contents: read, security-events: write }
+
+pass env: GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+The workflow should run without needing a manually created token.
+###########
+Update the secret-scan job to keep gitleaks/gitleaks-action@v2, add permissions: { contents: read, pull-requests: read, security-events: write }, and set env: GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}. Also note in the PR description that the repo setting “Workflow permissions → Read and write” must be enabled.
+#######
+
+🪜 Step-by-Step: Add SECURITY_NEXT.md
+1️⃣ Open your repo in VS Code (or Cursor)
+
+Open the folder:
+C:\Users\Lenovo\scrimba\floodsight\floodsight
+
+or in GitHub web UI → click Add file ▸ Create new file
+
+2️⃣ File name
+
+SECURITY_NEXT.md (all caps)
+
+3️⃣ Paste this content
+# 🔐 FloodSight — Post-Merge Security Hardening Checklist
+
+Your initial DevSecOps baseline is live ✅  
+Next steps focus on incremental hardening, automation, and audit readiness.
+
+---
+
+## 1️⃣ Platform & Workflow
+- [ ] **Protect `main` branch**  
+  → Settings ▸ Branches ▸ Add rule ▸ Require pull request reviews & “CI must pass”.
+- [ ] **Dependabot for GitHub Actions**  
+  ```yaml
+  # .github/dependabot.yml
+  version: 2
+  updates:
+    - package-ecosystem: "github-actions"
+      directory: "/"
+      schedule: { interval: "weekly" }
+
+
+ Status badge in README
+
+![CI](https://github.com/afaqbabar/floodsight/actions/workflows/ci.yml/badge.svg)
+
+
+ Enable GitHub security features
+
+Dependabot alerts
+
+Code scanning (use default CodeQL or Semgrep)
+
+Secret scanning
+
+2️⃣ Continuous Verification
+
+ Run curl -I https://floodsight.vercel.app weekly or add a cron job to verify headers.
+
+ Use Lighthouse CI scores to track regressions.
+
+ Review CI logs for any Lychee broken links.
+
+3️⃣ Privacy & Legal
+
+ Review privacy.html and terms.html for completeness (align with GDPR).
+
+ Add link to SECURITY.md in footer (“Responsible Disclosure”).
+
+ Document any cookies or analytics tools.
+
+4️⃣ Future Hardening Ideas
+
+ Integrate OWASP ZAP scan in staging.
+
+ Add S3/OBS access policy review (when backend/API added).
+
+ Add audit logs retention (if backend introduced).
+
+ Consider DNS CNAME verification for sub-domain integrity.
+
+✅ Verification command
+curl -I https://floodsight.vercel.app | grep -i -E "content-security-policy|strict-transport-security|x-frame-options|referrer-policy"
+
+
+Last updated: {{current_date}}
+
+
+Replace `{{current_date}}` with today’s date.
+
+---
+
+### 4️⃣ Commit and push
+If using VS Code:
+```bash
+git add SECURITY_NEXT.md
+git commit -m "Add post-merge security hardening checklist"
+git push
+
+
+If using GitHub UI:
+Click Commit directly to main.
+####
+
+Cursor Agent Prompt — “Bundle assets/js + Containerize + GitOps (FloodSight)”
+
+Role: Senior DevOps/FE engineer on github.com/afaqbabar/floodsight.
+
+Goal:
+Add a minimal build step with Vite (bundles assets/js/main.js), then containerize with nginx, add GitHub Actions to push multi-arch images to GHCR, add Kustomize (dev/prod) and FluxCD image automation. Do not break the existing Vercel deploy — keep vercel.json as-is.
+
+Project facts (use these exact paths)
+
+JS entry: /assets/js/main.js (ESM, imports other modules)
+
+Other JS files: /assets/js/{dom,floodsight,forms,nav,utils}.js
+
+CSS: /assets/css/floodsight.css
+
+HTML pages (multi-page build):
+index.html, impressum.html, privacy.html, terms.html, security.html, thanks.html, 404.html, verify-assets.html, google5b12900a10441c99.html
+
+1) Add Vite (bundle + multi-page)
+
+Update package.json:
+
+Add devDependency: "vite": "^5.4.0" (or latest)
+
+Add scripts (keep current ones):
+
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "format": "prettier --write \"**/*.{html,css,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{html,css,js,json,md}\"",
+    "lint": "eslint \"assets/js/**/*.js\"",
+    "lint:html": "html-validate \"*.html\"",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "lighthouse": "node scripts/lighthouse.js"
+  }
+}
+
+
+Create vite.config.js at repo root:
+
+import { resolve } from 'node:path';
+
+export default {
+  root: '.',              // project root is repository root
+  base: './',             // keep relative paths for nginx or any hosting
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+      input: {
+        index: resolve(__dirname, 'index.html'),
+        impressum: resolve(__dirname, 'impressum.html'),
+        privacy: resolve(__dirname, 'privacy.html'),
+        terms: resolve(__dirname, 'terms.html'),
+        security: resolve(__dirname, 'security.html'),
+        thanks: resolve(__dirname, 'thanks.html'),
+        '404': resolve(__dirname, '404.html'),
+        'verify-assets': resolve(__dirname, 'verify-assets.html'),
+        'google5b12900a10441c99': resolve(__dirname, 'google5b12900a10441c99.html')
+      }
+    }
+  },
+  server: {
+    port: 5173,
+    open: false
+  }
+};
+
+
+HTML & scripts:
+
+Leave <script type="module" src="/assets/js/main.js"> in index.html. Vite will rewrite to the bundled file for dist/.
+
+Other pages don’t currently load JS; that’s fine. Vite will still process and output them to dist/.
+
+Run locally to verify:
+
+npm i
+npm run build
+npm run preview
+
+2) Docker (nginx runtime)
+
+Add Dockerfile.nginx (root):
+
+FROM node:20-alpine AS build
+WORKDIR /site
+COPY package*.json ./
+RUN npm ci || npm i
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /site/dist /usr/share/nginx/html
+EXPOSE 80
+
+
+Add .dockerignore:
+
+node_modules
+dist
+.git
+.gitignore
+Dockerfile
+Dockerfile.nginx
+
+
+Optional docker-compose.yml:
+
+version: "3.9"
+services:
+  web:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.nginx
+    ports: ["8080:80"]
+
+3) CI to GHCR (multi-arch)
+
+Create .github/workflows/build-and-push.yml:
+
+name: Build static site & push image
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Derive image name
+        id: iv
+        run: |
+          echo "IMAGE=ghcr.io/${{ github.repository }}-frontend" >> $GITHUB_OUTPUT
+          echo "TAG=dev-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Build & Push (multi-arch)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.nginx
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ steps.iv.outputs.IMAGE }}:${{ steps.iv.outputs.TAG }}
+            ${{ steps.iv.outputs.IMAGE }}:latest
+          cache-from: type=registry,ref=${{ steps.iv.outputs.IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ steps.iv.outputs.IMAGE }}:buildcache,mode=max
+
+
+This pushes ghcr.io/afaqbabar/floodsight-frontend:{dev-<sha>,latest} (works on cloud + Raspberry Pi 5).
+
+4) Kubernetes (Kustomize)
+
+Create files:
+
+deploy/k8s/base/namespace.yaml
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: floodsight
+
+
+deploy/k8s/base/frontend-deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: floodsight
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: frontend } }
+  template:
+    metadata: { labels: { app: frontend } }
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/afaqbabar/floodsight-frontend:latest
+          ports: [{ containerPort: 80 }]
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits:   { cpu: "300m", memory: "256Mi" }
+
+
+deploy/k8s/base/frontend-service.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: floodsight
+spec:
+  selector: { app: frontend }
+  ports:
+    - port: 80
+      targetPort: 80
+
+
+deploy/k8s/base/ingress.yaml
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: floodsight
+  namespace: floodsight
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: floodsight.example.com # TODO: set your domain
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port: { number: 80 }
+
+
+deploy/k8s/overlays/dev/kustomization.yaml
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: floodsight
+resources: [ ../../base ]
+images:
+  - name: ghcr.io/afaqbabar/floodsight-frontend
+    newTag: dev
+
+
+deploy/k8s/overlays/prod/kustomization.yaml
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: floodsight
+resources: [ ../../base ]
+images:
+  - name: ghcr.io/afaqbabar/floodsight-frontend
+    newTag: v0.1.0
+
+5) FluxCD (GitOps + Image Automation)
+
+Create:
+
+deploy/flux/image-repositories.yaml
+
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: floodsight-frontend
+  namespace: flux-system
+spec:
+  image: ghcr.io/afaqbabar/floodsight-frontend
+  interval: 1m
+
+
+deploy/flux/image-policies.yaml
+
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: frontend-policy
+  namespace: flux-system
+spec:
+  imageRepositoryRef: { name: floodsight-frontend }
+  policy:
+    semver:
+      range: ">=0.1.0"
+
+
+deploy/flux/image-update.yaml
+
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageUpdateAutomation
+metadata:
+  name: floodsight-updater
+  namespace: flux-system
+spec:
+  interval: 1m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    commit:
+      author:
+        name: fluxcdbot
+        email: flux@example.com
+      messageTemplate: "chore(images): update {{range .Changed.Entries}}{{.ImageRef}}{{end}}"
+    push:
+      branch: main
+  update:
+    strategy: Setters
+    path: ./deploy/k8s/overlays/prod
+
+
+Bootstrap Flux on your cluster once:
+
+curl -s https://fluxcd.io/install.sh | sudo bash
+flux bootstrap github \
+  --owner=afaqbabar \
+  --repository=floodsight \
+  --branch=main \
+  --path=deploy/k8s/overlays/prod \
+  --personal
+
+6) README (append “Build, Docker & GitOps”)
+
+Add a section with:
+
+## Containers & GitOps
+
+### Build locally
+npm i
+npm run build
+npm run preview
+
+### Docker
+docker build -f Dockerfile.nginx -t ghcr.io/afaqbabar/floodsight-frontend:dev-local .
+docker run -p 8080:80 ghcr.io/afaqbabar/floodsight-frontend:dev-local
+
+### Kubernetes
+kubectl apply -k deploy/k8s/overlays/dev
+
+### Flux (once, on cluster)
+# see commands in deploy/flux/README (or above)
+
+### Release flow
+- Push to main → CI builds/pushes `:latest` and `:dev-<sha>`.
+- Tag `v0.1.x` → optionally configure CI to add image tag `:v0.1.x`.
+- Flux Image Automation bumps `overlays/prod` to the newest semver.
+
+
+Guardrails
+
+Do not change vercel.json.
+
+Keep HTML structure; Vite will emit dist/ pages and hashed assets.
+
+Leave Playwright/ESLint configs untouched.
+
+Acceptance checks (Cursor should verify)
+
+npm run build produces dist/ with all listed HTML pages.
+
+Docker image serves site on port 80.
+
+Push to main produces ghcr.io/afaqbabar/floodsight-frontend:latest.
+
+kubectl apply -k deploy/k8s/overlays/dev yields a healthy Deployment/Service.
+
+Commit plan
+
+chore: add Vite config & scripts
+
+chore: add Dockerfile.nginx, .dockerignore, compose
+
+ci: GHCR multi-arch workflow
+
+feat(k8s): base + dev/prod overlays
+
+feat(flux): image automation
+
+docs: README – Containers & GitOps
+########
