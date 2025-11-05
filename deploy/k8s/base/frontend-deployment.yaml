@@ -9,6 +9,8 @@ spec:
   template:
     metadata: { labels: { app: frontend } }
     spec:
+      imagePullSecrets:
+        - name: ghcr-creds
       containers:
         - name: frontend
           image: ghcr.io/afaqbabar/floodsight-frontend:latest
