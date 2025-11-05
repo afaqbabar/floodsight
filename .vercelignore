@@ -1,0 +1,29 @@
+# Kubernetes & GitOps files (not needed for Vercel static build)
+deploy/
+flux.yaml
+kustomization.yaml
+
+# Docker files (not needed for Vercel)
+Dockerfile.nginx
+docker-compose.yml
+.dockerignore
+
+# CI/CD workflows (Vercel has its own)
+.github/
+
+# Documentation
+docs/
+
+# Local development
+node_modules/
+.DS_Store
+*.log
+.env.local
+.env*.local
+
+# Test files
+tests/
+playwright.config.js
+playwright-report/
+test-results/
+

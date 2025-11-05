@@ -2,6 +2,7 @@ name: Build static site & push image
 on:
   push:
     branches: [ main ]
+    tags: [ 'v*' ]
   workflow_dispatch:
 
 jobs:
@@ -23,22 +24,28 @@ jobs:
       - name: Setup Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Derive image name
-        id: iv
-        run: |
-          echo "IMAGE=ghcr.io/${{ github.repository }}-frontend" >> $GITHUB_OUTPUT
-          echo "TAG=dev-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}-frontend
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=dev-,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build & Push (multi-arch)
+      - name: Build & Push (multi-arch for arm64/amd64)
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile.nginx
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ${{ steps.iv.outputs.IMAGE }}:${{ steps.iv.outputs.TAG }}
-            ${{ steps.iv.outputs.IMAGE }}:latest
-          cache-from: type=registry,ref=${{ steps.iv.outputs.IMAGE }}:buildcache
-          cache-to: type=registry,ref=${{ steps.iv.outputs.IMAGE }}:buildcache,mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}-frontend:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}-frontend:buildcache,mode=max
 
