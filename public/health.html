@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Health Dashboard – FloodSight</title>
+  <link rel="stylesheet" href="/assets/css/floodsight.css">
+  <style>
+    body {
+      background: #0f1419;
+      color: #e0e6ed;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .status-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 12px #22c55e;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .status-dot.error {
+      background: #ef4444;
+      box-shadow: 0 0 12px #ef4444;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 600;
+    }
+    .info-grid {
+      display: grid;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .info-card {
+      background: #1a2332;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    .info-label {
+      font-size: 0.875rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+    .info-value {
+      font-size: 1.125rem;
+      font-weight: 500;
+      word-break: break-all;
+    }
+    .info-value code {
+      background: #0f1419;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 0.875rem;
+    }
+    .refresh-info {
+      margin-top: 2rem;
+      text-align: center;
+      color: #64748b;
+      font-size: 0.875rem;
+    }
+    .error-message {
+      background: #7f1d1d;
+      border: 1px solid #dc2626;
+      color: #fecaca;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="status-dot" id="statusDot"></div>
+    <h1>Health Dashboard</h1>
+  </div>
+
+  <div id="content">
+    <p>Loading health data...</p>
+  </div>
+
+  <div class="refresh-info">
+    Auto-refreshes every 5 seconds
+  </div>
+
+  <script>
+    async function fetchHealth() {
+      try {
+        const response = await fetch('/assets/health.json');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const data = await response.json();
+        displayHealth(data);
+        
+        // Update status dot
+        const dot = document.getElementById('statusDot');
+        dot.className = 'status-dot';
+      } catch (error) {
+        displayError(error);
+        
+        // Update status dot to error
+        const dot = document.getElementById('statusDot');
+        dot.className = 'status-dot error';
+      }
+    }
+
+    function displayHealth(data) {
+      const content = document.getElementById('content');
+      content.innerHTML = `
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-label">Status</div>
+            <div class="info-value">${data.status || 'unknown'}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Application</div>
+            <div class="info-value">${data.app || 'N/A'}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Commit</div>
+            <div class="info-value"><code>${data.commit ? data.commit.slice(0, 7) : 'N/A'}</code></div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Tag</div>
+            <div class="info-value"><code>${data.tag || 'N/A'}</code></div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Branch</div>
+            <div class="info-value"><code>${data.branch || 'N/A'}</code></div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Image</div>
+            <div class="info-value" style="font-size: 0.875rem;"><code>${data.image || 'N/A'}</code></div>
+          </div>
+          <div class="info-card">
+            <div class="info-label">Built At</div>
+            <div class="info-value">${data.builtAt ? new Date(data.builtAt).toLocaleString() : 'N/A'}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function displayError(error) {
+      const content = document.getElementById('content');
+      content.innerHTML = `
+        <div class="error-message">
+          <strong>Error loading health data:</strong> ${error.message}
+        </div>
+      `;
+    }
+
+    // Initial fetch
+    fetchHealth();
+
+    // Auto-refresh every 5 seconds
+    setInterval(fetchHealth, 5000);
+  </script>
+</body>
+</html>
+

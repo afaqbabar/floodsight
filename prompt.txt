@@ -927,3 +927,374 @@ feat(flux): image automation
 
 docs: README – Containers & GitOps
 ########
+🧠 Cursor Agent Prompt — “Dual Deploy: Vercel + k3s (FluxCD)”
+
+Role: Senior DevOps + Platform Engineer for the afaqbabar/floodsight repo.
+
+Goal:
+Maintain one repo that supports two deployment targets:
+
+Vercel → static frontend / landing page
+
+FluxCD on local k3s (Raspberry Pi) → GitOps-managed containerized deployment
+
+Ensure both pipelines coexist without conflict and work automatically on each Git push.
+
+Tasks
+🟩 1. Keep current Vercel deployment intact
+
+Do not modify or delete:
+
+vercel.json
+
+root HTML/CSS/JS assets under /assets and /index.html
+
+Add .vercelignore at root to skip irrelevant files for Vercel builds:
+
+deploy/
+.github/
+Dockerfile.nginx
+flux.yaml
+kustomization.yaml
+
+
+Verify that a push to main still triggers a successful Vercel build.
+
+🟦 2. Confirm Docker + FluxCD setup for k3s
+
+Ensure Dockerfile.nginx builds from Vite output (dist/) at root.
+
+Ensure .dockerignore excludes:
+
+.vercel
+vercel.json
+deploy/
+.github/
+
+
+Verify .github/workflows/build-and-push.yml:
+
+Context: .
+
+File: ./Dockerfile.nginx
+
+Platforms: linux/amd64,linux/arm64
+
+Tags:
+
+tags: |
+  ${{ steps.iv.outputs.IMAGE }}:${{ steps.iv.outputs.TAG }}
+  ${{ steps.iv.outputs.IMAGE }}:latest
+  ${{ steps.iv.outputs.IMAGE }}:${{ github.ref_name }}
+
+
+Triggers:
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+
+🧭 3. Prepare for local FluxCD deployment on Raspberry Pi (k3s)
+
+Expect k3s installed via:
+
+curl -sfL https://get.k3s.io | sh -
+alias kubectl='sudo k3s kubectl'
+
+
+Verify deploy/k8s/overlays/prod path is correct.
+
+Flux bootstrap command (for documentation):
+
+flux bootstrap github \
+  --owner=afaqbabar \
+  --repository=floodsight \
+  --branch=main \
+  --path=deploy/k8s/overlays/prod \
+  --personal
+
+
+Confirm all Flux files are located under deploy/flux/:
+
+image-repositories.yaml
+
+image-policies.yaml
+
+image-update.yaml
+
+Ensure all CR references (namespace: flux-system) are consistent.
+
+⚙️ 4. Separate environment responsibilities
+
+Add a short README section called “Dual Deploy Setup” explaining:
+
+Vercel → static site
+
+k3s + FluxCD → edge deployment
+
+Mention that both run from the same branch, independently.
+
+Example doc snippet for README (Cursor should append it):
+
+## Dual Deployment Setup
+
+FloodSight uses two parallel deployment flows:
+
+| Target | Purpose | Trigger | Managed by |
+|--------|----------|----------|-------------|
+| **Vercel** | Public landing page | Push to `main` | Vercel auto-build |
+| **k3s + FluxCD** | Local/Edge runtime | Push to `main` or tag | FluxCD GitOps |
+
+Each environment is isolated:
+- Vercel ignores `deploy/`, `.github/`, Dockerfiles.
+- FluxCD ignores `vercel.json` and static-only configs.
+
+This setup allows local Kubernetes testing and continuous public deployment from the same repo.
+
+🔒 5. Optional: Private image handling for Flux
+
+If GHCR images are private, document the creation of a Kubernetes pull secret:
+
+kubectl -n floodsight create secret docker-registry ghcr-creds \
+  --docker-server=ghcr.io \
+  --docker-username=afaqbabar \
+  --docker-password=<PAT with read:packages> \
+  --docker-email=<you@example.com>
+
+
+and link it under spec.template.spec.imagePullSecrets in the Deployment.
+
+🧪 6. Final validation tasks
+
+Vercel build succeeds and deploys the landing page.
+
+GitHub Action pushes images to ghcr.io/afaqbabar/floodsight-frontend.
+
+flux check on Pi passes all controllers.
+
+flux get kustomizations -n flux-system shows successful reconciliation.
+
+kubectl get svc -n floodsight confirms app reachable locally.
+
+Expected deliverables
+
+.vercelignore and .dockerignore files created.
+
+Updated workflow (.github/workflows/build-and-push.yml) includes tag builds.
+
+README section “Dual Deployment Setup” appended.
+
+Verified manifests under deploy/ unchanged and valid.
+
+PR created titled:
+“feat: dual deploy support (Vercel + FluxCD k3s)”
+
+####################
+Cursor Agent Prompt — “Add health endpoint + deploy dashboard (Vercel + k3s)”
+
+Role: Senior DevOps/FE engineer for afaqbabar/floodsight.
+
+Goal:
+Add a tiny /healthz JSON endpoint (served by nginx) and a friendly /health.html dashboard that shows build info (commit, tag, build time, image). Make it work on Vercel and in Kubernetes (k3s via Flux). Add Kubernetes liveness/readiness probes.
+
+Constraints
+
+Keep Vercel deploy intact (vercel.json untouched).
+
+Continue using Vite for bundling.
+
+Current Docker runtime is nginx (Dockerfile.nginx).
+
+K8s manifests live under deploy/k8s/....
+
+Tasks
+1) Build metadata generator (Node script)
+
+Create scripts/build-meta.js that writes assets/health.json at build time:
+
+Fields:
+
+status: "ok"
+
+app: "floodsight"
+
+commit: process.env.GIT_SHA || ""
+
+tag: process.env.GIT_TAG || ""
+
+branch: process.env.GIT_BRANCH || ""
+
+image: process.env.IMAGE_REF || ""
+
+builtAt: new Date().toISOString()
+
+Ensure directory exists, pretty-print JSON.
+
+Update package.json:
+
+{
+  "scripts": {
+    "prebuild": "node scripts/build-meta.js",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}
+
+2) Health dashboard page
+
+Add health.html (minimal page) that:
+
+fetches /assets/health.json and shows the JSON in a pretty table
+
+auto-refreshes every 5s
+
+shows green/red status dot
+
+Also add a plain-text version: version.txt (emit during prebuild in the same script, include commit/tag/builtAt on one line) — helpful for curl checks and Vercel.
+
+3) Nginx /healthz endpoint (container)
+
+Create nginx/health.conf:
+
+server {
+  listen 80 default_server;
+  listen [::]:80 default_server;
+
+  root   /usr/share/nginx/html;
+  index  index.html;
+
+  # JSON health endpoint
+  location = /healthz {
+    default_type application/json;
+    return 200 '{"status":"ok"}';
+  }
+
+  # try static files first
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+}
+
+
+Update Dockerfile.nginx to use this config:
+
+FROM node:20-alpine AS build
+WORKDIR /site
+COPY package*.json ./
+RUN npm ci || npm i
+COPY . .
+ARG GIT_SHA
+ARG GIT_TAG
+ARG GIT_BRANCH
+ARG IMAGE_REF
+ENV GIT_SHA=$GIT_SHA GIT_TAG=$GIT_TAG GIT_BRANCH=$GIT_BRANCH IMAGE_REF=$IMAGE_REF
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /site/dist /usr/share/nginx/html
+COPY nginx/health.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+
+4) CI: inject build metadata
+
+Edit .github/workflows/build-and-push.yml:
+
+Add build args so the image knows commit/tag/branch:
+
+- name: Build & Push (multi-arch)
+  uses: docker/build-push-action@v6
+  with:
+    context: .
+    file: ./Dockerfile.nginx
+    platforms: linux/amd64,linux/arm64
+    push: true
+    build-args: |
+      GIT_SHA=${{ github.sha }}
+      GIT_TAG=${{ github.ref_type == 'tag' && github.ref_name || '' }}
+      GIT_BRANCH=${{ github.ref_name }}
+      IMAGE_REF=ghcr.io/${{ github.repository }}-frontend:${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+    tags: |
+      ${{ steps.iv.outputs.IMAGE }}:${{ steps.iv.outputs.TAG }}
+      ${{ steps.iv.outputs.IMAGE }}:latest
+      ${{ steps.iv.outputs.IMAGE }}:${{ github.ref_name }}
+
+
+(Keep your existing login/setup/cache steps as-is.)
+
+5) Kubernetes probes + annotations
+
+Update deploy/k8s/base/frontend-deployment.yaml container spec to include probes:
+
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: 80
+  initialDelaySeconds: 3
+  periodSeconds: 5
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 80
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+
+Also add a label so you can see version in kubectl:
+
+metadata:
+  labels:
+    app: frontend
+    app.kubernetes.io/name: floodsight-frontend
+    app.kubernetes.io/version: "v{{TAG}}" # Cursor: substitute with Kustomize var or leave static
+
+
+(If you prefer immutable labels, keep it static; the health page already shows dynamic info.)
+
+6) README additions (Vercel + k3s)
+
+Append a section:
+
+## Health endpoints
+
+- **App dashboard:** `/health.html` (auto-refresh, shows commit/tag/time/image)
+- **JSON probe:** `/assets/health.json`
+- **Plain health:** `/healthz` (200 OK JSON, served by nginx)
+- **Plain text version:** `/version.txt`
+
+### Quick checks
+- Browser: `http://<host>/health.html`
+- Curl JSON: `curl -s http://<host>/assets/health.json | jq .`
+- Probe: `curl -s -o /dev/null -w "%{http_code}\n" http://<host>/healthz`
+- Text: `curl http://<host>/version.txt`
+
+7) Vercel compatibility
+
+No changes needed; Vercel will serve health.html, assets/health.json, and version.txt.
+(Nginx-only /healthz will exist only in the Docker/K8s deployment, not on Vercel — that’s fine.)
+
+Acceptance criteria
+
+npm run build emits dist/assets/health.json and dist/version.txt.
+
+health.html loads and displays build info.
+
+Docker image exposes /healthz (returns 200 JSON), /health.html, /version.txt.
+
+K8s Deployment has working readiness/liveness probes against /healthz.
+
+README documents endpoints and curl snippets.
+
+Commit plan
+
+feat(health): add build-meta script and health dashboard
+
+feat(nginx): add /healthz conf; wire Dockerfile
+
+ci: pass build args (commit/tag/branch/image) to Docker
+
+feat(k8s): add liveness/readiness probes
+
+docs: README – health endpoints & checks
+##########

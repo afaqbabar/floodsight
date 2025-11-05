@@ -4,6 +4,7 @@
   "description": "FloodSight landing page - European flood intelligence platform",
   "type": "module",
   "scripts": {
+    "prebuild": "node scripts/build-meta.js",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",

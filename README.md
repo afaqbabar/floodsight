@@ -383,6 +383,62 @@ kubectl get svc -n floodsight  # Get service IP/port
 
 ---
 
+## 🏥 Health Endpoints
+
+FloodSight includes comprehensive health monitoring endpoints for both Vercel and k3s deployments:
+
+| Endpoint | Purpose | Format | Platform |
+|----------|---------|--------|----------|
+| `/health.html` | Interactive dashboard with auto-refresh | HTML | Both |
+| `/assets/health.json` | Build metadata (commit, tag, image, timestamp) | JSON | Both |
+| `/version.txt` | Plain text version info | Text | Both |
+| `/healthz` | Kubernetes probe endpoint | JSON | k3s only |
+
+### Health Dashboard
+
+Visit `/health.html` for a live dashboard showing:
+- ✅ **Status**: Application health
+- 📦 **Commit**: Git SHA (short)
+- 🏷️ **Tag**: Version tag
+- 🌿 **Branch**: Git branch
+- 🐳 **Image**: Container image reference
+- ⏰ **Built At**: Build timestamp
+
+The dashboard auto-refreshes every 5 seconds and displays a green/red status indicator.
+
+### Quick Health Checks
+
+```bash
+# View health dashboard in browser
+open http://localhost:8080/health.html
+
+# Get JSON health data
+curl -s http://localhost:8080/assets/health.json | jq .
+
+# Check plain text version
+curl http://localhost:8080/version.txt
+
+# Kubernetes probe endpoint (200 OK)
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/healthz
+```
+
+### Kubernetes Probes
+
+The k8s deployment includes:
+- **Readiness Probe**: `/healthz` (checks every 5s, starts after 3s)
+- **Liveness Probe**: `/healthz` (checks every 10s, starts after 10s)
+
+```bash
+# Check probe status
+kubectl describe pod -n floodsight -l app=frontend | grep -A 5 "Liveness\|Readiness"
+
+# View health data from inside pod
+kubectl exec -n floodsight deployment/frontend -- curl -s http://localhost/healthz
+kubectl exec -n floodsight deployment/frontend -- cat /usr/share/nginx/html/version.txt
+```
+
+---
+
 ## 📄 License
 
 MIT License - see [LICENSE](./LICENSE) (if applicable)
