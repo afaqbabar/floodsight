@@ -1,0 +1,70 @@
+:root {
+  /* Design Tokens - Auto-generated from figma-tokens.json */
+
+  /* Colors */
+  --color-primary: #2563EB;
+  --color-secondary: #64748B;
+  --color-accent: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-background: #FFFFFF;
+  --color-foreground: #0F172A;
+  --color-muted: #F1F5F9;
+  --color-card: #FFFFFF;
+  --color-border: #E5E7EB;
+
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* Fonts */
+  --font-heading: Inter, ui-sans-serif, system-ui;
+  --font-body: Inter, ui-sans-serif, system-ui;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Font Sizes */
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+
+  /* Spacing */
+  --spacing-0: 0px;
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* Dark mode overrides */
+.dark {
+  --color-background: #0F172A;
+  --color-foreground: #F1F5F9;
+  --color-muted: #64748B;
+  --color-card: #1E293B;
+  --color-border: #334155;
+}
+
+/* Prefers dark mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #0F172A;
+    --color-foreground: #F1F5F9;
+    --color-muted: #64748B;
+    --color-card: #1E293B;
+    --color-border: #334155;
+  }
+}
+

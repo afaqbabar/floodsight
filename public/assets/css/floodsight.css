@@ -1,5 +1,8 @@
+/* Design tokens are now loaded from tokens.css */
+/* Import via: <link rel="stylesheet" href="/assets/css/tokens.css"> */
+
 :root {
-  /* FloodSight Theme */
+  /* FloodSight Theme - Using design tokens where applicable */
   --bg: #0b1220;            /* page background */
   --panel: #111a2d;         /* cards/sections */
   --panel-2: #0f1627;       /* panel gradient end */

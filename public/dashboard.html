@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard – FloodSight</title>
+  <meta name="description" content="FloodSight Dashboard - Real-time flood monitoring and forecasting" />
+  <link rel="icon" href="/favicon.ico" />
+  
+  <!-- CSS: Design tokens + main styles + dashboard styles + cookie banner -->
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/assets/css/floodsight.css">
+  <link rel="stylesheet" href="/assets/css/dashboard.css">
+  <link rel="stylesheet" href="/assets/css/cookie-banner.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-map">Skip to map</a>
+
+  <!-- Header (will be injected) -->
+  <div id="header-mount"></div>
+
+  <!-- Dashboard Layout -->
+  <div class="dashboard-layout">
+    <!-- Sidebar Filters (will be injected) -->
+    <div id="sidebar-mount"></div>
+
+    <!-- Map Panel (will be injected) -->
+    <div id="map-mount"></div>
+
+    <!-- Right Panel (will be injected) -->
+    <div id="right-panel-mount"></div>
+  </div>
+
+  <!-- Footer (will be injected) -->
+  <div id="footer-mount"></div>
+
+  <!-- Scripts -->
+  <script type="module">
+    import { createSiteHeader, initSiteHeader } from '/components/site/SiteHeader.js';
+    import { createSiteFooter, initSiteFooter } from '/components/site/SiteFooter.js';
+    import { createSidebarFilters, initSidebarFilters } from '/components/dashboard/SidebarFilters.js';
+    import { createMapPanel, initMapPanel } from '/components/dashboard/MapPanel.js';
+    import { createRightPanel, initRightPanel } from '/components/dashboard/RightPanel.js';
+
+    // Inject components
+    document.getElementById('header-mount').innerHTML = createSiteHeader();
+    document.getElementById('sidebar-mount').innerHTML = createSidebarFilters();
+    document.getElementById('map-mount').innerHTML = createMapPanel();
+    document.getElementById('right-panel-mount').innerHTML = createRightPanel();
+    document.getElementById('footer-mount').innerHTML = createSiteFooter();
+
+    // Initialize components
+    initSiteHeader();
+    initSidebarFilters();
+    initMapPanel();
+    initRightPanel();
+    initSiteFooter();
+
+    console.log('✅ Dashboard initialized');
+  </script>
+
+  <!-- Cookie Banner -->
+  <script type="module">
+    import { initCookieBanner } from '/components/privacy/CookieBanner.js';
+    initCookieBanner();
+  </script>
+</body>
+</html>
+

@@ -41,24 +41,45 @@ npm run dev
 floodsight/
 ├── 📁 public/              # Static site content
 │   ├── index.html          # Main landing page
+│   ├── dashboard.html      # Dashboard page (NEW)
 │   ├── impressum.html      # Legal imprint (DE)
 │   ├── privacy.html        # Privacy policy (EN/DE)
+│   ├── cookies.html        # Cookie policy (EN/DE) (NEW)
 │   ├── terms.html          # Terms of service
 │   ├── security.html       # Security disclosure
 │   ├── thanks.html         # Form success page
 │   ├── 404.html            # Custom 404 page
 │   ├── assets/
 │   │   ├── css/
-│   │   │   └── floodsight.css  # Styles
+│   │   │   ├── tokens.css        # Design tokens (NEW)
+│   │   │   ├── floodsight.css    # Main styles
+│   │   │   ├── dashboard.css     # Dashboard styles (NEW)
+│   │   │   └── cookie-banner.css # Cookie banner (NEW)
 │   │   └── js/
 │   │       ├── main.js     # Entry point (ES module)
 │   │       ├── nav.js      # Navigation logic
 │   │       ├── forms.js    # Form validation
 │   │       ├── utils.js    # Utilities
 │   │       └── dom.js      # DOM helpers
+│   ├── components/         # Reusable UI components (NEW)
+│   │   ├── site/
+│   │   │   ├── SiteHeader.js
+│   │   │   └── SiteFooter.js
+│   │   ├── dashboard/
+│   │   │   ├── SidebarFilters.js
+│   │   │   ├── MapPanel.js
+│   │   │   └── RightPanel.js
+│   │   └── privacy/
+│   │       └── CookieBanner.js
+│   ├── lib/                # Utility libraries (NEW)
+│   │   └── consent.js      # GDPR consent management
 │   ├── logos/              # Brand logos
 │   ├── sitemap.xml         # SEO sitemap
 │   └── robots.txt          # Crawler directives
+├── 📁 design/              # Design tokens (NEW)
+│   ├── figma-tokens.json   # Source of truth from Figma
+│   ├── tokens.js           # Token export module
+│   └── README.md           # Design system docs
 ├── 📁 docs/                # Documentation
 │   ├── TESTING.md
 │   ├── DEPLOYMENT_GUIDE.md
@@ -67,9 +88,13 @@ floodsight/
 │   ├── k8s/
 │   └── flux/
 ├── 📁 scripts/
-│   └── lighthouse.js       # Lighthouse CI runner
+│   ├── lighthouse.js       # Lighthouse CI runner
+│   └── apply-tokens.js     # Design token generator (NEW)
 ├── 📁 tests/
 │   └── smoke.spec.js       # Playwright tests
+├── 📁 .github/
+│   └── workflows/
+│       └── ci.yml          # CI/CD pipeline (NEW)
 ├── vercel.json             # Vercel config (routes, headers)
 ├── vite.config.js          # Build configuration
 ├── Dockerfile.nginx        # Container build
@@ -85,6 +110,9 @@ floodsight/
 npm run dev              # Start Vite dev server (port 5173)
 npm run build            # Build production bundle to dist/
 npm run preview          # Preview production build (port 4173)
+
+# Design Tokens (NEW)
+npm run tokens:apply     # Generate CSS vars from figma-tokens.json
 
 # Code Quality
 npm run format           # Format code with Prettier
@@ -102,27 +130,101 @@ npm run lighthouse       # Run Lighthouse audit (requires dev server running)
 
 ---
 
+## 🎨 Design System
+
+### Design Tokens
+
+FloodSight now uses a design token system for consistent theming across the application.
+
+**Token Categories**:
+- **Colors**: Primary, secondary, accent, warning, danger, backgrounds
+- **Typography**: Font families, sizes, weights
+- **Spacing**: Consistent spacing scale (4px, 8px, 12px, etc.)
+- **Border Radius**: sm, md, lg, xl
+- **Shadows**: sm, md for depth
+
+**Working with Tokens**:
+
+1. **Source of truth**: `/design/figma-tokens.json`
+2. **Generate CSS**: `npm run tokens:apply`
+3. **Use in CSS**:
+   ```css
+   .my-component {
+     color: var(--color-primary);
+     border-radius: var(--radius-md);
+     padding: var(--spacing-4);
+   }
+   ```
+
+**Dark Mode**: Tokens automatically adapt via `.dark` class or `prefers-color-scheme: dark`.
+
+See `/design/README.md` for full documentation.
+
+---
+
+## 🍪 GDPR Compliance
+
+FloodSight is designed with privacy-first principles and GDPR compliance:
+
+### Cookie Banner
+
+- **Consent Categories**: Necessary (always on), Preferences, Analytics, Marketing
+- **User Control**: Accept all, Reject all, or customize preferences
+- **Persistent**: Stores consent in `fs_consent` cookie for 1 year
+- **Re-consent**: Users can change settings via footer link
+
+### Analytics Gating
+
+The consent library (`/lib/consent.js`) gates all non-essential scripts:
+
+```javascript
+import { hasConsent, ConsentCategories } from '/lib/consent.js';
+
+if (hasConsent(ConsentCategories.ANALYTICS)) {
+  // Initialize analytics
+}
+```
+
+### Legal Pages
+
+- **Impressum** (`/impressum.html`) - German legal imprint
+- **Privacy Policy** (`/privacy.html`) - EN/DE
+- **Cookie Policy** (`/cookies.html`) - EN/DE
+- **Terms** (`/terms.html`)
+
+### Data Processing
+
+- **Hosting**: Vercel (EU region: `fra1` - Frankfurt)
+- **Forms**: Formspree (GDPR-compliant)
+- **No tracking**: No analytics by default until consent is given
+
+---
+
 ## 📦 Deployment
 
-### Deploy to Vercel
+### Deploy to Vercel (EU Region)
+
+FloodSight is configured to deploy to the **Frankfurt (fra1)** region for GDPR compliance.
 
 1. **Connect Repository**:
    - Go to [vercel.com](https://vercel.com)
    - Import your GitHub repository
-   - Vercel auto-detects static site
+   - Vercel auto-detects Vite framework
 
-2. **Build Settings** (auto-configured):
-   - Framework: `Other`
-   - Build Command: (none)
-   - Output Directory: `.` (root)
+2. **Build Settings** (auto-configured via `vercel.json`):
+   - Framework: `vite`
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+   - Region: `fra1` (Frankfurt, Germany)
 
 3. **Environment Variables** (optional):
    - None required for static site
    - See `.env.example` for future features
 
 4. **Deploy**:
-   - Push to `main` branch → auto-deploys
+   - Push to `main` branch → auto-deploys to production
    - Vercel provides preview URLs for PRs
+   - EU region ensures GDPR compliance
 
 ### Custom Domain
 
@@ -137,21 +239,27 @@ npm run lighthouse       # Run Lighthouse audit (requires dev server running)
 ### Current
 
 - ✅ Responsive landing page with hero, features, pricing
+- ✅ **Design token system** with Figma integration
+- ✅ **Dashboard page** with responsive 3-column layout
+- ✅ **GDPR-compliant cookie banner** with consent management
 - ✅ Semantic HTML5 with ARIA landmarks
 - ✅ Dark theme with CSS custom properties
 - ✅ Smooth scroll navigation
 - ✅ Mobile-friendly navigation toggle
 - ✅ Form validation (submits to Formspree)
-- ✅ Legal pages (Impressum, Privacy, Terms, Security)
+- ✅ Legal pages (Impressum, Privacy, Cookies, Terms, Security)
 - ✅ SEO optimized (meta tags, sitemap, structured data)
 - ✅ Security headers (HSTS, X-Frame-Options, CSP-ready)
 - ✅ Clean URLs via Vercel rewrites
 - ✅ Custom 404 page
+- ✅ **CI/CD pipeline** with GitHub Actions
+- ✅ **EU deployment** (Frankfurt region)
 
 ### Future Enhancements
 
 - 🔜 i18n (DE/EN language toggle with localStorage)
-- 🔜 Interactive demo dashboard
+- 🔜 Interactive map with real flood data
+- 🔜 Real-time alerts system
 - 🔜 API documentation
 - 🔜 Blog/changelog
 
@@ -240,13 +348,87 @@ No secrets are required for the current static site.
 
 ## 🐳 Containers & GitOps
 
-### Build locally
+FloodSight supports containerized deployment with Docker and GitOps workflows.
+
+### Build Container Locally
 
 ```bash
-npm i
-npm run build      # Builds to dist/ with Vite
-npm run preview    # Preview production build at http://localhost:4173
+# Build with Docker
+docker build -f Dockerfile.nginx -t floodsight:latest .
+
+# Run locally
+docker run -p 8080:80 floodsight:latest
+
+# Or use docker-compose
+docker-compose up -d
 ```
+
+### Kubernetes Deployment
+
+```bash
+# Apply base manifests with kustomize
+kubectl apply -k deploy/k8s/base
+
+# Or apply production overlay
+kubectl apply -k deploy/k8s/overlays/prod
+```
+
+### GitOps with FluxCD
+
+```bash
+# Bootstrap Flux on your cluster
+flux bootstrap github \
+  --owner=afaqbabar \
+  --repository=floodsight \
+  --branch=main \
+  --path=deploy/k8s/overlays/prod \
+  --personal
+
+# Flux will automatically:
+# - Sync manifests from Git
+# - Update images when new tags are pushed
+# - Self-heal on drift
+```
+
+### GitOps with ArgoCD
+
+```bash
+# Install ArgoCD
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# Deploy FloodSight via ArgoCD
+kubectl apply -f deploy/argocd/application.yaml
+
+# Access ArgoCD UI
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+```
+
+### Container Registry (GHCR)
+
+Images are published to GitHub Container Registry:
+
+```bash
+# Pull latest image
+docker pull ghcr.io/afaqbabar/floodsight-frontend:latest
+
+# Available tags:
+# - latest (main branch)
+# - v1.0.0 (semantic version)
+# - sha-abc1234 (git commit)
+```
+
+**Push to GHCR** (requires authentication):
+
+```bash
+echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
+docker tag floodsight:latest ghcr.io/afaqbabar/floodsight-frontend:v1.0.0
+docker push ghcr.io/afaqbabar/floodsight-frontend:v1.0.0
+```
+
+See [deploy/README.md](deploy/README.md) for full deployment documentation.
+
+---
 
 ### Docker
 

@@ -1,6 +1,8 @@
 {
+  "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "regions": ["fra1"],
   "headers": [
     {
       "source": "/(.*)",
@@ -26,8 +28,11 @@
   "rewrites": [
     { "source": "/impressum", "destination": "/impressum.html" },
     { "source": "/privacy",   "destination": "/privacy.html" },
+    { "source": "/cookies",   "destination": "/cookies.html" },
     { "source": "/terms",     "destination": "/terms.html" },
-    { "source": "/security",  "destination": "/security.html" }
+    { "source": "/security",  "destination": "/security.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/api/healthz", "destination": "/api/healthz.json" }
   ],
   "redirects": [
     { "source": "/index.html", "destination": "/", "permanent": true },

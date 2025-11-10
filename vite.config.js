@@ -11,8 +11,10 @@ export default {
     rollupOptions: {
       input: {
         index: resolve(__dirname, 'public/index.html'),
+        dashboard: resolve(__dirname, 'public/dashboard.html'),
         impressum: resolve(__dirname, 'public/impressum.html'),
         privacy: resolve(__dirname, 'public/privacy.html'),
+        cookies: resolve(__dirname, 'public/cookies.html'),
         terms: resolve(__dirname, 'public/terms.html'),
         security: resolve(__dirname, 'public/security.html'),
         thanks: resolve(__dirname, 'public/thanks.html'),

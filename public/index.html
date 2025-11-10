@@ -33,8 +33,10 @@
     ]
   }
   </script>
-  <!-- CSS will be added next step. For now, this file contains only semantic HTML structure.. -->
-   <link rel="stylesheet" href="/assets/css/floodsight.css">
+  <!-- CSS: Design tokens + main styles + cookie banner -->
+  <link rel="stylesheet" href="/assets/css/tokens.css">
+  <link rel="stylesheet" href="/assets/css/floodsight.css">
+  <link rel="stylesheet" href="/assets/css/cookie-banner.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -365,10 +367,12 @@ Authorization: Bearer &lt;your_api_key&gt;</code></pre>
         </div>
         <nav class="footer__nav" aria-label="Legal">
           <ul>
-            <li><a href="/impressum">Impressum</a></li>
-            <li><a href="/privacy">Datenschutzerklärung</a></li>
-            <li><a href="/terms">Terms</a></li>
-            <li><a href="/security">Security</a></li>
+            <li><a href="/impressum.html">Impressum</a></li>
+            <li><a href="/privacy.html">Privacy</a></li>
+            <li><a href="/cookies.html">Cookies</a></li>
+            <li><a href="#" class="js-cookie-settings">Cookie Settings</a></li>
+            <li><a href="/terms.html">Terms</a></li>
+            <li><a href="/security.html">Security</a></li>
           </ul>
         </nav>
       </div>
@@ -377,5 +381,11 @@ Authorization: Bearer &lt;your_api_key&gt;</code></pre>
 
   <!-- Modular JavaScript (ES modules) -->
   <script type="module" src="/assets/js/main.js"></script>
+  
+  <!-- Cookie Banner -->
+  <script type="module">
+    import { initCookieBanner } from '/components/privacy/CookieBanner.js';
+    initCookieBanner();
+  </script>
 </body>
 </html>

@@ -1297,4 +1297,159 @@ ci: pass build args (commit/tag/branch/image) to Docker
 feat(k8s): add liveness/readiness probes
 
 docs: README – health endpoints & checks
-##########
+##############################
+
+You are a senior frontend + DevSecOps engineer improving the FloodSight app.
+
+Context:
+- Repo: https://github.com/afaqbabar/floodsight
+- It’s a Next.js + TypeScript project hosted on Vercel.
+- We now have real Figma design tokens from the design team.
+- We’ll make this repo design-system ready (tokens, Tailwind CSS vars), GDPR-compliant, and ready for CI/CD.
+
+Tasks (phased):
+
+--- PHASE 1 · Design Tokens Integration ---
+
+1) Create a folder `/design/` in the root and add `figma-tokens.json` with these starter values:
+
+{
+  "color": {
+    "primary": { "value": "#2563EB" },
+    "secondary": { "value": "#64748B" },
+    "accent": { "value": "#22C55E" },
+    "warning": { "value": "#F59E0B" },
+    "danger": { "value": "#EF4444" },
+    "background": { "value": "#FFFFFF" },
+    "foreground": { "value": "#0F172A" },
+    "muted": { "value": "#F1F5F9" },
+    "card": { "value": "#FFFFFF" },
+    "border": { "value": "#E5E7EB" }
+  },
+  "radius": {
+    "sm": { "value": "0.25rem" },
+    "md": { "value": "0.5rem" },
+    "lg": { "value": "0.75rem" },
+    "xl": { "value": "1rem" }
+  },
+  "font": {
+    "heading": { "value": "Inter, ui-sans-serif, system-ui" },
+    "body": { "value": "Inter, ui-sans-serif, system-ui" },
+    "mono": { "value": "ui-monospace, SFMono-Regular, Menlo, monospace" }
+  },
+  "fontSize": {
+    "sm": { "value": "0.875rem" },
+    "base": { "value": "1rem" },
+    "lg": { "value": "1.125rem" },
+    "xl": { "value": "1.25rem" },
+    "2xl": { "value": "1.5rem" },
+    "3xl": { "value": "1.875rem" }
+  },
+  "spacing": {
+    "0": { "value": "0px" },
+    "1": { "value": "4px" },
+    "2": { "value": "8px" },
+    "3": { "value": "12px" },
+    "4": { "value": "16px" },
+    "6": { "value": "24px" },
+    "8": { "value": "32px" },
+    "12": { "value": "48px" },
+    "16": { "value": "64px" }
+  },
+  "shadow": {
+    "sm": { "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)" },
+    "md": { "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)" }
+  }
+}
+
+2) Create `/design/tokens.ts`:
+   - Import figma-tokens.json and export it as a typed object.
+   - Add an npm script `"tokens:apply"` to regenerate it later.
+
+3) Update Tailwind config:
+   - Map color, font, spacing, radius, shadow tokens to `theme.extend`.
+   - Use CSS variables (`var(--color-primary)`) instead of hard-coded values.
+
+4) In `/styles/globals.css`:
+   - Define `:root` vars (colors, fonts, radii, spacing).
+   - Add `.dark` overrides.
+   - Ensure Tailwind’s base layer imports remain at top.
+
+5) Verify `npm run dev` builds correctly.
+   - The site should look identical but is now tokenized.
+
+Commit: chore(design): add figma tokens and wire Tailwind CSS vars
+
+--- PHASE 2 · Responsive Layout + Dashboard Structure ---
+
+1) Create reusable components under `/components/site/`:
+   - SiteHeader.tsx — FloodSight brand, nav (Dashboard, Alerts, About), CTA “Create Alert”.
+   - SiteFooter.tsx — links: Impressum, Privacy, Cookies, “Change cookie settings”.
+
+2) Create `/components/dashboard/`:
+   - SidebarFilters.tsx — filters for Basin, Country, Lead Time, toggle groups for Forecast/Observations/Risk Zones.
+   - MapPanel.tsx — placeholder map container.
+   - RightPanel.tsx — placeholder forecast cards + CTA buttons.
+
+3) Add pages:
+   - `/dashboard` → responsive layout (lg: 3 columns [288px, 1fr, 320px], md: 2 columns, sm: stacked).
+   - `/api/healthz` → returns JSON `{ok:true}`.
+
+4) Use Tailwind utilities with your tokens (bg-primary, text-foreground, etc.).
+
+Commit: feat(ui): scaffold responsive dashboard structure
+
+--- PHASE 3 · GDPR + Legal Pages ---
+
+1) Add pages:
+   - `/impressum`
+   - `/privacy`
+   - `/cookies`
+   Each with placeholder content, German + English sections.
+
+2) Add `components/privacy/CookieBanner.tsx`:
+   - Consent categories: Necessary (locked), Preferences, Analytics, Marketing.
+   - Buttons: Accept all / Reject / Save preferences.
+   - Store cookie `fs_consent=v1.{categories}`.
+   - Gate analytics via helper in `/lib/consent.ts`.
+
+3) Add a link in Footer to “Change cookie settings” (opens preferences modal).
+
+4) Ensure compliance: no non-essential scripts before consent.
+
+Commit: feat(gdpr): add cookie banner and legal pages
+
+--- PHASE 4 · CI/CD and Deployment ---
+
+1) Add `vercel.json`:
+   - framework: nextjs
+   - regions: eu
+   - builds + rewrites (if needed).
+
+2) Add `.env.example` with NEXT_PUBLIC_SITE_NAME, NEXT_PUBLIC_TAGLINE.
+
+3) Add `.github/workflows/ci.yml`:
+   - Steps: install, typecheck, lint, test, build, upload artifact.
+
+4) Update README:
+   - Add sections for design tokens, GDPR, and deployment (EU).
+
+Commit: chore(ci+deploy): add vercel config and github actions workflow
+
+--- PHASE 5 · (Optional Later) Container + GitOps ---
+
+- Add Dockerfile, compose.yaml, and deploy/k8s/base.
+- Add ArgoCD or FluxCD kustomization manifests.
+- README: GHCR image push and overlay instructions.
+
+Commit: feat(platform): add container + gitops manifests
+
+--- QUALITY BAR ---
+- Strict TypeScript, accessibility-first.
+- Use shadcn/ui conventions.
+- Respect prefers-reduced-motion.
+- No breaking visual changes unless tokens specify.
+
+At the end of each phase, show changed files and a short diff summary.
+
+#####################
