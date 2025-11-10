@@ -41,20 +41,23 @@ npm run dev
 floodsight/
 ├── 📁 public/              # Static site content
 │   ├── index.html          # Main landing page
-│   ├── dashboard.html      # Dashboard page (NEW)
+│   ├── dashboard.html      # Simple dashboard
+│   ├── dashboard-figma.html # Full Figma dashboard with Leaflet map & Chart.js
 │   ├── impressum.html      # Legal imprint (DE)
 │   ├── privacy.html        # Privacy policy (EN/DE)
-│   ├── cookies.html        # Cookie policy (EN/DE) (NEW)
+│   ├── cookies.html        # Cookie policy (EN/DE)
 │   ├── terms.html          # Terms of service
 │   ├── security.html       # Security disclosure
 │   ├── thanks.html         # Form success page
+│   ├── health.html         # Health check dashboard
 │   ├── 404.html            # Custom 404 page
 │   ├── assets/
 │   │   ├── css/
-│   │   │   ├── tokens.css        # Design tokens (NEW)
-│   │   │   ├── floodsight.css    # Main styles
-│   │   │   ├── dashboard.css     # Dashboard styles (NEW)
-│   │   │   └── cookie-banner.css # Cookie banner (NEW)
+│   │   │   ├── tokens.css         # Auto-generated design tokens
+│   │   │   ├── floodsight.css     # Main homepage styles
+│   │   │   ├── dashboard.css      # Simple dashboard styles
+│   │   │   ├── dashboard-figma.css # Figma dashboard styles
+│   │   │   └── cookie-banner.css  # GDPR cookie banner
 │   │   └── js/
 │   │       ├── main.js     # Entry point (ES module)
 │   │       ├── nav.js      # Navigation logic
@@ -84,9 +87,23 @@ floodsight/
 │   ├── TESTING.md
 │   ├── DEPLOYMENT_GUIDE.md
 │   └── ...
-├── 📁 deploy/              # Kubernetes & Flux configs
+├── 📁 deploy/              # Kubernetes & GitOps configs
 │   ├── k8s/
-│   └── flux/
+│   │   ├── base/           # Base Kubernetes manifests
+│   │   │   ├── deployment.yaml
+│   │   │   ├── service.yaml
+│   │   │   ├── ingress.yaml
+│   │   │   ├── configmap.yaml
+│   │   │   ├── serviceaccount.yaml
+│   │   │   ├── hpa.yaml
+│   │   │   └── kustomization.yaml
+│   │   └── overlays/
+│   │       ├── production/  # Production overrides
+│   │       └── staging/     # Staging overrides
+│   ├── argocd/
+│   │   ├── application.yaml         # Production ArgoCD app
+│   │   └── application-staging.yaml # Staging ArgoCD app
+│   └── flux/               # FluxCD GitOps (legacy)
 ├── 📁 scripts/
 │   ├── lighthouse.js       # Lighthouse CI runner
 │   └── apply-tokens.js     # Design token generator (NEW)
@@ -94,10 +111,14 @@ floodsight/
 │   └── smoke.spec.js       # Playwright tests
 ├── 📁 .github/
 │   └── workflows/
-│       └── ci.yml          # CI/CD pipeline (NEW)
-├── vercel.json             # Vercel config (routes, headers)
-├── vite.config.js          # Build configuration
-├── Dockerfile.nginx        # Container build
+│       └── ci.yml          # GitHub Actions CI/CD pipeline
+├── .env.example            # Environment variables template
+├── .dockerignore           # Docker build exclusions
+├── vercel.json             # Vercel config (routes, headers, CSP)
+├── vite.config.js          # Vite build configuration
+├── Dockerfile              # Multi-stage production container
+├── nginx.conf              # Nginx configuration for container
+├── docker-compose.yaml     # Local Docker development
 └── package.json            # Dependencies & scripts
 ```
 
@@ -240,28 +261,45 @@ FloodSight is configured to deploy to the **Frankfurt (fra1)** region for GDPR c
 
 - ✅ Responsive landing page with hero, features, pricing
 - ✅ **Design token system** with Figma integration
-- ✅ **Dashboard page** with responsive 3-column layout
+- ✅ **Interactive Figma dashboard** with:
+  - 📍 Real interactive map (Leaflet.js + OpenStreetMap)
+  - 📊 Live forecast charts (Chart.js)
+  - 🎯 Responsive 3-column layout (desktop) → vertical stack (mobile)
+  - 🧭 Breadcrumb navigation + back button
+  - 🌊 Wave-pattern logo design
 - ✅ **GDPR-compliant cookie banner** with consent management
 - ✅ Semantic HTML5 with ARIA landmarks
-- ✅ Dark theme with CSS custom properties
+- ✅ Light theme with professional color scheme (matching dashboard)
 - ✅ Smooth scroll navigation
 - ✅ Mobile-friendly navigation toggle
 - ✅ Form validation (submits to Formspree)
 - ✅ Legal pages (Impressum, Privacy, Cookies, Terms, Security)
 - ✅ SEO optimized (meta tags, sitemap, structured data)
-- ✅ Security headers (HSTS, X-Frame-Options, CSP-ready)
+- ✅ Security headers (HSTS, X-Frame-Options, CSP with external CDN support)
 - ✅ Clean URLs via Vercel rewrites
 - ✅ Custom 404 page
-- ✅ **CI/CD pipeline** with GitHub Actions
-- ✅ **EU deployment** (Frankfurt region)
+- ✅ **Complete CI/CD pipeline** with GitHub Actions:
+  - Lint, format check, security audit
+  - Automated tests (Playwright)
+  - Docker image build & push to GHCR
+  - Vercel deployment
+  - ArgoCD GitOps sync
+- ✅ **Multi-platform deployment**:
+  - Vercel (static, EU region)
+  - Docker containers (multi-arch: amd64, arm64)
+  - Kubernetes with Kustomize overlays
+  - ArgoCD GitOps (production + staging)
 
 ### Future Enhancements
 
 - 🔜 i18n (DE/EN language toggle with localStorage)
-- 🔜 Interactive map with real flood data
-- 🔜 Real-time alerts system
-- 🔜 API documentation
+- 🔜 Connect map to real-time flood data APIs
+- 🔜 User authentication and personalized alerts
+- 🔜 Backend API with flood forecasting models
+- 🔜 Email/SMS alert notifications
+- 🔜 API documentation (OpenAPI/Swagger)
 - 🔜 Blog/changelog
+- 🔜 Mobile app (React Native or PWA)
 
 ---
 
@@ -312,11 +350,25 @@ Results saved to `lighthouse-report/`.
 [![CI Status](https://github.com/afaqbabar/floodsight/actions/workflows/ci.yml/badge.svg)](https://github.com/afaqbabar/floodsight/actions/workflows/ci.yml)
 
 Automated checks on every PR and push to `main`:
-- **Link check** (Lychee) – Detects broken links in HTML/Markdown
-- **Secret scan** (Gitleaks) – Prevents accidental credential leaks
-- **SAST** (Semgrep) – Static analysis for JavaScript security issues
-- **HTML lint** (HTMLHint) – Validates HTML structure
-- **Lighthouse** (LHCI) – Performance, accessibility, and SEO audit
+
+**Code Quality:**
+- **ESLint** – JavaScript linting
+- **Prettier** – Code formatting check
+- **HTML Validation** – HTMLHint structure validation
+
+**Security:**
+- **npm audit** – Dependency vulnerability scanning
+- **TruffleHog** – Secret scanning to prevent credential leaks
+
+**Testing:**
+- **Playwright** – End-to-end tests
+- **Lighthouse** – Performance, accessibility, SEO audit
+
+**Build & Deploy:**
+- **Build verification** – Ensures production build succeeds
+- **Docker image** – Multi-arch build & push to GHCR (main branch only)
+- **Vercel deployment** – Automatic production deployment
+- **ArgoCD sync** – GitOps deployment trigger
 
 ### Security Headers
 
@@ -353,24 +405,48 @@ FloodSight supports containerized deployment with Docker and GitOps workflows.
 ### Build Container Locally
 
 ```bash
-# Build with Docker
-docker build -f Dockerfile.nginx -t floodsight:latest .
+# Build with Docker (multi-stage)
+docker build -t floodsight:latest .
 
-# Run locally
-docker run -p 8080:80 floodsight:latest
+# Run production container
+docker run -p 8080:8080 floodsight:latest
 
-# Or use docker-compose
+# Or use docker-compose (includes dev server + mock API)
 docker-compose up -d
+
+# Development mode with hot reload
+docker-compose --profile dev up
+
+# Production mode with nginx proxy
+docker-compose --profile production up
 ```
+
+Visit http://localhost:8080 (production) or http://localhost:5173 (dev)
 
 ### Kubernetes Deployment
 
 ```bash
-# Apply base manifests with kustomize
+# Create namespace
+kubectl create namespace floodsight-prod
+
+# Apply base manifests directly
 kubectl apply -k deploy/k8s/base
 
-# Or apply production overlay
-kubectl apply -k deploy/k8s/overlays/prod
+# Or apply with production overlay (recommended)
+kubectl apply -k deploy/k8s/overlays/production
+
+# Apply staging overlay
+kubectl apply -k deploy/k8s/overlays/staging
+
+# Verify deployment
+kubectl get all -n floodsight-prod
+kubectl get ingress -n floodsight-prod
+
+# Check logs
+kubectl logs -f -n floodsight-prod -l app=floodsight
+
+# Port forward for local testing
+kubectl port-forward -n floodsight-prod svc/floodsight 8080:80
 ```
 
 ### GitOps with FluxCD
@@ -397,36 +473,76 @@ flux bootstrap github \
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-# Deploy FloodSight via ArgoCD
+# Get initial admin password
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+# Deploy FloodSight Production via ArgoCD
 kubectl apply -f deploy/argocd/application.yaml
+
+# Deploy FloodSight Staging via ArgoCD
+kubectl apply -f deploy/argocd/application-staging.yaml
 
 # Access ArgoCD UI
 kubectl port-forward svc/argocd-server -n argocd 8080:443
+# Visit: https://localhost:8080
+# Username: admin
+# Password: (from secret above)
+
+# Sync application manually (if not auto-sync)
+argocd app sync floodsight-frontend
+argocd app sync floodsight-frontend-staging
+
+# Watch sync status
+argocd app get floodsight-frontend
+argocd app get floodsight-frontend-staging
 ```
+
+**ArgoCD Features Configured:**
+- ✅ **Auto-sync** – Automatically deploys on git changes
+- ✅ **Self-heal** – Fixes manual changes to cluster
+- ✅ **Prune** – Removes deleted resources
+- ✅ **Image updates** – Kustomize tracks image tags
+- ✅ **Health checks** – Monitors deployment health
+- ✅ **Notifications** – Slack alerts on sync/health events
 
 ### Container Registry (GHCR)
 
-Images are published to GitHub Container Registry:
+Images are automatically published to GitHub Container Registry via CI/CD:
 
 ```bash
-# Pull latest image
-docker pull ghcr.io/afaqbabar/floodsight-frontend:latest
+# Pull latest multi-arch image (supports amd64 and arm64)
+docker pull ghcr.io/afaqbabar/floodsight:latest
 
-# Available tags:
-# - latest (main branch)
-# - v1.0.0 (semantic version)
-# - sha-abc1234 (git commit)
+# Available tags (auto-generated by CI):
+# - latest             (main branch, latest build)
+# - main              (main branch alias)
+# - v1.0.0            (semantic version tags)
+# - 1.0               (major.minor)
+# - main-abc1234      (branch + short SHA)
+# - staging-latest    (develop branch)
 ```
 
-**Push to GHCR** (requires authentication):
+**Multi-architecture support:**
+- `linux/amd64` – For standard servers, VMs, x86 workstations
+- `linux/arm64` – For Raspberry Pi, ARM servers, Apple Silicon
+
+**Manual push to GHCR** (requires authentication):
 
 ```bash
-echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
-docker tag floodsight:latest ghcr.io/afaqbabar/floodsight-frontend:v1.0.0
-docker push ghcr.io/afaqbabar/floodsight-frontend:v1.0.0
+# Authenticate with Personal Access Token
+echo $GITHUB_TOKEN | docker login ghcr.io -u afaqbabar --password-stdin
+
+# Build and push
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -t ghcr.io/afaqbabar/floodsight:v1.0.0 \
+  --push .
 ```
 
-See [deploy/README.md](deploy/README.md) for full deployment documentation.
+**Image metadata:**
+- Labels include: git commit, version, build date
+- Scanned for vulnerabilities in CI
+- Signed with cosign (optional)
+- Health check: `curl http://localhost:8080/health.html`
 
 ---
 

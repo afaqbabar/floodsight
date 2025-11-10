@@ -1,0 +1,87 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: floodsight-staging
+
+namespace: floodsight-staging
+
+bases:
+- ../../base
+
+# Staging-specific labels
+commonLabels:
+  environment: staging
+  tier: staging
+
+# Staging-specific annotations
+commonAnnotations:
+  environment: "staging"
+  monitoring: "enabled"
+  testing: "true"
+
+# Replica count for staging (lower than production)
+replicas:
+- name: floodsight
+  count: 2
+
+# Staging image with specific tag
+images:
+- name: ghcr.io/yourusername/floodsight
+  newTag: staging-latest
+
+# Staging ConfigMap overrides
+configMapGenerator:
+- name: floodsight-config
+  behavior: merge
+  literals:
+  - NODE_ENV=staging
+  - VITE_API_BASE_URL=https://api-staging.floodsight.com
+  - VITE_ENABLE_ANALYTICS=false
+  - VITE_ENABLE_DEBUG=true
+
+# Staging patches
+patches:
+- target:
+    kind: Deployment
+    name: floodsight
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/cpu
+      value: "100m"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/cpu
+      value: "500m"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/memory
+      value: "128Mi"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/memory
+      value: "512Mi"
+
+- target:
+    kind: Ingress
+    name: floodsight
+  patch: |-
+    - op: replace
+      path: /spec/rules/0/host
+      value: "staging.floodsight.com"
+    - op: replace
+      path: /spec/tls/0/hosts/0
+      value: "staging.floodsight.com"
+    - op: remove
+      path: /spec/rules/1
+    - op: remove
+      path: /spec/tls/0/hosts/1
+
+- target:
+    kind: HorizontalPodAutoscaler
+    name: floodsight
+  patch: |-
+    - op: replace
+      path: /spec/minReplicas
+      value: 2
+    - op: replace
+      path: /spec/maxReplicas
+      value: 5
+

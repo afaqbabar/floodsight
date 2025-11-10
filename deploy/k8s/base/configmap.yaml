@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: floodsight-config
+  labels:
+    app: floodsight
+data:
+  # Application Configuration
+  NODE_ENV: "production"
+  
+  # API Configuration
+  api-base-url: "https://api.floodsight.example.com"
+  
+  # Map Configuration
+  VITE_MAP_PROVIDER: "openstreetmap"
+  VITE_MAP_DEFAULT_LAT: "51.5074"
+  VITE_MAP_DEFAULT_LNG: "-0.1278"
+  VITE_MAP_DEFAULT_ZOOM: "11"
+  
+  # Feature Flags
+  VITE_ENABLE_ALERTS: "true"
+  VITE_ENABLE_FORECASTING: "true"
+  VITE_ENABLE_HISTORICAL_DATA: "true"
+  
+  # External Data Sources
+  VITE_FLOOD_DATA_API: "https://environment.data.gov.uk/flood-monitoring"
+

@@ -1,41 +1,60 @@
-# Dependencies and build artifacts
+# Dependencies
 node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Build output
 dist
+.cache
+
+# Development files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Testing
+coverage
+.nyc_output
+playwright-report
+test-results
+
+# Git
 .git
 .gitignore
-
-# Docker files (don't copy into image)
-Dockerfile
-Dockerfile.nginx
-docker-compose.yml
-
-# Vercel-specific files (not needed in container)
-.vercel
-vercel.json
-.vercelignore
-
-# Kubernetes & GitOps (not needed in container image)
-deploy/
-flux.yaml
-kustomization.yaml
+.gitattributes
 
 # CI/CD
-.github/
+.github
+.circleci
+.travis.yml
 
 # Documentation
-docs/
 *.md
+docs
 
-# Test files
-tests/
-playwright.config.js
-playwright-report/
-test-results/
-
-# Local/IDE files
-.DS_Store
-.vscode/
-.idea/
-*.log
+# Environment
+.env
 .env.local
-.env*.local
+.env.*.local
+
+# Logs
+logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Deploy
+deploy
+k8s
+.kube

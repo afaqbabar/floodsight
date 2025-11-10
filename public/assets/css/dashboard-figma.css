@@ -24,6 +24,12 @@
   text-decoration: none;
   font-weight: 700;
   font-size: 18px;
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+
+.nav-bar__brand:hover {
+  opacity: 0.85;
 }
 
 .nav-bar__logo {
@@ -77,11 +83,64 @@
   transform: translateY(0);
 }
 
+/* Breadcrumb Navigation */
+.breadcrumb-container {
+  background: var(--color-card, #F9FAFB);
+  border-bottom: 1px solid var(--color-border, #E5E7EB);
+  padding: 12px 24px;
+}
+
+.breadcrumb {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.breadcrumb ol {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+}
+
+.breadcrumb li {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb li:not(:last-child)::after {
+  content: '›';
+  margin-left: 8px;
+  color: var(--color-muted, #64748B);
+  font-size: 16px;
+}
+
+.breadcrumb a {
+  color: var(--color-primary, #2563EB);
+  text-decoration: none;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.breadcrumb a:hover {
+  color: var(--color-accent, #3B82F6);
+  text-decoration: underline;
+}
+
+.breadcrumb li[aria-current="page"] {
+  color: var(--color-foreground, #0F172A);
+  font-weight: 600;
+}
+
 /* Dashboard Grid Layout */
 .dashboard-grid {
   display: grid;
   grid-template-columns: 220px 1fr 320px;
-  height: calc(100vh - 57px);
+  height: calc(100vh - 57px - 45px); /* Adjusted for breadcrumb */
   background: var(--color-background, #FFFFFF);
 }
 
@@ -228,12 +287,18 @@
 .map-panel {
   position: relative;
   background: #E5E7EB;
+  overflow: hidden;
 }
 
 .map-container {
   width: 100%;
   height: 100%;
   position: relative;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
 }
 
 .map-controls {
@@ -274,6 +339,41 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* Quick Navigation */
+.quick-nav {
+  margin-bottom: 8px;
+}
+
+.quick-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid var(--color-border, #E5E7EB);
+  border-radius: 6px;
+  color: var(--color-foreground, #0F172A);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.quick-nav-btn:hover {
+  background: var(--color-primary, #2563EB);
+  color: white;
+  border-color: var(--color-primary, #2563EB);
+  transform: translateX(-2px);
+}
+
+.quick-nav-btn svg {
+  transition: transform 0.2s;
+}
+
+.quick-nav-btn:hover svg {
+  transform: translateX(-2px);
 }
 
 .panel-section {
@@ -379,6 +479,11 @@
   text-decoration: underline;
 }
 
+/* Mobile notice - hidden by default */
+.mobile-only-notice {
+  display: none !important;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .dashboard-grid {
@@ -388,19 +493,80 @@
   .sidebar-right {
     display: none;
   }
+
+  .breadcrumb-container {
+    padding: 10px 16px;
+  }
 }
 
 @media (max-width: 768px) {
   .dashboard-grid {
-    grid-template-columns: 1fr;
+    display: flex !important;
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
   }
   
   .sidebar-left {
-    display: none;
+    display: none !important;
   }
   
+  .map-panel {
+    order: 1;
+    height: 50vh;
+    min-height: 300px;
+    max-height: 50vh;
+    flex-shrink: 0;
+  }
+  
+  .sidebar-right {
+    order: 2;
+    display: flex !important;
+    flex-direction: column;
+    border-left: none;
+    border-top: 2px solid var(--color-border, #E5E7EB);
+    background: white;
+    min-height: 50vh;
+  }
+
+  .nav-bar {
+    padding: 12px 16px;
+  }
+
   .nav-bar__menu {
     display: none;
+  }
+
+  .breadcrumb-container {
+    padding: 8px 16px;
+  }
+
+  .breadcrumb ol {
+    font-size: 13px;
+  }
+
+  .quick-nav {
+    position: static;
+    margin-bottom: 12px;
+  }
+
+  .quick-nav-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Ensure panels are visible */
+  .panel-section {
+    margin-bottom: 16px;
+  }
+
+  .panel-section__title {
+    font-size: 18px;
+  }
+
+  /* Show mobile notice */
+  .mobile-only-notice {
+    display: block !important;
   }
 }
 

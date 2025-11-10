@@ -1,8 +1,57 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
-  - namespace.yaml
-  - frontend-deployment.yaml
-  - frontend-service.yaml
-  - ingress.yaml
 
+metadata:
+  name: floodsight-base
+  annotations:
+    config.kubernetes.io/index: '0'
+
+namespace: floodsight
+
+# Common labels for all resources
+commonLabels:
+  app.kubernetes.io/name: floodsight
+  app.kubernetes.io/component: frontend
+  app.kubernetes.io/part-of: floodsight-platform
+  app.kubernetes.io/managed-by: kustomize
+
+# Common annotations
+commonAnnotations:
+  version: "1.0.0"
+  maintainer: "FloodSight Team"
+
+resources:
+- serviceaccount.yaml
+- configmap.yaml
+- deployment.yaml
+- service.yaml
+- ingress.yaml
+- hpa.yaml
+
+# Image configuration
+images:
+- name: ghcr.io/yourusername/floodsight
+  newTag: latest
+
+# ConfigMap generator (optional)
+configMapGenerator:
+- name: floodsight-env
+  literals:
+  - APP_NAME=FloodSight
+  - APP_VERSION=1.0.0
+
+# Secret generator (optional, for development)
+# secretGenerator:
+# - name: floodsight-secrets
+#   literals:
+#   - API_KEY=changeme
+
+# Patches
+patches:
+- target:
+    kind: Deployment
+    name: floodsight
+  patch: |-
+    - op: add
+      path: /spec/template/metadata/annotations/build-timestamp
+      value: "BUILD_TIMESTAMP_PLACEHOLDER"

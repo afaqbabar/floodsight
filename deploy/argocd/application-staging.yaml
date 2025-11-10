@@ -1,15 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: floodsight-frontend
+  name: floodsight-frontend-staging
   namespace: argocd
   labels:
     app.kubernetes.io/name: floodsight
     app.kubernetes.io/component: frontend
-    environment: production
+    environment: staging
   annotations:
-    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: floodsight-alerts
-    notifications.argoproj.io/subscribe.on-health-degraded.slack: floodsight-alerts
+    notifications.argoproj.io/subscribe.on-sync-succeeded.slack: floodsight-staging
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
@@ -17,18 +16,18 @@ spec:
   
   source:
     repoURL: https://github.com/afaqbabar/floodsight.git
-    targetRevision: main
-    path: deploy/k8s/overlays/production
+    targetRevision: develop
+    path: deploy/k8s/overlays/staging
     kustomize:
       version: v5.0.0
       commonLabels:
         app.kubernetes.io/managed-by: argocd
       images:
-        - ghcr.io/afaqbabar/floodsight:latest
+        - ghcr.io/afaqbabar/floodsight:staging-latest
   
   destination:
     server: https://kubernetes.default.svc
-    namespace: floodsight-prod
+    namespace: floodsight-staging
   
   syncPolicy:
     automated:
@@ -39,15 +38,14 @@ spec:
       - CreateNamespace=true
       - PrunePropagationPolicy=foreground
       - PruneLast=true
-      - ApplyOutOfSyncOnly=true
     retry:
-      limit: 5
+      limit: 3
       backoff:
         duration: 5s
         factor: 2
-        maxDuration: 3m
+        maxDuration: 2m
   
-  revisionHistoryLimit: 10
+  revisionHistoryLimit: 5
   
   # Health assessment
   ignoreDifferences:
@@ -58,7 +56,7 @@ spec:
   
   info:
   - name: URL
-    value: https://floodsight.com
+    value: https://staging.floodsight.com
   - name: Dashboard
-    value: https://floodsight.com/dashboard-figma.html
+    value: https://staging.floodsight.com/dashboard-figma.html
 

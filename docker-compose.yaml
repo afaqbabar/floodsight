@@ -1,0 +1,107 @@
+version: '3.9'
+
+services:
+  # FloodSight Frontend Application
+  floodsight:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: floodsight:latest
+    container_name: floodsight-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:3000}
+    networks:
+      - floodsight-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.floodsight.service=frontend"
+      - "com.floodsight.version=1.0.0"
+
+  # Development Server (Vite HMR)
+  floodsight-dev:
+    image: node:20-alpine
+    container_name: floodsight-dev
+    working_dir: /app
+    command: npm run dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:3000}
+    networks:
+      - floodsight-network
+    profiles:
+      - dev
+
+  # Mock API Server (for development/testing)
+  mock-api:
+    image: node:20-alpine
+    container_name: floodsight-api-mock
+    working_dir: /app
+    command: sh -c "npm install -g json-server && json-server --watch /data/db.json --port 3000 --host 0.0.0.0"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./mock-data:/data
+    networks:
+      - floodsight-network
+    profiles:
+      - dev
+      - test
+
+  # Nginx Reverse Proxy (optional, for production-like setup)
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: floodsight-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-proxy.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    networks:
+      - floodsight-network
+    depends_on:
+      - floodsight
+    profiles:
+      - production
+
+  # Redis (for caching, optional)
+  redis:
+    image: redis:7-alpine
+    container_name: floodsight-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - floodsight-network
+    profiles:
+      - production
+      - cache
+
+networks:
+  floodsight-network:
+    driver: bridge
+    name: floodsight-network
+
+volumes:
+  redis-data:
+    name: floodsight-redis-data
+
