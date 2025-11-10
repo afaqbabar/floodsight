@@ -4,14 +4,16 @@
   /* Colors */
   --color-primary: #2563EB;
   --color-secondary: #64748B;
-  --color-accent: #22C55E;
+  --color-accent: #3B82F6;
   --color-warning: #F59E0B;
   --color-danger: #EF4444;
+  --color-success: #10B981;
   --color-background: #FFFFFF;
   --color-foreground: #0F172A;
-  --color-muted: #F1F5F9;
-  --color-card: #FFFFFF;
+  --color-muted: #64748B;
+  --color-card: #F9FAFB;
   --color-border: #E5E7EB;
+  --color-hover: #F3F4F6;
 
   /* Border Radius */
   --radius-sm: 0.25rem;
@@ -20,8 +22,8 @@
   --radius-xl: 1rem;
 
   /* Fonts */
-  --font-heading: Inter, ui-sans-serif, system-ui;
-  --font-body: Inter, ui-sans-serif, system-ui;
+  --font-heading: Inter, sans-serif;
+  --font-body: Inter, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* Font Sizes */
@@ -47,24 +49,3 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
-
-/* Dark mode overrides */
-.dark {
-  --color-background: #0F172A;
-  --color-foreground: #F1F5F9;
-  --color-muted: #64748B;
-  --color-card: #1E293B;
-  --color-border: #334155;
-}
-
-/* Prefers dark mode */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: #0F172A;
-    --color-foreground: #F1F5F9;
-    --color-muted: #64748B;
-    --color-card: #1E293B;
-    --color-border: #334155;
-  }
-}
-

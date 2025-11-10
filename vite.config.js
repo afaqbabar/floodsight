@@ -12,6 +12,7 @@ export default {
       input: {
         index: resolve(__dirname, 'public/index.html'),
         dashboard: resolve(__dirname, 'public/dashboard.html'),
+        'dashboard-figma': resolve(__dirname, 'public/dashboard-figma.html'),
         impressum: resolve(__dirname, 'public/impressum.html'),
         privacy: resolve(__dirname, 'public/privacy.html'),
         cookies: resolve(__dirname, 'public/cookies.html'),
@@ -26,8 +27,10 @@ export default {
     }
   },
   server: {
+    host: '0.0.0.0',  // Listen on all network interfaces
     port: 5173,
-    open: false
+    open: false,
+    strictPort: false
   }
 };
 

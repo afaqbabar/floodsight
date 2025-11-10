@@ -2,14 +2,16 @@
   "color": {
     "primary": { "value": "#2563EB" },
     "secondary": { "value": "#64748B" },
-    "accent": { "value": "#22C55E" },
+    "accent": { "value": "#3B82F6" },
     "warning": { "value": "#F59E0B" },
     "danger": { "value": "#EF4444" },
+    "success": { "value": "#10B981" },
     "background": { "value": "#FFFFFF" },
     "foreground": { "value": "#0F172A" },
-    "muted": { "value": "#F1F5F9" },
-    "card": { "value": "#FFFFFF" },
-    "border": { "value": "#E5E7EB" }
+    "muted": { "value": "#64748B" },
+    "card": { "value": "#F9FAFB" },
+    "border": { "value": "#E5E7EB" },
+    "hover": { "value": "#F3F4F6" }
   },
   "radius": {
     "sm": { "value": "0.25rem" },
@@ -18,8 +20,8 @@
     "xl": { "value": "1rem" }
   },
   "font": {
-    "heading": { "value": "Inter, ui-sans-serif, system-ui" },
-    "body": { "value": "Inter, ui-sans-serif, system-ui" },
+    "heading": { "value": "Inter, sans-serif" },
+    "body": { "value": "Inter, sans-serif" },
     "mono": { "value": "ui-monospace, SFMono-Regular, Menlo, monospace" }
   },
   "fontSize": {
