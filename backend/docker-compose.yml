@@ -53,6 +53,29 @@ services:
       retries: 3
       start_period: 40s
 
+  # Scheduled Worker for automated ingestion (Phase B2)
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: floodsight-scheduler
+    restart: unless-stopped
+    command: python -m app.workers.flows schedule
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/floodsight
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+    networks:
+      - floodsight-network
+    profiles:
+      - scheduler
+
   # Development hot-reload mode (optional)
   api-dev:
     build:

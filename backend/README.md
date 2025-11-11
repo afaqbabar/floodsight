@@ -1,7 +1,7 @@
 # FloodSight Backend API
 
 > **Real-time flood monitoring and forecasting API**  
-> FastAPI + PostgreSQL/PostGIS + Prefect orchestration
+> FastAPI + PostgreSQL + APScheduler orchestration
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
@@ -27,8 +27,10 @@ backend/
 │   │   └── schemas.py
 │   ├── services/       # Business logic
 │   │   ├── glefas.py   # GloFAS data ingestion
+│   │   ├── alerts.py   # Alert computation
 │   │   └── seed.py     # Database seeding
-│   ├── workers/        # Prefect flows (scheduled tasks)
+│   ├── workers/        # Scheduled ingestion flows
+│   │   └── flows.py    # APScheduler jobs
 │   └── main.py         # FastAPI application
 ├── alembic/            # Database migrations
 ├── tests/              # Test suite
@@ -64,6 +66,9 @@ docker compose exec api alembic upgrade head
 
 # Seed sample data
 docker compose exec api python -m app.services.seed
+
+# (Optional) Start the automated scheduler
+docker compose --profile scheduler up -d scheduler
 
 # Open API documentation
 open http://localhost:8080/docs
@@ -287,6 +292,55 @@ curl http://localhost:8080/v1/alerts?active_only=true
 4. Calculates probability based on forecast lead time
 5. Deactivates old alerts and creates new ones
 
+### Phase B2 - Automated Scheduler (✅ Complete)
+
+**Scheduler Service:**
+
+The scheduler automatically runs the ingestion flow hourly using APScheduler:
+
+```bash
+# Start the scheduler (runs hourly at :00)
+docker compose --profile scheduler up -d scheduler
+
+# View scheduler logs
+docker compose logs -f scheduler
+
+# Stop the scheduler
+docker compose stop scheduler
+
+# Run ingestion manually (once)
+docker compose run --rm scheduler python -m app.workers.flows once
+```
+
+**Features:**
+- ✅ **Hourly Ingestion**: Runs at the top of every hour (`0 * * * *`)
+- ✅ **Automatic Alert Computation**: Computes alerts immediately after ingestion
+- ✅ **Startup Job**: Runs ingestion once on startup, then schedules future runs
+- ✅ **Graceful Shutdown**: Handles SIGTERM/SIGINT signals
+- ✅ **Error Resilience**: Continues scheduling even if a job fails
+- ✅ **Single Instance**: Prevents overlapping runs
+
+**Scheduler Architecture:**
+- **Technology**: APScheduler (alternative to Prefect due to version conflicts)
+- **Schedule**: Hourly cron job (`0 * * * *`)
+- **Flow**: Ingest forecasts → Compute alerts → Store results
+- **Logging**: Detailed logs with timestamps and emojis for readability
+
+**Customizing the Schedule:**
+
+Edit `app/workers/flows.py`:
+
+```python
+# Change from hourly to every 3 hours
+schedule = "0 */3 * * *"
+
+# Or every 30 minutes
+schedule = "*/30 * * * *"
+
+# Or daily at 3 AM
+schedule = "0 3 * * *"
+```
+
 ### Manual Ingestion (Fake Data)
 
 ```bash
@@ -297,7 +351,7 @@ curl -X POST http://localhost:8080/v1/forecasts/ingest-dev
 docker compose exec api python -m app.services.glefas
 ```
 
-### Real GloFAS Data (TODO - Phase B2)
+### Real GloFAS Data (TODO - Phase C)
 
 ```python
 # app/services/glefas.py will be extended to:
@@ -539,11 +593,14 @@ ports:
 - [x] Probability calculation based on lead time
 - [x] End-to-end test flow working
 
-### ⏳ Phase B2 - Prefect Integration
+### ✅ Phase B2 - Automated Scheduler (Complete)
 
-- [ ] Prefect flow for scheduled ingestion
-- [ ] Cron/schedule configuration
-- [ ] Prefect Cloud dashboard integration
+- [x] APScheduler integration (alternative to Prefect)
+- [x] Scheduled ingestion flow (hourly)
+- [x] Automated alert computation after ingestion
+- [x] Docker Compose scheduler service
+- [x] Manual run capability
+- [x] Graceful shutdown handling
 
 ### ⏳ Phase C - DevSecOps
 

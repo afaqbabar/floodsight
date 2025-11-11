@@ -24,8 +24,8 @@ httpx==0.26.0
 pyjwt[crypto]==2.8.0
 python-multipart==0.0.9
 
-# Orchestration (Phase B2 - add when needed)
-# prefect==2.19.0
+# Scheduling (Phase B2)
+apscheduler==3.10.4
 
 # Monitoring
 prometheus-client==0.19.0
