@@ -13,8 +13,8 @@ flux bootstrap github \
 ```
 
 This will:
+
 - Install Flux controllers in your cluster
 - Configure Flux to watch the repository
 - Automatically sync and deploy changes
 - Enable image automation to update prod overlay with new semver tags
-

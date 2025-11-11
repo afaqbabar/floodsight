@@ -81,4 +81,3 @@ export function initSidebarFilters() {
   console.log('SidebarFilters initialized');
   // Add filter change handlers here
 }
-

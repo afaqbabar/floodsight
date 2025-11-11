@@ -11,6 +11,7 @@ This document provides step-by-step instructions to complete the FloodSight setu
 The project requires Node.js 18+ for development tooling.
 
 **On Raspberry Pi OS / Debian / Ubuntu:**
+
 ```bash
 # Install Node.js 18.x (LTS)
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
@@ -22,6 +23,7 @@ npm --version    # Should show 9.x or higher
 ```
 
 **Alternative (using nvm):**
+
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 source ~/.bashrc
@@ -83,6 +85,7 @@ npm test
 ```
 
 **Expected**: 15+ tests should pass covering:
+
 - Navigation and smooth scroll
 - Form validation
 - Legal pages loading
@@ -102,6 +105,7 @@ npm run lighthouse
 ```
 
 **Expected Results**:
+
 - Performance: ≥90
 - Accessibility: ≥85
 - Best Practices: ≥90
@@ -170,6 +174,7 @@ vercel
 ### Option 2: GitHub Integration
 
 1. Push code to GitHub:
+
    ```bash
    git add .
    git commit -m "Complete FloodSight improvements"
@@ -183,6 +188,7 @@ vercel
 6. Click "Deploy"
 
 **Post-Deploy**:
+
 - ✅ Test preview URL (Vercel provides)
 - ✅ Verify all routes work: `/`, `/impressum`, `/privacy`, `/terms`, `/security`
 - ✅ Test 404 page: visit non-existent route
@@ -194,18 +200,23 @@ vercel
 ## 🔧 Troubleshooting
 
 ### "npm: command not found"
+
 → Node.js not installed. See "Install Node.js" section above.
 
 ### "playwright: command not found"
+
 → Run `npx playwright install --with-deps`
 
 ### Lighthouse fails with "ECONNREFUSED"
+
 → Ensure dev server is running (`npm run dev`) before running Lighthouse
 
 ### Tests fail with timeout
+
 → Increase timeout in `playwright.config.js` or check if dev server is running
 
 ### ESLint errors in new code
+
 → Run `npm run format` first, then fix remaining issues manually
 
 ---
@@ -215,23 +226,27 @@ vercel
 If Lighthouse scores are below target:
 
 ### Performance < 90
+
 - Optimize images (use WebP, compress)
 - Minify CSS/JS
 - Enable compression on Vercel (automatic)
 - Reduce third-party scripts (already none ✓)
 
 ### Accessibility < 85
+
 - Check color contrast (use DevTools)
 - Add missing alt text
 - Ensure proper heading hierarchy
 - Test with screen reader
 
 ### Best Practices < 90
+
 - Review console for errors
 - Check HTTPS usage (Vercel handles ✓)
 - Verify no mixed content
 
 ### SEO < 90
+
 - Add meta descriptions to all pages
 - Ensure proper title tags
 - Verify sitemap is accessible
@@ -242,19 +257,23 @@ If Lighthouse scores are below target:
 ## 🎉 Success Criteria
 
 ✅ **Code Quality**:
+
 - All linting passes
 - Code is formatted consistently
 
 ✅ **Functionality**:
+
 - All tests pass
 - Manual testing complete
 - Forms work
 
 ✅ **Performance**:
+
 - Lighthouse scores meet targets
 - No console errors
 
 ✅ **Deployment**:
+
 - Deployed to Vercel
 - All routes work
 - Legal pages accessible
@@ -273,6 +292,7 @@ If you encounter issues:
 ---
 
 **Next Steps After This Checklist**:
+
 1. Complete Node.js installation
 2. Run all validation steps above
 3. Deploy to Vercel
@@ -280,4 +300,3 @@ If you encounter issues:
 5. Archive `PREFLIGHT.md` (optional - for reference only)
 
 Good luck! 🚀
-

@@ -1,6 +1,6 @@
 /**
  * FloodSight API Service
- * 
+ *
  * Handles all API communication with the FloodSight backend
  */
 
@@ -9,21 +9,25 @@ const API_CONFIG = {
   // Automatically detect the correct API URL based on current hostname
   BASE_URL: (() => {
     const hostname = window.location.hostname;
-    
+
     // If accessing via local network IP (192.168.x.x), use that IP for API
-    if (hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
+    if (
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('172.')
+    ) {
       return `http://${hostname}:8080/v1`;
     }
-    
+
     // If accessing via localhost, use localhost for API
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return 'http://localhost:8080/v1';
     }
-    
+
     // For production/deployed version, use production API
     return 'https://api.floodsight.com/v1';
   })(),
-  
+
   TIMEOUT: 10000, // 10 seconds
 };
 
@@ -32,10 +36,10 @@ const API_CONFIG = {
  */
 async function fetchAPI(endpoint, options = {}) {
   const url = `${API_CONFIG.BASE_URL}${endpoint}`;
-  
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-  
+
   try {
     const response = await fetch(url, {
       ...options,
@@ -45,21 +49,21 @@ async function fetchAPI(endpoint, options = {}) {
         ...options.headers,
       },
     });
-    
+
     clearTimeout(timeoutId);
-    
+
     if (!response.ok) {
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     clearTimeout(timeoutId);
-    
+
     if (error.name === 'AbortError') {
       throw new Error('Request timeout - API is not responding');
     }
-    
+
     console.error(`API Error for ${endpoint}:`, error);
     throw error;
   }
@@ -171,10 +175,10 @@ export async function checkAPIConnection() {
     await getHealth();
     return { available: true, message: 'API is online' };
   } catch (error) {
-    return { 
-      available: false, 
+    return {
+      available: false,
       message: error.message || 'API is offline',
-      error: error
+      error: error,
     };
   }
 }
@@ -188,4 +192,3 @@ export function getAPIConfig() {
     timeout: API_CONFIG.TIMEOUT,
   };
 }
-

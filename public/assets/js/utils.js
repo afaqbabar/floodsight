@@ -37,4 +37,3 @@ export function updateYear() {
   const el = qs('[data-year]');
   if (el) el.textContent = new Date().getFullYear().toString();
 }
-

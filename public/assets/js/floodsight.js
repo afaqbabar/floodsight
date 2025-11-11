@@ -17,10 +17,11 @@
   });
 
   // ---- Active nav link on scroll ----
-  const navLinks = qsa('.nav__list a[href^="#"]').map((el) => ({ el, id: el.getAttribute('href') }));
-  const sections = navLinks
-    .map(({ id }) => ({ id, el: qs(id) }))
-    .filter((s) => s.el);
+  const navLinks = qsa('.nav__list a[href^="#"]').map((el) => ({
+    el,
+    id: el.getAttribute('href'),
+  }));
+  const sections = navLinks.map(({ id }) => ({ id, el: qs(id) })).filter((s) => s.el);
 
   const setActive = () => {
     const fromTop = window.scrollY + 100; // offset for sticky header
@@ -98,7 +99,9 @@
         await navigator.clipboard.writeText(text);
         copyBtn.textContent = 'Copied!';
         setTimeout(() => (copyBtn.textContent = 'Copy'), 1200);
-      } catch (_) {}
+      } catch (_) {
+        // Clipboard API not available or permission denied
+      }
     });
     code.parentElement?.insertBefore(copyBtn, code);
   }
@@ -109,7 +112,6 @@
     form.addEventListener('submit', async (e) => {
       const name = qs('#name', form);
       const email = qs('#email', form);
-      const org = qs('#org', form);
       // Minimal checks
       const errors = [];
       const emailOk = /.+@.+\..+/.test(email.value.trim());
@@ -129,7 +131,7 @@
       // form.reset();
     });
 
-    function showFormNote(type, msg) {
+    const showFormNote = (type, msg) => {
       let note = qs('.form-note', form);
       if (!note) {
         note = document.createElement('div');
@@ -142,6 +144,6 @@
         form.appendChild(note);
       }
       note.textContent = msg;
-    }
+    };
   }
 })();

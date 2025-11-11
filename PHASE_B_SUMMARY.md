@@ -5,6 +5,7 @@
 **Phase B - Data Flow & API Logic** has been successfully implemented!
 
 The backend now has complete data ingestion and alert computation workflows:
+
 - ✅ Manual forecast ingestion endpoint
 - ✅ Alert computation from forecast data
 - ✅ Threshold-based alert levels (info, warning, severe, extreme)
@@ -16,6 +17,7 @@ The backend now has complete data ingestion and alert computation workflows:
 ## 📁 Files Created/Modified
 
 ### New Files
+
 ```
 backend/
 └── app/
@@ -24,6 +26,7 @@ backend/
 ```
 
 ### Modified Files
+
 ```
 backend/
 ├── app/
@@ -48,6 +51,7 @@ backend/
 - Returns ingestion summary
 
 **Example Response:**
+
 ```json
 {
   "status": "success",
@@ -63,6 +67,7 @@ backend/
 **New File**: `app/services/alerts.py`
 
 **Features:**
+
 - `determine_alert_level()` - Maps discharge to alert level
 - `compute_alerts_from_forecasts()` - Analyzes forecasts and computes alerts
 - `create_alerts_from_forecasts()` - Creates alert records in database
@@ -83,6 +88,7 @@ backend/
 | 49-72 hours | 55% | Lower confidence |
 
 **Algorithm:**
+
 1. Get all stations
 2. Query recent forecasts (last 6 hours of model runs)
 3. Find maximum discharge per station
@@ -101,6 +107,7 @@ backend/
 - Returns computed alerts with full station details
 
 **Example Response:**
+
 ```json
 {
   "status": "success",
@@ -148,7 +155,7 @@ curl http://localhost:8080/v1/alerts?active_only=true
 ✅ **60 forecasts** ingested (12 per station, 5 stations)  
 ✅ **5 alerts** computed (1 per station)  
 ✅ **All alerts are "severe"** level (discharge >1600 m³/s)  
-✅ **Probabilities vary** by lead time (55%-85%)  
+✅ **Probabilities vary** by lead time (55%-85%)
 
 ---
 
@@ -156,13 +163,13 @@ curl http://localhost:8080/v1/alerts?active_only=true
 
 From our test run:
 
-| Station | Code | Level | Discharge | Lead Time | Probability |
-|---------|------|-------|-----------|-----------|-------------|
-| Berlin Spree | BERLIN-SPREE | Severe | 1991.5 m³/s | 24h | 85% |
-| Dresden Elbe | ELBE-DRESDEN | Severe | 1937.6 m³/s | 6h | 85% |
-| Cologne Rhine | RHINE-COLOGNE | Severe | 1958.0 m³/s | 12h | 85% |
-| Vienna Danube | DANUBE-VIENNA | Severe | 1912.8 m³/s | 6h | 85% |
-| Frankfurt Main | MAIN-FRANKFURT | Severe | 1925.2 m³/s | 72h | 55% |
+| Station        | Code           | Level  | Discharge   | Lead Time | Probability |
+| -------------- | -------------- | ------ | ----------- | --------- | ----------- |
+| Berlin Spree   | BERLIN-SPREE   | Severe | 1991.5 m³/s | 24h       | 85%         |
+| Dresden Elbe   | ELBE-DRESDEN   | Severe | 1937.6 m³/s | 6h        | 85%         |
+| Cologne Rhine  | RHINE-COLOGNE  | Severe | 1958.0 m³/s | 12h       | 85%         |
+| Vienna Danube  | DANUBE-VIENNA  | Severe | 1912.8 m³/s | 6h        | 85%         |
+| Frankfurt Main | MAIN-FRANKFURT | Severe | 1925.2 m³/s | 72h       | 55%         |
 
 ---
 
@@ -171,6 +178,7 @@ From our test run:
 ### Automated Tests
 
 **End-to-End Workflow Test:**
+
 ```bash
 cd backend
 
@@ -179,6 +187,7 @@ cd backend
 ```
 
 **Expected Results:**
+
 - ✅ Forecast ingestion returns success with count
 - ✅ Alert computation returns success with alerts
 - ✅ All alerts stored in database
@@ -191,6 +200,7 @@ cd backend
 ### New Endpoints Added
 
 #### 1. POST /v1/forecasts/ingest-dev
+
 ```http
 POST /v1/forecasts/ingest-dev
 Content-Type: application/json
@@ -204,6 +214,7 @@ Response: 201 Created
 ```
 
 #### 2. POST /v1/alerts/compute
+
 ```http
 POST /v1/alerts/compute
 Content-Type: application/json
@@ -223,6 +234,7 @@ Response: 201 Created
 View at: **http://localhost:8080/docs**
 
 New endpoints are fully documented with:
+
 - ✅ Request/response schemas
 - ✅ Example responses
 - ✅ Try-it-out functionality
@@ -239,10 +251,10 @@ New endpoints are fully documented with:
 for each station:
     forecasts = get_recent_forecasts(station, last_6_hours)
     max_forecast = find_max_discharge(forecasts)
-    
+
     level = determine_alert_level(max_forecast.discharge)
     probability = calculate_probability(max_forecast.lead_hours)
-    
+
     create_alert(
         station=station,
         level=level,
@@ -255,11 +267,13 @@ for each station:
 ### Database Impact
 
 **Before Phase B:**
+
 - Stations: 5
 - Forecasts: 100 (seeded)
 - Alerts: 1 (sample)
 
 **After Phase B Workflow:**
+
 - Stations: 5 (unchanged)
 - Forecasts: 160 (100 seeded + 60 ingested)
 - Alerts: 6 (1 old deactivated + 5 new active)
@@ -270,11 +284,11 @@ for each station:
 
 ### Endpoint Response Times (ARM64 Raspberry Pi)
 
-| Endpoint | Response Time | Notes |
-|----------|--------------|-------|
-| POST /v1/forecasts/ingest-dev | ~200ms | Creates 60 records |
-| POST /v1/alerts/compute | ~150ms | Analyzes forecasts, creates 5 alerts |
-| GET /v1/alerts | ~50ms | Retrieves from database |
+| Endpoint                      | Response Time | Notes                                |
+| ----------------------------- | ------------- | ------------------------------------ |
+| POST /v1/forecasts/ingest-dev | ~200ms        | Creates 60 records                   |
+| POST /v1/alerts/compute       | ~150ms        | Analyzes forecasts, creates 5 alerts |
+| GET /v1/alerts                | ~50ms         | Retrieves from database              |
 
 ---
 
@@ -297,6 +311,7 @@ for each station:
 ### Phase B2 - Prefect Integration (Automated Ingestion)
 
 **Goals:**
+
 1. Install and configure Prefect
 2. Create scheduled flow for automatic ingestion
 3. Set up hourly/daily schedules
@@ -304,6 +319,7 @@ for each station:
 5. Integrate Prefect Cloud (optional)
 
 **Implementation:**
+
 - Create `app/workers/flows.py` with Prefect flow
 - Configure schedule (hourly ingestion)
 - Add automatic alert computation after ingestion
@@ -312,6 +328,7 @@ for each station:
 ### Phase C - DevSecOps Integration
 
 **Goals:**
+
 1. GitHub Actions CI/CD for backend
 2. Build and push Docker images to GHCR
 3. Add K8s deployment manifests
@@ -326,6 +343,7 @@ for each station:
 ✅ **Phase B Complete!**
 
 **Achievements:**
+
 - ✅ 2 new API endpoints fully functional
 - ✅ Alert computation working correctly
 - ✅ End-to-end data flow tested
@@ -334,6 +352,7 @@ for each station:
 - ✅ Ready for automation (Phase B2)
 
 **Code Quality:**
+
 - ✅ Type hints throughout
 - ✅ Comprehensive docstrings
 - ✅ Logging at all key points
@@ -363,4 +382,3 @@ open http://localhost:8080/docs
 **Date**: November 11, 2025  
 **Status**: ✅ **Phase B Complete**  
 **Next**: Phase B2 - Prefect Integration
-

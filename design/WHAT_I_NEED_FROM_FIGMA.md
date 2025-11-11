@@ -86,6 +86,7 @@ Card Padding: 20px
 ## ⚡ Once You Share
 
 I'll:
+
 1. ✅ Update `design/figma-tokens.json` with your exact values
 2. ✅ Regenerate the CSS
 3. ✅ The site will auto-refresh with your design
@@ -96,12 +97,13 @@ I'll:
 ## 🎯 Current Design vs Your Design
 
 **Current FloodSight Design**:
+
 - Dark theme with blues (#2563EB, #64748B)
 - Inter font
 - 3-column dashboard (288px, 1fr, 320px)
 
 **Your Custom Design**:
+
 - ? (Tell me and I'll implement it!)
 
 Ready to share the values? 🎨
-

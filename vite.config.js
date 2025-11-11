@@ -1,11 +1,11 @@
 import { resolve } from 'node:path';
 
 export default {
-  root: 'public',         // HTML files now in public/ directory
-  base: './',             // keep relative paths for nginx or any hosting
-  publicDir: false,       // disable default public handling since we're using it as root
+  root: 'public', // HTML files now in public/ directory
+  base: './', // keep relative paths for nginx or any hosting
+  publicDir: false, // disable default public handling since we're using it as root
   build: {
-    outDir: '../dist',    // output relative to public/ (back to repo root then dist)
+    outDir: '../dist', // output relative to public/ (back to repo root then dist)
     emptyOutDir: true,
     assetsDir: 'assets',
     rollupOptions: {
@@ -20,17 +20,16 @@ export default {
         security: resolve(__dirname, 'public/security.html'),
         thanks: resolve(__dirname, 'public/thanks.html'),
         health: resolve(__dirname, 'public/health.html'),
-        '404': resolve(__dirname, 'public/404.html'),
+        404: resolve(__dirname, 'public/404.html'),
         'verify-assets': resolve(__dirname, 'public/verify-assets.html'),
-        'google5b12900a10441c99': resolve(__dirname, 'public/google5b12900a10441c99.html')
-      }
-    }
+        google5b12900a10441c99: resolve(__dirname, 'public/google5b12900a10441c99.html'),
+      },
+    },
   },
   server: {
-    host: '0.0.0.0',  // Listen on all network interfaces
+    host: '0.0.0.0', // Listen on all network interfaces
     port: 5173,
     open: false,
-    strictPort: false
-  }
+    strictPort: false,
+  },
 };
-

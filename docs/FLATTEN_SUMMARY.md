@@ -20,15 +20,18 @@
 ### 2. Actions Taken
 
 #### Branch & Backup
+
 - ✅ Created branch: `fix/flatten-cursor-nesting`
 - ✅ Created backup: `floodsight-backup-20251105-135058.tar.gz`
 
 #### Repository Cleanup
+
 - ✅ Removed inner `.git` directory from `./floodsight/`
 - ✅ Copied all files (including dotfiles) to root using `rsync -av`
 - ✅ Deleted empty nested `floodsight/` directory
 
 #### Collision Handling
+
 - ✅ **vercel.json**: Used nested version (enhanced security headers)
   - Added: Content-Security-Policy
   - Added: Permissions-Policy
@@ -41,6 +44,7 @@
 - ✅ **DevOps files**: All promoted to root successfully
 
 #### Validation
+
 - ✅ Docker build tested: `docker build -f Dockerfile.nginx -t floodsight:test .`
   - Build successful
   - Vite compiled 9 HTML pages
@@ -116,25 +120,28 @@
 ## Key Files at Root
 
 ### DevOps Infrastructure
+
 ✅ `Dockerfile.nginx` - Multi-stage build (Node.js → nginx)  
 ✅ `docker-compose.yml` - Local development setup  
 ✅ `vite.config.js` - Modern build system (bundles 9 HTML pages)  
 ✅ `.github/workflows/build-and-push.yml` - CI/CD to GHCR  
 ✅ `deploy/k8s/` - Kubernetes manifests with Kustomize  
-✅ `deploy/flux/` - FluxCD GitOps automation  
+✅ `deploy/flux/` - FluxCD GitOps automation
 
 ### Site Content
+
 ✅ `vercel.json` - Enhanced security headers (CSP, Permissions-Policy)  
 ✅ `index.html` - Landing page (22.66 KB bundled)  
 ✅ `404.html`, `impressum.html`, `privacy.html`, `terms.html`, `security.html`, `thanks.html`, `verify-assets.html`, `google5b12900a10441c99.html`  
 ✅ `assets/js/` - Modularized JavaScript (main.js + modules)  
-✅ `assets/css/` - Complete stylesheets  
+✅ `assets/css/` - Complete stylesheets
 
 ---
 
 ## Validation Results
 
 ### Docker Build ✅
+
 ```bash
 $ docker build -f Dockerfile.nginx -t floodsight:test .
 ✓ vite v5.4.21 building for production...
@@ -147,12 +154,14 @@ $ docker build -f Dockerfile.nginx -t floodsight:test .
 ```
 
 ### Paths ✅
+
 - GitHub Actions: `context: .` ✓
 - GitHub Actions: `file: ./Dockerfile.nginx` ✓
 - Vite: `root: '.'` ✓
 - Kustomize: `resources: [../../base]` ✓
 
 ### Git Status ✅
+
 - Branch: `fix/flatten-cursor-nesting` ✓
 - Remote: Pushed to `origin/fix/flatten-cursor-nesting` ✓
 - Working tree: Clean ✓
@@ -184,22 +193,27 @@ $ docker build -f Dockerfile.nginx -t floodsight:test .
 ## Next Steps
 
 ### 1. Create the Pull Request
+
 Visit: https://github.com/afaqbabar/floodsight/pull/new/fix/flatten-cursor-nesting
 
 Use this PR body:
+
 ```markdown
 ## Overview
+
 This PR flattens the nested repository structure by promoting all files from the inner `floodsight/` directory to the repository root, removing the accidental nesting.
 
 ## Changes Made
 
 ### ✅ Repository Structure
+
 - [x] Removed inner `.git` from nested directory
 - [x] Promoted all files to repository root
 - [x] Preserved `vercel.json` (upgraded with enhanced security headers)
 - [x] Deleted empty nested `floodsight/` directory
 
 ### ✅ DevOps Infrastructure Added
+
 - [x] **Dockerfile.nginx** - Multi-stage build at root
 - [x] **docker-compose.yml** - Local development setup
 - [x] **vite.config.js** - Modern build system with multi-page support
@@ -208,6 +222,7 @@ This PR flattens the nested repository structure by promoting all files from the
 - [x] **deploy/flux/** - FluxCD image automation for GitOps
 
 ### ✅ Validation
+
 - [x] Root Docker build successful: `docker build -f Dockerfile.nginx .`
 - [x] CI workflow paths valid (`context: .`, `file: ./Dockerfile.nginx`)
 - [x] Kustomize/Flux paths unchanged under `deploy/*`
@@ -215,31 +230,42 @@ This PR flattens the nested repository structure by promoting all files from the
 - [x] No nested `floodsight/` directory remains
 
 ### ✅ Site Content
+
 - [x] All HTML pages preserved and updated
 - [x] Enhanced `vercel.json` with better security headers (CSP, Permissions-Policy)
 - [x] Modularized JavaScript (main.js, dom.js, forms.js, nav.js, utils.js)
 - [x] Complete asset structure maintained
 
 ## Vercel Deployment
+
 ✅ Vercel deployment **not impacted** - `vercel.json` at root with enhanced security headers
 
 ## Backup
+
 🔒 Backup created: `floodsight-backup-20251105-135058.tar.gz` (247KB)
 
 ## Testing
+
 \`\`\`bash
+
 # Docker build verified
+
 docker build -f Dockerfile.nginx -t floodsight:test .
+
 # ✓ Build successful - all pages bundled correctly
+
 \`\`\`
 
 ## Next Steps
+
 After merge:
+
 1. GitHub Actions will build multi-arch images on next push to `main`
 2. Images available at: `ghcr.io/afaqbabar/floodsight-frontend:latest`
 3. Deploy to K8s: `kubectl apply -k deploy/k8s/overlays/dev`
 
 ## Files Summary
+
 - **59 files** changed
 - **4,861 insertions**, 45 deletions
 - No `.bak` files created (no collision conflicts)
@@ -255,6 +281,7 @@ Once merged to `main`:
    - Push to `ghcr.io/afaqbabar/floodsight-frontend:dev-<sha>`
 
 2. **Test Locally:**
+
    ```bash
    npm install
    npm run build
@@ -262,10 +289,11 @@ Once merged to `main`:
    ```
 
 3. **Deploy to Kubernetes:**
+
    ```bash
    # Dev environment
    kubectl apply -k deploy/k8s/overlays/dev
-   
+
    # Production environment
    kubectl apply -k deploy/k8s/overlays/prod
    ```
@@ -324,6 +352,7 @@ npm run dev  # Vite dev server at localhost:5173
 ## Contact
 
 For questions or issues:
+
 - **Repository:** github.com/afaqbabar/floodsight
 - **Email:** hello@floodsight.com
 - **Security:** security@floodsight.com
@@ -331,5 +360,3 @@ For questions or issues:
 ---
 
 ✅ **Flattening Complete!** All systems operational.
-
-

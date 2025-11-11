@@ -107,4 +107,3 @@ export function initMobileNav() {
   window.addEventListener('resize', syncNav);
   syncNav();
 }
-

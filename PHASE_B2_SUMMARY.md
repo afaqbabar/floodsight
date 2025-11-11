@@ -28,9 +28,10 @@ Phase B2 implements automated, scheduled ingestion and alert computation using *
 ```
 
 **Architecture:**
+
 - **Technology:** APScheduler (alternative to Prefect due to version conflicts)
 - **Trigger:** Cron-based scheduling (`0 * * * *` = hourly at :00)
-- **Flow:** 
+- **Flow:**
   1. Fetch and store forecasts
   2. Compute alerts from forecasts
   3. Log results and metrics
@@ -38,6 +39,7 @@ Phase B2 implements automated, scheduled ingestion and alert computation using *
 ### 2. Docker Integration
 
 **Added to `docker-compose.yml`:**
+
 - New `scheduler` service with Docker profile
 - Uses same base image as API service
 - Configured with production environment variables
@@ -47,9 +49,11 @@ Phase B2 implements automated, scheduled ingestion and alert computation using *
 ### 3. Dependencies
 
 **Added to `pyproject.toml` and `requirements.txt`:**
+
 - `apscheduler==3.10.4` - Robust scheduling library
 
 **Why not Prefect?**
+
 - Version conflict: Prefect requires `starlette <0.33.0`
 - FastAPI requires `starlette >=0.35.0`
 - APScheduler provides equivalent functionality without conflicts
@@ -61,21 +65,25 @@ Phase B2 implements automated, scheduled ingestion and alert computation using *
 ### Scheduling Capabilities
 
 ✅ **Hourly Ingestion**
+
 - Runs at the top of every hour (`:00`)
 - Configurable cron schedule
 - Prevents overlapping executions
 
 ✅ **Startup Job**
+
 - Runs ingestion immediately on startup
 - Then schedules future runs
 
 ✅ **Manual Execution**
+
 ```bash
 # Run once for testing
 docker compose run --rm scheduler python -m app.workers.flows once
 ```
 
 ✅ **Error Resilience**
+
 - Catches and logs exceptions
 - Continues scheduling even if a job fails
 - Returns graceful error counts (0 forecasts, 0 alerts)
@@ -83,11 +91,13 @@ docker compose run --rm scheduler python -m app.workers.flows once
 ### Operational Features
 
 ✅ **Graceful Shutdown**
+
 - Handles SIGTERM and SIGINT signals
 - Waits for current job to complete
 - Clean exit logging
 
 ✅ **Comprehensive Logging**
+
 ```
 2025-11-11 10:09:24 | INFO | 🌊 FloodSight Ingestion Flow Started
 2025-11-11 10:09:24 | INFO | ============================================================
@@ -98,6 +108,7 @@ docker compose run --rm scheduler python -m app.workers.flows once
 ```
 
 ✅ **Single Instance Guarantee**
+
 - `max_instances=1` prevents concurrent runs
 - Important for data consistency
 
@@ -209,6 +220,7 @@ Results:
 ### Issue 1: AsyncIO Event Loop Conflict
 
 **Problem:**
+
 ```python
 # Original code caused event loop errors
 forecast_count = asyncio.run(fetch_and_store_forecasts())
@@ -216,11 +228,13 @@ alerts_count = asyncio.run(compute_and_store_alerts())  # ❌ Error!
 ```
 
 **Error:**
+
 ```
 RuntimeError: Task got Future attached to a different loop
 ```
 
 **Solution:**
+
 ```python
 # Combined both operations into single async function
 async def run_complete_flow():
@@ -235,11 +249,13 @@ def floodsight_ingest_flow():
 ### Issue 2: Prefect Version Conflict
 
 **Problem:**
+
 - Prefect requires `starlette <0.33.0`
 - FastAPI requires `starlette >=0.35.0`
 - Dependency conflict blocked installation
 
 **Solution:**
+
 - Removed Prefect from dependencies
 - Implemented APScheduler as alternative
 - APScheduler is lightweight, mature, and has no conflicts
@@ -292,9 +308,11 @@ def floodsight_ingest_flow():
 ## 📁 Files Created/Modified
 
 ### New Files
+
 - ✅ `backend/app/workers/flows.py` (195 lines)
 
 ### Modified Files
+
 - ✅ `backend/pyproject.toml` - Added `apscheduler = "^3.10.4"`
 - ✅ `backend/requirements.txt` - Added `apscheduler==3.10.4`
 - ✅ `backend/docker-compose.yml` - Added `scheduler` service
@@ -327,6 +345,7 @@ For production with real data:
    - Recommended: `"0 1,13 * * *"` (1 AM and 1 PM UTC)
 
 2. **Add retries for network failures**
+
    ```python
    @flow(name="floodsight-ingest", retries=3, retry_delay_seconds=300)
    ```
@@ -391,4 +410,3 @@ For production with real data:
 **Tests:** ✅ Passed (manual + scheduled modes)
 
 🎉 **FloodSight now has automated, production-ready flood monitoring!**
-

@@ -78,7 +78,7 @@
   gap: 12px;
 }
 
-.cookie-category input[type="checkbox"] {
+.cookie-category input[type='checkbox'] {
   margin-top: 2px;
   cursor: pointer;
   width: 18px;
@@ -86,7 +86,7 @@
   accent-color: var(--accent);
 }
 
-.cookie-category input[type="checkbox"]:disabled {
+.cookie-category input[type='checkbox']:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -170,9 +170,8 @@
   .cookie-banner {
     border-top-width: 2px;
   }
-  
+
   .cookie-category {
     border-width: 2px;
   }
 }
-

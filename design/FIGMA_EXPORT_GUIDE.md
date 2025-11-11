@@ -32,6 +32,7 @@ Example:
 ### Step 3: Extract Typography
 
 Look at text elements and note:
+
 - Font family (e.g., Inter, Roboto)
 - Font sizes (e.g., 14px, 16px, 24px)
 - Font weights (400, 500, 600, 700)
@@ -40,6 +41,7 @@ Look at text elements and note:
 ### Step 4: Extract Spacing
 
 Measure spacing between elements:
+
 - Padding values (8px, 16px, 24px)
 - Margins
 - Gap between items
@@ -172,9 +174,9 @@ Use this template and fill in your values:
 ## Need Help?
 
 If you can share:
+
 - Screenshots of your Figma design
 - Specific color codes
 - Font choices
 
 I can help you create the exact token file!
-

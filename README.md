@@ -160,6 +160,7 @@ npm run lighthouse       # Run Lighthouse audit (requires dev server running)
 FloodSight now uses a design token system for consistent theming across the application.
 
 **Token Categories**:
+
 - **Colors**: Primary, secondary, accent, warning, danger, backgrounds
 - **Typography**: Font families, sizes, weights
 - **Spacing**: Consistent spacing scale (4px, 8px, 12px, etc.)
@@ -310,6 +311,7 @@ FloodSight is configured to deploy to the **Frankfurt (fra1)** region for GDPR c
 See [TESTING.md](./TESTING.md) for detailed testing instructions.
 
 **Quick Test**:
+
 ```bash
 npm install
 npm test
@@ -320,12 +322,14 @@ npm test
 ## 📊 Performance
 
 Target metrics (Lighthouse):
+
 - **Performance**: ≥90
 - **Accessibility**: ≥85
 - **Best Practices**: ≥90
 - **SEO**: ≥90
 
 Run audit:
+
 ```bash
 npm run dev &           # Start server in background
 npm run lighthouse      # Run audit
@@ -354,19 +358,23 @@ Results saved to `lighthouse-report/`.
 Automated checks on every PR and push to `main`:
 
 **Code Quality:**
+
 - **ESLint** – JavaScript linting
 - **Prettier** – Code formatting check
 - **HTML Validation** – HTMLHint structure validation
 
 **Security:**
+
 - **npm audit** – Dependency vulnerability scanning
 - **TruffleHog** – Secret scanning to prevent credential leaks
 
 **Testing:**
+
 - **Playwright** – End-to-end tests
 - **Lighthouse** – Performance, accessibility, SEO audit
 
 **Build & Deploy:**
+
 - **Build verification** – Ensures production build succeeds
 - **Docker image** – Multi-arch build & push to GHCR (main branch only)
 - **Vercel deployment** – Automatic production deployment
@@ -375,12 +383,14 @@ Automated checks on every PR and push to `main`:
 ### Security Headers
 
 Production site enforces strict security headers via `vercel.json`:
+
 - **HSTS** (2 years, preload-ready)
 - **CSP** (Content Security Policy)
 - **X-Frame-Options** (DENY)
 - **Permissions-Policy** (restricts geolocation, camera, microphone)
 
 Verify headers:
+
 ```bash
 curl -I https://floodsight.vercel.app | grep -i -E "content-security-policy|strict-transport-security|x-frame-options"
 ```
@@ -392,6 +402,7 @@ See [SECURITY.md](./SECURITY.md) for responsible disclosure guidelines.
 ### Environment Variables (Vercel)
 
 If you need to add secrets later (e.g., analytics tokens):
+
 1. Go to Vercel project settings → Environment Variables
 2. Add variables (e.g., `ANALYTICS_KEY`)
 3. Reference in code or via Vercel build-time injection
@@ -500,6 +511,7 @@ argocd app get floodsight-frontend-staging
 ```
 
 **ArgoCD Features Configured:**
+
 - ✅ **Auto-sync** – Automatically deploys on git changes
 - ✅ **Self-heal** – Fixes manual changes to cluster
 - ✅ **Prune** – Removes deleted resources
@@ -525,6 +537,7 @@ docker pull ghcr.io/afaqbabar/floodsight:latest
 ```
 
 **Multi-architecture support:**
+
 - `linux/amd64` – For standard servers, VMs, x86 workstations
 - `linux/arm64` – For Raspberry Pi, ARM servers, Apple Silicon
 
@@ -541,6 +554,7 @@ docker buildx build --platform linux/amd64,linux/arm64 \
 ```
 
 **Image metadata:**
+
 - Labels include: git commit, version, build date
 - Scanned for vulnerabilities in CI
 - Signed with cosign (optional)
@@ -605,10 +619,10 @@ See [deploy/flux/README.md](deploy/flux/README.md) for details.
 
 FloodSight uses **two parallel deployment flows** from the same repository:
 
-| Target | Purpose | Trigger | Managed by |
-|--------|----------|----------|-------------|
-| **Vercel** | Public landing page (static) | Push to `main` | Vercel auto-build |
-| **k3s + FluxCD** | Local/Edge runtime (containerized) | Push to `main` or tag `v*` | FluxCD GitOps |
+| Target           | Purpose                            | Trigger                    | Managed by        |
+| ---------------- | ---------------------------------- | -------------------------- | ----------------- |
+| **Vercel**       | Public landing page (static)       | Push to `main`             | Vercel auto-build |
+| **k3s + FluxCD** | Local/Edge runtime (containerized) | Push to `main` or tag `v*` | FluxCD GitOps     |
 
 ### How It Works
 
@@ -617,7 +631,6 @@ Each environment is **isolated and independent**:
 - **Vercel** ignores `deploy/`, `.github/`, Docker files via `.vercelignore`
   - Builds directly from `public/` static assets
   - Serves the marketing site at floodsight.vercel.app
-  
 - **FluxCD on k3s** ignores `vercel.json` and Vercel-specific configs
   - Pulls multi-arch images from `ghcr.io/afaqbabar/floodsight-frontend`
   - Runs containerized nginx serving the Vite-built site
@@ -626,6 +639,7 @@ Each environment is **isolated and independent**:
 ### Raspberry Pi Setup (k3s)
 
 **Prerequisites:**
+
 ```bash
 # Install k3s on Raspberry Pi
 curl -sfL https://get.k3s.io | sh -
@@ -636,6 +650,7 @@ curl -s https://fluxcd.io/install.sh | sudo bash
 ```
 
 **Bootstrap Flux:**
+
 ```bash
 flux bootstrap github \
   --owner=afaqbabar \
@@ -646,6 +661,7 @@ flux bootstrap github \
 ```
 
 **For private GHCR images**, create a pull secret:
+
 ```bash
 kubectl -n floodsight create secret docker-registry ghcr-creds \
   --docker-server=ghcr.io \
@@ -662,6 +678,7 @@ kubectl -n floodsight create secret docker-registry ghcr-creds \
 ```
 
 **Verify deployment:**
+
 ```bash
 # Check Flux status
 flux check
@@ -679,7 +696,7 @@ kubectl get svc -n floodsight  # Get service IP/port
 ✅ **Public presence** via Vercel's global CDN  
 ✅ **Single source of truth** - one repo, two outputs  
 ✅ **GitOps-driven** k8s updates on every tag  
-✅ **Multi-arch support** - runs on amd64 and arm64  
+✅ **Multi-arch support** - runs on amd64 and arm64
 
 ---
 
@@ -687,16 +704,17 @@ kubectl get svc -n floodsight  # Get service IP/port
 
 FloodSight includes comprehensive health monitoring endpoints for both Vercel and k3s deployments:
 
-| Endpoint | Purpose | Format | Platform |
-|----------|---------|--------|----------|
-| `/health.html` | Interactive dashboard with auto-refresh | HTML | Both |
-| `/assets/health.json` | Build metadata (commit, tag, image, timestamp) | JSON | Both |
-| `/version.txt` | Plain text version info | Text | Both |
-| `/healthz` | Kubernetes probe endpoint | JSON | k3s only |
+| Endpoint              | Purpose                                        | Format | Platform |
+| --------------------- | ---------------------------------------------- | ------ | -------- |
+| `/health.html`        | Interactive dashboard with auto-refresh        | HTML   | Both     |
+| `/assets/health.json` | Build metadata (commit, tag, image, timestamp) | JSON   | Both     |
+| `/version.txt`        | Plain text version info                        | Text   | Both     |
+| `/healthz`            | Kubernetes probe endpoint                      | JSON   | k3s only |
 
 ### Health Dashboard
 
 Visit `/health.html` for a live dashboard showing:
+
 - ✅ **Status**: Application health
 - 📦 **Commit**: Git SHA (short)
 - 🏷️ **Tag**: Version tag
@@ -725,6 +743,7 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8080/healthz
 ### Kubernetes Probes
 
 The k8s deployment includes:
+
 - **Readiness Probe**: `/healthz` (checks every 5s, starts after 3s)
 - **Liveness Probe**: `/healthz` (checks every 10s, starts after 10s)
 
@@ -764,4 +783,3 @@ MIT License - see [LICENSE](./LICENSE) (if applicable)
 ---
 
 Built with ❤️ for climate resilience.
-

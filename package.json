@@ -18,7 +18,12 @@
     "test:ui": "playwright test --ui",
     "lighthouse": "node scripts/lighthouse.js"
   },
-  "keywords": ["flood", "monitoring", "API", "climate"],
+  "keywords": [
+    "flood",
+    "monitoring",
+    "API",
+    "climate"
+  ],
   "author": "FloodSight",
   "license": "MIT",
   "devDependencies": {
@@ -30,4 +35,3 @@
     "vite": "^5.4.0"
   }
 }
-

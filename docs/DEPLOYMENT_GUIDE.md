@@ -3,6 +3,7 @@
 ## Overview
 
 This guide documents the complete DevOps setup for FloodSight, including:
+
 - ✅ Vite build system for bundling assets
 - ✅ Docker containerization with nginx
 - ✅ GitHub Actions CI/CD for multi-arch images
@@ -15,6 +16,7 @@ This guide documents the complete DevOps setup for FloodSight, including:
 ### Configuration
 
 **`vite.config.js`** - Multi-page build configuration
+
 - Bundles `/assets/js/main.js` and dependencies
 - Processes all HTML pages (index, impressum, privacy, terms, security, thanks, 404, verify-assets, google verification)
 - Outputs to `dist/` directory
@@ -38,6 +40,7 @@ npm run preview  # Preview build at http://localhost:4173
 ### Dockerfile
 
 **`Dockerfile.nginx`** - Multi-stage build
+
 - **Stage 1**: Node.js build (npm ci → vite build)
 - **Stage 2**: Nginx runtime serving `dist/`
 
@@ -69,10 +72,12 @@ Visit: http://localhost:8080
 **`.github/workflows/build-and-push.yml`**
 
 **Triggers:**
+
 - Push to `main` branch
 - Manual workflow dispatch
 
 **What it does:**
+
 1. Checks out code
 2. Logs into GitHub Container Registry (GHCR)
 3. Sets up Docker Buildx for multi-arch builds
@@ -91,6 +96,7 @@ Visit: http://localhost:8080
 Location: `deploy/k8s/base/`
 
 **Resources:**
+
 - `namespace.yaml` - Creates `floodsight` namespace
 - `frontend-deployment.yaml` - 2 replicas, resource limits
 - `frontend-service.yaml` - ClusterIP service on port 80
@@ -102,8 +108,8 @@ Location: `deploy/k8s/base/`
 ```yaml
 replicas: 2
 resources:
-  requests: { cpu: "50m", memory: "64Mi" }
-  limits:   { cpu: "300m", memory: "256Mi" }
+  requests: { cpu: '50m', memory: '64Mi' }
+  limits: { cpu: '300m', memory: '256Mi' }
 ```
 
 ### Deploy Base
@@ -143,6 +149,7 @@ kubectl apply -k deploy/k8s/overlays/prod
 Location: `deploy/flux/`
 
 **Resources:**
+
 - `image-repositories.yaml` - Watches GHCR for new images
 - `image-policies.yaml` - Filters by semver (>=0.1.0)
 - `image-update.yaml` - Auto-updates prod overlay
@@ -262,32 +269,38 @@ floodsight/
 ## 10. Acceptance Checklist
 
 ### Local Build
+
 - [ ] `npm run build` produces `dist/` directory
 - [ ] All HTML pages present in `dist/`
 - [ ] `npm run preview` serves site correctly
 
 ### Docker
+
 - [ ] Image builds successfully
 - [ ] Container serves site on port 80
 - [ ] All pages accessible
 
 ### GitHub Actions
+
 - [ ] Workflow runs on push to main
 - [ ] Multi-arch build succeeds (amd64, arm64)
 - [ ] Images pushed to `ghcr.io/afaqbabar/floodsight-frontend:latest`
 
 ### Kubernetes
+
 - [ ] `kubectl apply -k deploy/k8s/overlays/dev` creates resources
 - [ ] Deployment healthy with 2/2 pods running
 - [ ] Service routes traffic correctly
 
 ### FluxCD
+
 - [ ] Flux bootstrap completes successfully
 - [ ] ImageRepository scans GHCR
 - [ ] ImagePolicy filters semver correctly
 - [ ] ImageUpdateAutomation commits work
 
 ### Vercel
+
 - [ ] Vercel deployment still works
 - [ ] `vercel.json` unchanged
 - [ ] Site accessible at floodsight.vercel.app
@@ -375,6 +388,7 @@ flux reconcile image update floodsight-updater
 ## 13. Support
 
 For issues or questions:
+
 - **Repository:** github.com/afaqbabar/floodsight
 - **Email:** hello@floodsight.com
 - **Security:** security@floodsight.com
@@ -382,4 +396,3 @@ For issues or questions:
 ---
 
 Built with ❤️ for climate resilience.
-

@@ -1,6 +1,7 @@
 # FloodSight Improvement Plan
 
 ## 🎯 Goals
+
 1. Fix routing, SEO, and deployment issues for Vercel
 2. Improve performance, mobile UX, and accessibility
 3. Add quality tooling (linting, formatting, testing)
@@ -12,12 +13,14 @@
 ## 🔧 Changes by Category
 
 ### 1. **Routing & Links**
+
 - ✅ Already clean: `vercel.json` rewrites work for `/impressum`, `/privacy`, `/terms`, `/security`
 - 🔧 Fix footer links: remove `.html` extensions in legal pages (impressum, privacy, terms, security)
 - 🆕 Add 404.html page with helpful navigation back to home
 - 🔧 Update all internal links to use clean routes (no `.html`)
 
 ### 2. **SEO**
+
 - 🔧 Update `sitemap.xml`: change all `floodsight.netlify.app` → `floodsight.vercel.app`
 - 🔧 Update `robots.txt`: confirm sitemap URL
 - 🔧 Fix canonical URLs in `index.html`: remove commented-out line, keep vercel.app
@@ -26,6 +29,7 @@
 - 🆕 Add `sitemap.xml` entry for `404.html`
 
 ### 3. **Performance**
+
 - 🆕 Add lazy-loading to images: `loading="lazy"` for hero/trust logos
 - 🆕 Add `width` + `height` to images (prevent CLS)
 - 🔧 Defer non-critical JS: already has `defer` ✅
@@ -34,6 +38,7 @@
 - 🆕 Compress assets: add `public` folder structure if needed
 
 ### 4. **Mobile & Accessibility**
+
 - 🔧 Fix mobile nav toggle: extract into module, improve ARIA states
 - 🔧 Test responsive grid breakpoints (hero, features, steps)
 - 🔧 Add `:focus-visible` styles for keyboard nav
@@ -42,12 +47,14 @@
 - 🔧 Test with Lighthouse for a11y score ≥85
 
 ### 5. **Forms**
+
 - ✅ Form already uses Formspree (no backend needed) ✅
 - 🔧 Update legal pages to reflect "Formspree" not "Netlify Forms"
 - 🆕 Add fallback `mailto:` option behind config flag (env var or data attribute)
 - 🔧 Improve client-side validation messages (ARIA live region)
 
 ### 6. **I18n (Optional - Not Implemented Yet)**
+
 - ⚠️ Prompt mentions DE/EN toggle, but codebase doesn't have one
 - 🆕 Add minimal i18n: language switcher in header (persist in localStorage)
 - 🆕 Create `i18n.js` module with DE/EN strings
@@ -55,6 +62,7 @@
 - ⏩ **Decision**: Skip for now (requires full translation of content). Mark as future enhancement.
 
 ### 7. **Legal Pages**
+
 - ✅ Impressum, Privacy, Terms, Security already exist
 - 🔧 Fix footer nav links to be consistent
 - 🔧 Update hosting references: "Netlify" → "Vercel" in Impressum
@@ -62,6 +70,7 @@
 - 🔧 Fix breadcrumbs/navigation in headers of legal pages
 
 ### 8. **JavaScript Refactoring**
+
 - 🔧 Split `floodsight.js` into ES modules:
   - `dom.js` – DOM helpers (qs, qsa)
   - `nav.js` – Navigation toggle, smooth scroll, active link
@@ -71,6 +80,7 @@
 - 🔧 Remove global scope leaks (already uses IIFE ✅)
 
 ### 9. **Build & Deploy**
+
 - 🆕 Add `package.json` with:
   - `npm run format` – Prettier
   - `npm run lint` – ESLint
@@ -82,6 +92,7 @@
 - 🆕 Add `.env.example` for future analytics/tracking flags
 
 ### 10. **Quality & Testing**
+
 - 🆕 Add Prettier config (2 spaces, single quotes, trailing commas)
 - 🆕 Add ESLint (eslint:recommended + browser globals)
 - 🆕 Add `html-validate` for HTML validation
@@ -146,4 +157,3 @@
 **Estimated time**: 2-3 hours
 **Complexity**: Medium (modularization + tooling setup)
 **Risk**: Low (static site, no backend changes)
-

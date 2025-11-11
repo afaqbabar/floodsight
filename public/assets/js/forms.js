@@ -47,4 +47,3 @@ function showFormNote(form, type, msg) {
   }
   note.textContent = msg;
 }
-

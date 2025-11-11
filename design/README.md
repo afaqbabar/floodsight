@@ -45,6 +45,6 @@ The tokens are available as CSS custom properties:
 ## Dark Mode
 
 Dark mode variants are automatically applied via:
+
 - `.dark` class on the root element
 - `prefers-color-scheme: dark` media query
-

@@ -3,11 +3,11 @@
  * GDPR-compliant cookie consent banner with category selection
  */
 
-import { 
-  getConsent, 
-  saveConsent, 
+import {
+  getConsent,
+  saveConsent,
   shouldShowConsentBanner,
-  ConsentCategories 
+  ConsentCategories,
 } from '/lib/consent.js';
 
 const bannerHTML = `
@@ -123,7 +123,7 @@ function handleAcceptAll() {
     necessary: true,
     preferences: true,
     analytics: true,
-    marketing: true
+    marketing: true,
   });
   hideCookieBanner();
 }
@@ -136,7 +136,7 @@ function handleReject() {
     necessary: true,
     preferences: false,
     analytics: false,
-    marketing: false
+    marketing: false,
   });
   hideCookieBanner();
 }
@@ -153,7 +153,7 @@ function handleSave() {
     necessary: true,
     preferences,
     analytics,
-    marketing
+    marketing,
   });
   hideCookieBanner();
 }
@@ -176,4 +176,3 @@ export function initCookieBanner() {
 if (typeof window !== 'undefined') {
   window.showCookieSettings = showCookieBanner;
 }
-

@@ -180,6 +180,7 @@ kubectl create secret docker-registry ghcr-creds \
 ### Security Context
 
 Containers run with:
+
 - **Non-root user**: UID 101 (nginx user)
 - **Read-only root filesystem**: Enabled
 - **No privilege escalation**: Enforced
@@ -215,6 +216,7 @@ spec:
 ### GitHub Actions
 
 The CI/CD pipeline (`.github/workflows/ci.yml`) automatically:
+
 1. Builds the application
 2. Runs tests and security scans
 3. Builds Docker image
@@ -274,4 +276,3 @@ kubectl get endpoints -n floodsight
 ```bash
 kubectl rollout restart deployment/frontend -n floodsight
 ```
-

@@ -1,124 +1,149 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FloodSight Asset Verification</title>
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 20px;
-      background: #0b1220;
-      color: #e7eefc;
-    }
-    h1 { color: #47c7f5; }
-    .test-result {
-      margin: 20px 0;
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid #243049;
-    }
-    .success { background: #12361f; border-color: #2d5a3d; }
-    .error { background: #3b1117; border-color: #5a2d30; }
-    .pending { background: #2d3347; border-color: #3d4357; }
-    .asset-list { margin: 10px 0; }
-    .asset-item {
-      padding: 8px;
-      margin: 5px 0;
-      background: #111a2d;
-      border-radius: 4px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .status-ok { color: #4ade80; }
-    .status-fail { color: #f87171; }
-    .status-pending { color: #fbbf24; }
-    button {
-      background: linear-gradient(135deg, #47c7f5, #5b6ef5);
-      color: #001018;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 16px;
-      margin: 20px 0;
-    }
-    button:hover { opacity: 0.9; }
-    img { display: none; }
-    .preview { 
-      margin: 10px 0; 
-      max-width: 200px; 
-      height: auto;
-      display: block !important;
-      border: 1px solid #243049;
-      border-radius: 4px;
-      padding: 10px;
-      background: #111a2d;
-    }
-  </style>
-</head>
-<body>
-  <h1>🔍 FloodSight Asset Verification</h1>
-  <p>This page checks if all SVG assets load correctly.</p>
-
-  <button onclick="runTests()">🧪 Run Asset Tests</button>
-
-  <div id="results"></div>
-
-  <script>
-    const assets = [
-      { name: 'Hero Map', path: '/hero-map-placeholder.svg' },
-      { name: 'CityLab Logo', path: '/logos/citylab.svg' },
-      { name: 'InsurTech Logo', path: '/logos/insurtech.svg' },
-      { name: 'University Logo', path: '/logos/university.svg' },
-      { name: 'IoT Logo', path: '/logos/iot.svg' }
-    ];
-
-    async function testAsset(asset) {
-      try {
-        const response = await fetch(asset.path);
-        const status = response.status;
-        const size = response.headers.get('content-length');
-        
-        return {
-          name: asset.name,
-          path: asset.path,
-          status: status,
-          success: status === 200,
-          size: size ? `${(size / 1024).toFixed(1)} KB` : 'Unknown',
-          contentType: response.headers.get('content-type')
-        };
-      } catch (error) {
-        return {
-          name: asset.name,
-          path: asset.path,
-          status: 'Error',
-          success: false,
-          error: error.message
-        };
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FloodSight Asset Verification</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #0b1220;
+        color: #e7eefc;
       }
-    }
+      h1 {
+        color: #47c7f5;
+      }
+      .test-result {
+        margin: 20px 0;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #243049;
+      }
+      .success {
+        background: #12361f;
+        border-color: #2d5a3d;
+      }
+      .error {
+        background: #3b1117;
+        border-color: #5a2d30;
+      }
+      .pending {
+        background: #2d3347;
+        border-color: #3d4357;
+      }
+      .asset-list {
+        margin: 10px 0;
+      }
+      .asset-item {
+        padding: 8px;
+        margin: 5px 0;
+        background: #111a2d;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .status-ok {
+        color: #4ade80;
+      }
+      .status-fail {
+        color: #f87171;
+      }
+      .status-pending {
+        color: #fbbf24;
+      }
+      button {
+        background: linear-gradient(135deg, #47c7f5, #5b6ef5);
+        color: #001018;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 20px 0;
+      }
+      button:hover {
+        opacity: 0.9;
+      }
+      img {
+        display: none;
+      }
+      .preview {
+        margin: 10px 0;
+        max-width: 200px;
+        height: auto;
+        display: block !important;
+        border: 1px solid #243049;
+        border-radius: 4px;
+        padding: 10px;
+        background: #111a2d;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔍 FloodSight Asset Verification</h1>
+    <p>This page checks if all SVG assets load correctly.</p>
 
-    async function runTests() {
-      const resultsDiv = document.getElementById('results');
-      resultsDiv.innerHTML = '<div class="test-result pending"><h2>⏳ Testing assets...</h2></div>';
+    <button onclick="runTests()">🧪 Run Asset Tests</button>
 
-      const results = await Promise.all(assets.map(testAsset));
-      
-      const allPassed = results.every(r => r.success);
-      const passedCount = results.filter(r => r.success).length;
-      const totalCount = results.length;
+    <div id="results"></div>
 
-      let html = `
+    <script>
+      const assets = [
+        { name: 'Hero Map', path: '/hero-map-placeholder.svg' },
+        { name: 'CityLab Logo', path: '/logos/citylab.svg' },
+        { name: 'InsurTech Logo', path: '/logos/insurtech.svg' },
+        { name: 'University Logo', path: '/logos/university.svg' },
+        { name: 'IoT Logo', path: '/logos/iot.svg' },
+      ];
+
+      async function testAsset(asset) {
+        try {
+          const response = await fetch(asset.path);
+          const status = response.status;
+          const size = response.headers.get('content-length');
+
+          return {
+            name: asset.name,
+            path: asset.path,
+            status: status,
+            success: status === 200,
+            size: size ? `${(size / 1024).toFixed(1)} KB` : 'Unknown',
+            contentType: response.headers.get('content-type'),
+          };
+        } catch (error) {
+          return {
+            name: asset.name,
+            path: asset.path,
+            status: 'Error',
+            success: false,
+            error: error.message,
+          };
+        }
+      }
+
+      async function runTests() {
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML =
+          '<div class="test-result pending"><h2>⏳ Testing assets...</h2></div>';
+
+        const results = await Promise.all(assets.map(testAsset));
+
+        const allPassed = results.every((r) => r.success);
+        const passedCount = results.filter((r) => r.success).length;
+        const totalCount = results.length;
+
+        let html = `
         <div class="test-result ${allPassed ? 'success' : 'error'}">
           <h2>${allPassed ? '✅' : '❌'} Test Results: ${passedCount}/${totalCount} Passed</h2>
-          ${allPassed 
-            ? '<p>🎉 All assets loaded successfully! No 404 errors.</p>' 
-            : '<p>⚠️ Some assets failed to load. Check the details below.</p>'
+          ${
+            allPassed
+              ? '<p>🎉 All assets loaded successfully! No 404 errors.</p>'
+              : '<p>⚠️ Some assets failed to load. Check the details below.</p>'
           }
         </div>
 
@@ -127,11 +152,11 @@
           <div class="asset-list">
       `;
 
-      results.forEach(result => {
-        const statusClass = result.success ? 'status-ok' : 'status-fail';
-        const statusText = result.success ? '✓ OK' : `✗ ${result.status}`;
-        
-        html += `
+        results.forEach((result) => {
+          const statusClass = result.success ? 'status-ok' : 'status-fail';
+          const statusText = result.success ? '✓ OK' : `✗ ${result.status}`;
+
+          html += `
           <div class="asset-item">
             <div>
               <strong>${result.name}</strong><br>
@@ -143,9 +168,9 @@
             </div>
           </div>
         `;
-      });
+        });
 
-      html += `
+        html += `
           </div>
         </div>
 
@@ -156,9 +181,14 @@
           
           <p style="margin-top: 20px">Partner logos:</p>
           <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            ${assets.slice(1).map(a => `
+            ${assets
+              .slice(1)
+              .map(
+                (a) => `
               <img src="${a.path}" class="preview" style="max-width: 120px" alt="${a.name}" onload="this.style.display='block'" onerror="this.alt='Failed to load'">
-            `).join('')}
+            `
+              )
+              .join('')}
           </div>
         </div>
 
@@ -169,27 +199,26 @@
         </div>
       `;
 
-      resultsDiv.innerHTML = html;
+        resultsDiv.innerHTML = html;
 
-      // Also log to console
-      console.log('=== FloodSight Asset Test Results ===');
-      console.log(`Passed: ${passedCount}/${totalCount}`);
-      results.forEach(r => {
-        console.log(`${r.success ? '✅' : '❌'} ${r.name}: ${r.status} (${r.path})`);
-      });
-      
-      if (allPassed) {
-        console.log('✅ All assets loaded successfully! No 404 errors.');
-      } else {
-        console.error('❌ Some assets failed. See details above.');
+        // Also log to console
+        console.log('=== FloodSight Asset Test Results ===');
+        console.log(`Passed: ${passedCount}/${totalCount}`);
+        results.forEach((r) => {
+          console.log(`${r.success ? '✅' : '❌'} ${r.name}: ${r.status} (${r.path})`);
+        });
+
+        if (allPassed) {
+          console.log('✅ All assets loaded successfully! No 404 errors.');
+        } else {
+          console.error('❌ Some assets failed. See details above.');
+        }
       }
-    }
 
-    // Auto-run on load
-    window.addEventListener('load', () => {
-      setTimeout(runTests, 500);
-    });
-  </script>
-</body>
+      // Auto-run on load
+      window.addEventListener('load', () => {
+        setTimeout(runTests, 500);
+      });
+    </script>
+  </body>
 </html>
-

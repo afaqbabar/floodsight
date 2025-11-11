@@ -7,6 +7,7 @@ This document explains how to run tests, validate code quality, and audit perfor
 ## 🧪 Test Suite Overview
 
 FloodSight uses:
+
 - **Playwright** for end-to-end browser tests
 - **ESLint** for JavaScript linting
 - **Prettier** for code formatting
@@ -35,18 +36,21 @@ npm test                # Run Playwright tests
 ### 1. Unit Tests (N/A)
 
 Currently no unit tests (static site with minimal JS). If adding complex logic, consider:
+
 - Vitest or Jest for JavaScript unit tests
 - Test DOM helpers, form validation, etc.
 
 ### 2. End-to-End Tests (Playwright)
 
 **Run tests**:
+
 ```bash
 npm test                # Headless mode
 npm run test:ui         # Interactive UI mode
 ```
 
 **Test coverage**:
+
 - ✅ Homepage loads with correct title
 - ✅ Navigation links work (smooth scroll)
 - ✅ Signup form validation
@@ -59,6 +63,7 @@ npm run test:ui         # Interactive UI mode
 **Test files**: `tests/smoke.spec.js`
 
 **Browsers tested**:
+
 - Chromium (desktop)
 - Firefox (desktop)
 - Mobile Safari (iPhone 13 simulation)
@@ -72,6 +77,7 @@ npm run lint
 ```
 
 **Rules**:
+
 - ESLint recommended rules
 - Browser globals enabled
 - ES2021+ syntax
@@ -87,6 +93,7 @@ npm run format          # Fix issues
 ```
 
 **Style**:
+
 - 2 spaces indentation
 - Single quotes
 - Trailing commas (ES5)
@@ -101,6 +108,7 @@ npm run lint:html
 ```
 
 **Checks**:
+
 - Valid HTML5 structure
 - Proper nesting
 - Required attributes
@@ -185,12 +193,14 @@ npm run lighthouse
 ### Interpreting Results
 
 **Target Scores**:
+
 - Performance: ≥90
 - Accessibility: ≥85
 - Best Practices: ≥90
 - SEO: ≥90
 
 **Key Metrics**:
+
 - **FCP (First Contentful Paint)**: <1.8s (good)
 - **LCP (Largest Contentful Paint)**: <2.5s (good)
 - **TBT (Total Blocking Time)**: <200ms (good)
@@ -200,16 +210,19 @@ npm run lighthouse
 ### Common Issues & Fixes
 
 **Low Performance**:
+
 - ❌ Large images → ✅ Optimize with ImageOptim, use WebP
 - ❌ Render-blocking JS → ✅ Use `defer` or `type="module"`
 - ❌ Unused CSS → ✅ Remove or split into critical/deferred
 
 **Low Accessibility**:
+
 - ❌ Missing alt text → ✅ Add descriptive alt to all images
 - ❌ Low contrast → ✅ Use color contrast checker
 - ❌ Missing labels → ✅ Associate `<label for="id">` with inputs
 
 **Low SEO**:
+
 - ❌ Missing meta description → ✅ Add unique description per page
 - ❌ Non-crawlable links → ✅ Use `<a href="...">` not `<div onclick>`
 
@@ -269,6 +282,7 @@ pre-commit run --all-files
 ```
 
 **Hooks** (`.pre-commit-config.yaml`):
+
 - Lychee (link check)
 - Trailing whitespace
 - End-of-file fixer
@@ -299,6 +313,7 @@ curl -I https://floodsight.vercel.app
 ```
 
 **Expected output** (abbreviated):
+
 ```
 HTTP/2 200
 strict-transport-security: max-age=63072000; includeSubDomains; preload
@@ -311,6 +326,7 @@ content-security-policy: default-src 'self'; img-src 'self' data: https:; script
 ```
 
 **Filter specific headers**:
+
 ```bash
 curl -I https://floodsight.vercel.app | grep -i -E "content-security-policy|strict-transport-security|x-content-type-options|x-frame-options"
 ```
@@ -318,6 +334,7 @@ curl -I https://floodsight.vercel.app | grep -i -E "content-security-policy|stri
 ### Testing CSP Violations
 
 If CSP breaks something (e.g., blocks external scripts):
+
 1. Temporarily switch to **report-only mode** in `vercel.json`:
    ```json
    { "key": "Content-Security-Policy-Report-Only", "value": "..." }
@@ -334,11 +351,13 @@ If CSP breaks something (e.g., blocks external scripts):
 ### What to Look For
 
 After CI runs, check the Lighthouse job logs for:
+
 - **Report URL**: `https://storage.googleapis.com/lighthouse-infrastructure.appspot.com/reports/...`
 - **Scores**: Performance, Accessibility, Best Practices, SEO
 - **Key Metrics**: FCP, LCP, TBT, CLS
 
 **Target Scores**:
+
 - Performance: ≥90
 - Accessibility: ≥85
 - Best Practices: ≥90
@@ -347,14 +366,17 @@ After CI runs, check the Lighthouse job logs for:
 ### Common Issues
 
 **CSP warnings**:
+
 - "Missing Content-Security-Policy" → ✅ Fixed in this PR
 - "Unsafe inline script" → ⚠️ Acceptable for static sites with ES modules
 
 **Performance**:
+
 - "Eliminate render-blocking resources" → Check CSS inlining or defer non-critical styles
 - "Serve images in next-gen formats" → Convert to WebP (future enhancement)
 
 **Accessibility**:
+
 - "Background and foreground colors do not have sufficient contrast ratio" → Use [WebAIM contrast checker](https://webaim.org/resources/contrastchecker/)
 
 ---
@@ -364,9 +386,11 @@ After CI runs, check the Lighthouse job logs for:
 ### Playwright Test Fails
 
 1. **View trace**:
+
    ```bash
    npm run test:ui
    ```
+
    Click on failed test, view trace timeline.
 
 2. **Check screenshot**:
@@ -383,18 +407,23 @@ After CI runs, check the Lighthouse job logs for:
 ### Linting Errors
 
 **ESLint**:
+
 ```bash
 npm run lint
 ```
+
 Fix manually or use `eslint --fix` (not recommended for auto-fixing).
 
 **Prettier**:
+
 ```bash
 npm run format
 ```
+
 Auto-fixes formatting issues.
 
 **html-validate**:
+
 - Read error message (e.g., "unclosed tag")
 - Fix HTML manually
 - Re-run `npm run lint:html`
@@ -457,4 +486,3 @@ Before deploying to production:
 ---
 
 **Questions?** Open an issue or contact [hello@floodsight.com](mailto:hello@floodsight.com).
-

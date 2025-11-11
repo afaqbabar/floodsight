@@ -64,6 +64,7 @@ argocd app get floodsight-frontend --watch
 ## Configuration
 
 The Application manifest points to:
+
 - **Repository**: `https://github.com/afaqbabar/floodsight.git`
 - **Path**: `deploy/k8s/overlays/prod`
 - **Target Namespace**: `floodsight`
@@ -72,6 +73,7 @@ The Application manifest points to:
 ### Automated Sync
 
 The application is configured with:
+
 - **Auto-sync**: Changes in the repository are automatically deployed
 - **Self-heal**: Kubernetes resources that drift from Git are automatically corrected
 - **Prune**: Removed resources from Git are deleted from the cluster
@@ -118,4 +120,3 @@ kubectl delete -f deploy/argocd/application.yaml
 # Or using CLI
 argocd app delete floodsight-frontend
 ```
-

@@ -79,4 +79,3 @@ export function initRightPanel() {
   console.log('RightPanel initialized');
   // Add click handlers for forecast cards
 }
-

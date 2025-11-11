@@ -2,18 +2,18 @@
   /* Design Tokens - Auto-generated from figma-tokens.json */
 
   /* Colors */
-  --color-primary: #2563EB;
-  --color-secondary: #64748B;
-  --color-accent: #3B82F6;
-  --color-warning: #F59E0B;
-  --color-danger: #EF4444;
-  --color-success: #10B981;
-  --color-background: #FFFFFF;
-  --color-foreground: #0F172A;
-  --color-muted: #64748B;
-  --color-card: #F9FAFB;
-  --color-border: #E5E7EB;
-  --color-hover: #F3F4F6;
+  --color-primary: #2563eb;
+  --color-secondary: #64748b;
+  --color-accent: #3b82f6;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-success: #10b981;
+  --color-background: #ffffff;
+  --color-foreground: #0f172a;
+  --color-muted: #64748b;
+  --color-card: #f9fafb;
+  --color-border: #e5e7eb;
+  --color-hover: #f3f4f6;
 
   /* Border Radius */
   --radius-sm: 0.25rem;

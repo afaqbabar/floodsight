@@ -139,4 +139,3 @@ test.describe('Accessibility', () => {
     await expect(page.locator('label[for="org"]')).toBeVisible();
   });
 });
-

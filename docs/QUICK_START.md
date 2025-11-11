@@ -37,14 +37,17 @@ npm run lighthouse  # Performance audit (needs dev server running)
 ## 🌐 Deploy to Vercel
 
 **Option A: GitHub**
+
 ```bash
 git add .
 git commit -m "FloodSight improvements complete"
 git push origin main
 ```
+
 Then connect repo at [vercel.com](https://vercel.com)
 
 **Option B: CLI**
+
 ```bash
 npx vercel
 ```
@@ -82,4 +85,3 @@ FloodSight is now **production-ready** with professional tooling, comprehensive 
 ---
 
 Need help? → See `IMPLEMENTATION_SUMMARY.md`
-

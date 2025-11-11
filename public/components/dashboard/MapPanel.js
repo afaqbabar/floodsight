@@ -41,4 +41,3 @@ export function initMapPanel() {
   console.log('MapPanel initialized');
   // Initialize map library here (e.g., Leaflet, Mapbox)
 }
-

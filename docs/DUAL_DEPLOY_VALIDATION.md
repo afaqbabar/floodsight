@@ -15,6 +15,7 @@ This document provides validation steps to ensure both Vercel and k3s+FluxCD dep
 ## 1️⃣ Vercel Deployment Validation
 
 ### Build Success
+
 ```bash
 # Trigger Vercel build by pushing to main
 git push origin main
@@ -27,6 +28,7 @@ git push origin main
 ```
 
 ### Verify Live Site
+
 - [ ] Visit: https://floodsight.vercel.app
 - [ ] Homepage loads correctly
 - [ ] All navigation links work (/privacy, /terms, /impressum, /security)
@@ -35,17 +37,21 @@ git push origin main
 - [ ] Mobile responsive layout works
 
 ### Check Headers
+
 ```bash
 curl -I https://floodsight.vercel.app | grep -i -E "content-security-policy|strict-transport-security|x-frame-options"
 ```
 
 **Expected:**
+
 - ✅ `Strict-Transport-Security` header present
 - ✅ `Content-Security-Policy` header present
 - ✅ `X-Frame-Options: DENY` header present
 
 ### Verify Vercel Ignores K8s Files
+
 Check Vercel build logs - should **not** see:
+
 - ❌ `deploy/` directory processing
 - ❌ Docker builds
 - ❌ Kubernetes manifests
@@ -55,6 +61,7 @@ Check Vercel build logs - should **not** see:
 ## 2️⃣ Docker Image Build Validation
 
 ### GitHub Actions Workflow
+
 ```bash
 # Trigger workflow
 git push origin main
@@ -66,6 +73,7 @@ git tag v0.1.0 && git push origin v0.1.0
 ```
 
 **Expected workflow steps:**
+
 - [ ] ✅ Checkout code
 - [ ] ✅ Login to GHCR
 - [ ] ✅ Setup Buildx
@@ -73,6 +81,7 @@ git tag v0.1.0 && git push origin v0.1.0
 - [ ] ✅ Build & Push multi-arch (linux/amd64, linux/arm64)
 
 ### Verify Images on GHCR
+
 ```bash
 # Check if image exists (requires authentication)
 docker login ghcr.io
@@ -83,6 +92,7 @@ docker pull ghcr.io/afaqbabar/floodsight-frontend:latest --platform linux/arm64
 ```
 
 **Expected tags:**
+
 - [ ] `:latest` (from main branch)
 - [ ] `:main` (branch name)
 - [ ] `:dev-<sha>` (short SHA)
@@ -90,6 +100,7 @@ docker pull ghcr.io/afaqbabar/floodsight-frontend:latest --platform linux/arm64
 - [ ] `:0.1` (semver pattern)
 
 ### Local Docker Test
+
 ```bash
 # Test image locally
 docker run -p 8080:80 ghcr.io/afaqbabar/floodsight-frontend:latest
@@ -107,6 +118,7 @@ docker run -p 8080:80 ghcr.io/afaqbabar/floodsight-frontend:latest
 ## 3️⃣ FluxCD on k3s Validation
 
 ### k3s Cluster Status
+
 ```bash
 # On Raspberry Pi
 sudo k3s kubectl get nodes
@@ -114,10 +126,12 @@ sudo k3s kubectl get pods -A
 ```
 
 **Expected:**
+
 - [ ] ✅ Node is `Ready`
 - [ ] ✅ All system pods running
 
 ### Flux Bootstrap
+
 ```bash
 # Install Flux CLI
 curl -s https://fluxcd.io/install.sh | sudo bash
@@ -136,6 +150,7 @@ flux check
 ```
 
 **Expected:**
+
 ```
 ✅ flux-system namespace exists
 ✅ source-controller running
@@ -147,6 +162,7 @@ flux check
 ```
 
 ### Check Flux Resources
+
 ```bash
 # Check GitRepository
 flux get sources git -n flux-system
@@ -165,11 +181,13 @@ flux get imageupdateautomations -n flux-system
 ```
 
 **Expected all:**
+
 - [ ] ✅ Status: `True`
 - [ ] ✅ No errors
 - [ ] ✅ Ready/Succeeded
 
 ### FloodSight Application Status
+
 ```bash
 # Check namespace
 kubectl get ns floodsight
@@ -190,12 +208,14 @@ kubectl get svc -n floodsight
 ```
 
 **Expected:**
+
 - [ ] ✅ Namespace `floodsight` exists
 - [ ] ✅ Deployment `frontend` has 2/2 replicas ready
 - [ ] ✅ Pods are `Running` (not `ImagePullBackOff`)
 - [ ] ✅ Service exposes port 80
 
 ### Private Image Pull Secret (if needed)
+
 ```bash
 # If pods show ImagePullBackOff, create secret:
 kubectl -n floodsight create secret docker-registry ghcr-creds \
@@ -212,6 +232,7 @@ kubectl rollout restart deployment/frontend -n floodsight
 ```
 
 ### Test Application Access
+
 ```bash
 # Get service details
 kubectl get svc frontend -n floodsight
@@ -227,6 +248,7 @@ kubectl port-forward -n floodsight svc/frontend 8080:80
 - [ ] Assets served properly
 
 ### Test Ingress (if configured)
+
 ```bash
 # Get ingress
 kubectl get ingress -n floodsight
@@ -243,6 +265,7 @@ kubectl describe ingress floodsight -n floodsight
 ## 4️⃣ GitOps Image Update Validation
 
 ### Tag a New Version
+
 ```bash
 # Create and push a new tag
 git tag v0.1.1
@@ -250,11 +273,13 @@ git push origin v0.1.1
 ```
 
 ### Watch GitHub Actions
+
 - [ ] Workflow triggers
 - [ ] Multi-arch build succeeds
 - [ ] Images pushed with `:v0.1.1`, `:0.1`, `:latest` tags
 
 ### Watch FluxCD Auto-Update
+
 ```bash
 # Watch image repository scanning
 flux get imagerepositories -n flux-system --watch
@@ -273,6 +298,7 @@ kubectl rollout status deployment/frontend -n floodsight
 ```
 
 **Expected flow:**
+
 1. ✅ ImageRepository detects new tag `v0.1.1`
 2. ✅ ImagePolicy evaluates semver policy (range: `>=0.1.0`)
 3. ✅ ImageUpdateAutomation updates `deploy/k8s/overlays/prod/kustomization.yaml`
@@ -282,6 +308,7 @@ kubectl rollout status deployment/frontend -n floodsight
 7. ✅ Pods restart with new version
 
 ### Verify Git Commit
+
 ```bash
 # Pull latest changes
 git pull origin main
@@ -297,6 +324,7 @@ git log -1 --oneline
 ## 5️⃣ Both Environments Running Simultaneously
 
 ### Parallel Operation Check
+
 - [ ] ✅ Vercel site accessible at https://floodsight.vercel.app
 - [ ] ✅ k3s app running at local cluster endpoint
 - [ ] ✅ Both serve the same site content
@@ -304,6 +332,7 @@ git log -1 --oneline
 - [ ] ✅ Single git push updates both (Vercel immediately, k3s via GitOps)
 
 ### Verify Isolation
+
 ```bash
 # Check .vercelignore exists
 cat .vercelignore
@@ -328,24 +357,28 @@ All checkboxes above should be checked ✅ for full dual deployment validation.
 ### Quick Health Check Commands
 
 **Vercel:**
+
 ```bash
 curl -I https://floodsight.vercel.app | head -1
 # Expected: HTTP/2 200
 ```
 
 **GHCR:**
+
 ```bash
 docker pull ghcr.io/afaqbabar/floodsight-frontend:latest
 # Expected: Pull complete
 ```
 
 **k3s:**
+
 ```bash
 kubectl get pods -n floodsight
 # Expected: All pods Running
 ```
 
 **Flux:**
+
 ```bash
 flux check
 # Expected: All prerequisites met
@@ -356,30 +389,35 @@ flux check
 ## 🐛 Troubleshooting
 
 ### Vercel Build Fails
+
 - Check build logs in Vercel dashboard
 - Verify `npm run build` works locally
 - Check `vercel.json` configuration
 - Ensure `public/` directory exists
 
 ### Docker Build Fails
+
 - Check GitHub Actions logs
 - Verify Dockerfile.nginx syntax
 - Check if vite.config.js is correct
 - Test build locally: `npm run build`
 
 ### Pods in ImagePullBackOff
+
 - Check image name matches in deployment
 - Create imagePullSecrets if GHCR is private
 - Verify GitHub PAT has `read:packages` scope
 - Check image exists: `docker pull <image>`
 
 ### Flux Not Updating Images
+
 - Check ImageRepository scanning interval
 - Verify ImagePolicy semver range
 - Check ImageUpdateAutomation has write access to repo
 - Check Flux has SSH key or PAT for Git push
 
 ### Service Not Accessible
+
 - Check service type (ClusterIP vs NodePort vs LoadBalancer)
 - Use port-forward for testing: `kubectl port-forward ...`
 - Check ingress configuration
@@ -395,4 +433,3 @@ flux check
 - **GitOps** ensures k3s deployment is always in sync with Git state
 
 Last updated: 2025-11-05
-

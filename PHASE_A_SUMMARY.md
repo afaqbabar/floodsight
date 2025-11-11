@@ -5,6 +5,7 @@
 **Phase A - Backend Architecture & Setup** has been successfully implemented!
 
 The backend is a production-ready FastAPI application with:
+
 - ✅ Async SQLAlchemy + PostgreSQL/PostGIS
 - ✅ RESTful API with comprehensive endpoints
 - ✅ Database models (Station, Forecast, Alert)
@@ -20,6 +21,7 @@ The backend is a production-ready FastAPI application with:
 ## 📁 Files Created
 
 ### Backend Structure
+
 ```
 backend/
 ├── app/
@@ -69,11 +71,13 @@ backend/
 ## 🎯 Features Implemented
 
 ### 1. Core Configuration
+
 - **Settings management** with Pydantic (environment variables)
 - **Colored logging** with configurable log levels
 - **JWT authentication** with Supabase stub (dev mode allows requests without auth)
 
 ### 2. Database Layer
+
 - **SQLAlchemy async** with asyncpg driver
 - **PostGIS support** for geographic data
 - **Three models**:
@@ -85,24 +89,29 @@ backend/
 ### 3. API Endpoints
 
 #### Health & Monitoring
+
 - `GET /v1/health` - Health check with DB connectivity test
 - `GET /metrics` - Prometheus metrics (request counts, duration)
 
 #### Stations
+
 - `GET /v1/stations` - List all stations (pagination)
 - `GET /v1/stations/{id}` - Get station by ID
 - `POST /v1/stations` - Create new station
 
 #### Forecasts
+
 - `GET /v1/forecasts` - List forecasts (filter by station_id)
 - `POST /v1/forecasts` - Create forecast
 
 #### Alerts
+
 - `GET /v1/alerts` - List alerts (filter by station_id, active_only)
 - `POST /v1/alerts` - Create alert
 - `PATCH /v1/alerts/{id}/deactivate` - Deactivate alert
 
 ### 4. Database Migrations
+
 - **Alembic** configured for async migrations
 - Ready to generate and apply migrations
 - Commands:
@@ -110,6 +119,7 @@ backend/
   - `alembic upgrade head`
 
 ### 5. Docker Setup
+
 - **Multi-stage Dockerfile** (builder + production)
 - **Docker Compose** with:
   - `api` - FastAPI backend
@@ -119,11 +129,13 @@ backend/
   - `redis` - Caching (profile: cache)
 
 ### 6. Seed Data
+
 - **5 sample stations**: Berlin Spree, Dresden Elbe, Cologne Rhine, Vienna Danube, Frankfurt Main
 - **Fake forecast generator** for testing (72-hour lead time)
 - **Sample alerts** for demonstration
 
 ### 7. Monitoring
+
 - **Prometheus metrics**:
   - `floodsight_requests_total` (counter by method, endpoint, status)
   - `floodsight_request_duration_seconds` (histogram)
@@ -193,11 +205,13 @@ open http://localhost:8080/docs
 ## 🧪 Testing the API
 
 ### Health Check
+
 ```bash
 curl http://localhost:8080/v1/health
 ```
 
 **Response:**
+
 ```json
 {
   "status": "ok",
@@ -209,11 +223,13 @@ curl http://localhost:8080/v1/health
 ```
 
 ### List Stations
+
 ```bash
 curl http://localhost:8080/v1/stations
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -231,11 +247,13 @@ curl http://localhost:8080/v1/stations
 ```
 
 ### List Forecasts
+
 ```bash
 curl http://localhost:8080/v1/forecasts?station_id=1&limit=5
 ```
 
 ### Prometheus Metrics
+
 ```bash
 curl http://localhost:8080/metrics
 ```
@@ -245,56 +263,61 @@ curl http://localhost:8080/metrics
 ## 📊 Database Schema
 
 ### Station
-| Column | Type | Description |
-|--------|------|-------------|
-| id | Integer | Primary key |
-| code | String(50) | Unique station code |
-| name | String(255) | Station name |
-| river_basin | String(100) | River basin (optional) |
-| lat | Float | Latitude |
-| lon | Float | Longitude |
-| geom | Geometry(POINT) | PostGIS geometry |
-| created_at | DateTime | Creation timestamp |
-| updated_at | DateTime | Update timestamp |
+
+| Column      | Type            | Description            |
+| ----------- | --------------- | ---------------------- |
+| id          | Integer         | Primary key            |
+| code        | String(50)      | Unique station code    |
+| name        | String(255)     | Station name           |
+| river_basin | String(100)     | River basin (optional) |
+| lat         | Float           | Latitude               |
+| lon         | Float           | Longitude              |
+| geom        | Geometry(POINT) | PostGIS geometry       |
+| created_at  | DateTime        | Creation timestamp     |
+| updated_at  | DateTime        | Update timestamp       |
 
 ### Forecast
-| Column | Type | Description |
-|--------|------|-------------|
-| id | Integer | Primary key |
-| station_id | Integer | Foreign key to Station |
-| ts | DateTime | Forecast timestamp |
-| lead_hours | Integer | Lead time (6, 12, 24, 48, 72) |
-| discharge_m3s | Float | Discharge in m³/s |
-| water_level_m | Float | Water level in meters (optional) |
-| return_period_years | Integer | Return period (optional) |
-| source | String(50) | Data source (e.g., "GloFAS") |
-| model_run | DateTime | Model run timestamp |
-| created_at | DateTime | Creation timestamp |
+
+| Column              | Type       | Description                      |
+| ------------------- | ---------- | -------------------------------- |
+| id                  | Integer    | Primary key                      |
+| station_id          | Integer    | Foreign key to Station           |
+| ts                  | DateTime   | Forecast timestamp               |
+| lead_hours          | Integer    | Lead time (6, 12, 24, 48, 72)    |
+| discharge_m3s       | Float      | Discharge in m³/s                |
+| water_level_m       | Float      | Water level in meters (optional) |
+| return_period_years | Integer    | Return period (optional)         |
+| source              | String(50) | Data source (e.g., "GloFAS")     |
+| model_run           | DateTime   | Model run timestamp              |
+| created_at          | DateTime   | Creation timestamp               |
 
 ### Alert
-| Column | Type | Description |
-|--------|------|-------------|
-| id | Integer | Primary key |
-| station_id | Integer | Foreign key to Station |
-| issued_at | DateTime | Issue timestamp |
-| level | String(20) | "info", "warning", "severe", "extreme" |
-| probability | Float | Probability (0.0-1.0) |
-| message | Text | Alert message |
-| valid_from | DateTime | Valid from (optional) |
-| valid_until | DateTime | Valid until (optional) |
-| is_active | Boolean | Active status |
-| created_at | DateTime | Creation timestamp |
+
+| Column      | Type       | Description                            |
+| ----------- | ---------- | -------------------------------------- |
+| id          | Integer    | Primary key                            |
+| station_id  | Integer    | Foreign key to Station                 |
+| issued_at   | DateTime   | Issue timestamp                        |
+| level       | String(20) | "info", "warning", "severe", "extreme" |
+| probability | Float      | Probability (0.0-1.0)                  |
+| message     | Text       | Alert message                          |
+| valid_from  | DateTime   | Valid from (optional)                  |
+| valid_until | DateTime   | Valid until (optional)                 |
+| is_active   | Boolean    | Active status                          |
+| created_at  | DateTime   | Creation timestamp                     |
 
 ---
 
 ## 🔐 Security Notes
 
 ### Current (Development)
+
 - Authentication is **optional** when `DEBUG=true`
 - Requests without bearer token get a mock user
 - JWT secret is in `.env.example` (not secure for production)
 
 ### Production (TODO - Phase C)
+
 - Integrate with Supabase JWKS
 - Require authentication for all write endpoints
 - Use proper secret management (Kubernetes secrets)
@@ -305,6 +328,7 @@ curl http://localhost:8080/metrics
 ## 📝 API Documentation
 
 Interactive API documentation is available at:
+
 - **Swagger UI**: http://localhost:8080/docs
 - **ReDoc**: http://localhost:8080/redoc
 - **OpenAPI JSON**: http://localhost:8080/openapi.json
@@ -342,13 +366,14 @@ Interactive API documentation is available at:
    - Auto-generate alerts for high-risk conditions
 
 3. **End-to-end test flow**
+
    ```bash
    # 1. Seed stations
    python -m app.services.seed
-   
+
    # 2. Ingest forecasts
    curl -X POST http://localhost:8080/v1/forecasts/ingest-dev
-   
+
    # 3. Get alerts
    curl http://localhost:8080/v1/alerts
    ```
@@ -361,12 +386,14 @@ Interactive API documentation is available at:
 ## 📊 Metrics & Monitoring
 
 ### Current
+
 - ✅ Prometheus `/metrics` endpoint
 - ✅ Request count by method/endpoint/status
 - ✅ Request duration histogram
 - ✅ Health check endpoint
 
 ### Future (Phase C)
+
 - [ ] Grafana dashboards
 - [ ] Alert manager integration
 - [ ] Application performance monitoring (APM)
@@ -384,7 +411,7 @@ Interactive API documentation is available at:
 ✅ **Docker**: Multi-stage builds with docker-compose  
 ✅ **Monitoring**: Prometheus metrics built-in  
 ✅ **Documentation**: Comprehensive README with examples  
-✅ **Seed Data**: 5 stations, sample forecasts, alerts  
+✅ **Seed Data**: 5 stations, sample forecasts, alerts
 
 **Ready for Phase B**: Data flow implementation with real ingestion logic!
 
@@ -393,4 +420,3 @@ Interactive API documentation is available at:
 **Date**: November 11, 2025  
 **Status**: ✅ **Phase A Complete**  
 **Next**: Phase B - Data Flow & API Logic
-

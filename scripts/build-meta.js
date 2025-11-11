@@ -21,7 +21,7 @@ const metadata = {
   tag: process.env.GIT_TAG || '',
   branch: process.env.GIT_BRANCH || 'main',
   image: process.env.IMAGE_REF || '',
-  builtAt: new Date().toISOString()
+  builtAt: new Date().toISOString(),
 };
 
 // Ensure public/assets directory exists
@@ -40,4 +40,3 @@ writeFileSync(versionTxtPath, versionText + '\n', 'utf8');
 console.log('✅ Generated:', versionTxtPath);
 
 console.log('📦 Build metadata:', metadata);
-

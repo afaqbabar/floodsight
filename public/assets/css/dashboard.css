@@ -81,7 +81,7 @@
   background: var(--chip);
 }
 
-.toggle-item input[type="checkbox"] {
+.toggle-item input[type='checkbox'] {
   margin: 0;
   cursor: pointer;
 }
@@ -257,7 +257,7 @@
   .dashboard-layout {
     grid-template-columns: 240px 1fr;
   }
-  
+
   .right-panel {
     display: none;
   }
@@ -268,18 +268,18 @@
   .dashboard-layout {
     grid-template-columns: 1fr;
   }
-  
+
   .sidebar-filters {
     border-right: none;
     border-bottom: 1px solid var(--border);
   }
-  
+
   .right-panel {
     display: block;
     border-left: none;
     border-top: 1px solid var(--border);
   }
-  
+
   .map-panel__stats {
     grid-template-columns: 1fr;
     max-width: 200px;
@@ -293,4 +293,3 @@
     transition: none;
   }
 }
-

@@ -39,4 +39,3 @@ export function initSiteHeader() {
   // Add any interactive behavior here (e.g., mobile menu toggle)
   console.log('SiteHeader initialized');
 }
-

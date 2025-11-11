@@ -38,6 +38,7 @@ npm run dev
 ### 4. Access from Other Devices
 
 From any device on your network, visit:
+
 ```
 http://192.168.178.50:5173
 ```
@@ -175,4 +176,3 @@ Check status:
 ```bash
 sudo systemctl status floodsight
 ```
-

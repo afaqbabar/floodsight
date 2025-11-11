@@ -1,274 +1,316 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard (API Live) – FloodSight</title>
-  <meta name="description" content="FloodSight Dashboard - Real-time flood monitoring and forecasting with live API data" />
-  <link rel="icon" href="/favicon.ico" />
-  
-  <!-- CSS: Design tokens + Figma dashboard styles -->
-  <link rel="stylesheet" href="/assets/css/tokens.css">
-  <link rel="stylesheet" href="/assets/css/dashboard-figma.css">
-  
-  <!-- Leaflet CSS for map -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""/>
-  
-  <!-- Chart.js for charts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  
-  <style>
-    .api-status {
-      position: fixed;
-      top: 60px;
-      right: 20px;
-      background: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-    }
-    
-    .status-indicator {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      animation: pulse 2s ease-in-out infinite;
-    }
-    
-    .status-indicator.online {
-      background: #10B981;
-    }
-    
-    .status-indicator.offline {
-      background: #EF4444;
-      animation: none;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-    
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      flex-direction: column;
-      gap: 20px;
-    }
-    
-    .spinner {
-      border: 4px solid #E5E7EB;
-      border-top: 4px solid #2563EB;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .error-message {
-      background: #FEE2E2;
-      color: #B91C1C;
-      padding: 12px 20px;
-      border-radius: 8px;
-      margin: 10px 20px;
-      border-left: 4px solid #EF4444;
-    }
-    
-    .info-message {
-      background: #DBEAFE;
-      color: #1E40AF;
-      padding: 12px 20px;
-      border-radius: 8px;
-      margin: 10px 20px;
-      border-left: 4px solid #3B82F6;
-    }
-  </style>
-</head>
-<body>
-  <!-- API Status Indicator -->
-  <div class="api-status" id="apiStatus">
-    <div class="status-indicator online" id="statusIndicator"></div>
-    <span id="statusText">Connecting to API...</span>
-  </div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard (API Live) – FloodSight</title>
+    <meta
+      name="description"
+      content="FloodSight Dashboard - Real-time flood monitoring and forecasting with live API data"
+    />
+    <link rel="icon" href="/favicon.ico" />
 
-  <!-- Loading Overlay -->
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner"></div>
-    <p>Loading FloodSight data...</p>
-  </div>
+    <!-- CSS: Design tokens + Figma dashboard styles -->
+    <link rel="stylesheet" href="/assets/css/tokens.css" />
+    <link rel="stylesheet" href="/assets/css/dashboard-figma.css" />
 
-  <!-- Top Navigation Bar -->
-  <nav class="nav-bar">
-    <a href="/" class="nav-bar__brand">
-      <svg class="nav-bar__logo" width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <path d="M2 12C4 10 6 9 8 9C10 9 12 10 14 12C16 14 18 15 20 15C22 15 24 14 26 12C28 10 30 9 30 9" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M2 18C4 16 6 15 8 15C10 15 12 16 14 18C16 20 18 21 20 21C22 21 24 20 26 18C28 16 30 15 30 15" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
-        <path d="M2 24C4 22 6 21 8 21C10 21 12 22 14 24C16 26 18 27 20 27C22 27 24 26 26 24C28 22 30 21 30 21" stroke="white" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
-      </svg>
-      FloodSight
-    </a>
-    <div class="nav-bar__actions">
-      <button onclick="refreshData()" class="btn-refresh" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 6px; cursor: pointer;">
-        Refresh Data
-      </button>
-    </div>
-  </nav>
+    <!-- Leaflet CSS for map -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
 
-  <!-- Dashboard Grid -->
-  <div class="dashboard-grid">
-    <!-- Main Map Panel -->
-    <div class="map-panel" id="main-map">
-      <div id="map" style="width: 100%; height: 100%;"></div>
+    <!-- Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+      .api-status {
+        position: fixed;
+        top: 60px;
+        right: 20px;
+        background: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+      }
+
+      .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      .status-indicator.online {
+        background: #10b981;
+      }
+
+      .status-indicator.offline {
+        background: #ef4444;
+        animation: none;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .spinner {
+        border: 4px solid #e5e7eb;
+        border-top: 4px solid #2563eb;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error-message {
+        background: #fee2e2;
+        color: #b91c1c;
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin: 10px 20px;
+        border-left: 4px solid #ef4444;
+      }
+
+      .info-message {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin: 10px 20px;
+        border-left: 4px solid #3b82f6;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- API Status Indicator -->
+    <div class="api-status" id="apiStatus">
+      <div class="status-indicator online" id="statusIndicator"></div>
+      <span id="statusText">Connecting to API...</span>
     </div>
 
-    <!-- Right Sidebar: Stats & Charts -->
-    <aside class="sidebar-right">
-      <!-- Stats Cards -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-card__value" id="stationCount">-</div>
-          <div class="stat-card__label">Monitoring Stations</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card__value" id="alertCount">-</div>
-          <div class="stat-card__label">Active Alerts</div>
-        </div>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <p>Loading FloodSight data...</p>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <nav class="nav-bar">
+      <a href="/" class="nav-bar__brand">
+        <svg class="nav-bar__logo" width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <path
+            d="M2 12C4 10 6 9 8 9C10 9 12 10 14 12C16 14 18 15 20 15C22 15 24 14 26 12C28 10 30 9 30 9"
+            stroke="white"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          />
+          <path
+            d="M2 18C4 16 6 15 8 15C10 15 12 16 14 18C16 20 18 21 20 21C22 21 24 20 26 18C28 16 30 15 30 15"
+            stroke="white"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            opacity="0.7"
+          />
+          <path
+            d="M2 24C4 22 6 21 8 21C10 21 12 22 14 24C16 26 18 27 20 27C22 27 24 26 26 24C28 22 30 21 30 21"
+            stroke="white"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            opacity="0.5"
+          />
+        </svg>
+        FloodSight
+      </a>
+      <div class="nav-bar__actions">
+        <button
+          onclick="refreshData()"
+          class="btn-refresh"
+          style="
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+          "
+        >
+          Refresh Data
+        </button>
+      </div>
+    </nav>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+      <!-- Main Map Panel -->
+      <div class="map-panel" id="main-map">
+        <div id="map" style="width: 100%; height: 100%"></div>
       </div>
 
-      <!-- Active Alerts List -->
-      <section class="panel">
-        <h2 class="panel__title">Active Alerts</h2>
-        <div id="alertsList" class="alerts-list">
-          <p style="color: #6B7280;">Loading alerts...</p>
+      <!-- Right Sidebar: Stats & Charts -->
+      <aside class="sidebar-right">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card__value" id="stationCount">-</div>
+            <div class="stat-card__label">Monitoring Stations</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card__value" id="alertCount">-</div>
+            <div class="stat-card__label">Active Alerts</div>
+          </div>
         </div>
-      </section>
 
-      <!-- Forecast Chart -->
-      <section class="panel">
-        <h2 class="panel__title">Discharge Forecast</h2>
-        <div class="chart-container" style="height: 200px;">
-          <canvas id="forecastChart"></canvas>
-        </div>
-      </section>
+        <!-- Active Alerts List -->
+        <section class="panel">
+          <h2 class="panel__title">Active Alerts</h2>
+          <div id="alertsList" class="alerts-list">
+            <p style="color: #6b7280">Loading alerts...</p>
+          </div>
+        </section>
 
-      <!-- Recent Forecasts -->
-      <section class="panel">
-        <h2 class="panel__title">Recent Forecasts</h2>
-        <div id="forecastsList" class="forecasts-list">
-          <p style="color: #6B7280;">Loading forecasts...</p>
-        </div>
-      </section>
-    </aside>
-  </div>
+        <!-- Forecast Chart -->
+        <section class="panel">
+          <h2 class="panel__title">Discharge Forecast</h2>
+          <div class="chart-container" style="height: 200px">
+            <canvas id="forecastChart"></canvas>
+          </div>
+        </section>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""></script>
+        <!-- Recent Forecasts -->
+        <section class="panel">
+          <h2 class="panel__title">Recent Forecasts</h2>
+          <div id="forecastsList" class="forecasts-list">
+            <p style="color: #6b7280">Loading forecasts...</p>
+          </div>
+        </section>
+      </aside>
+    </div>
 
-  <!-- JavaScript -->
-  <script type="module">
-    import * as API from '/assets/js/api-service.js';
-    
-    // Global state
-    let map;
-    let mapLayers = {
-      stations: [],
-      riskZones: []
-    };
-    let forecastChart;
-    
-    // Initialize on load
-    document.addEventListener('DOMContentLoaded', async () => {
-      await initializeDashboard();
-    });
-    
-    // Make refreshData available globally
-    window.refreshData = async function() {
-      await loadDashboardData();
-    };
-    
-    async function initializeDashboard() {
-      // Initialize map
-      map = L.map('map').setView([50.0, 10.0], 5);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
-      }).addTo(map);
-      
-      // Check API connection
-      const apiStatus = await API.checkAPIConnection();
-      updateAPIStatus(apiStatus);
-      
-      if (apiStatus.available) {
+    <!-- Leaflet JS -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+
+    <!-- JavaScript -->
+    <script type="module">
+      import * as API from '/assets/js/api-service.js';
+
+      // Global state
+      let map;
+      let mapLayers = {
+        stations: [],
+        riskZones: [],
+      };
+      let forecastChart;
+
+      // Initialize on load
+      document.addEventListener('DOMContentLoaded', async () => {
+        await initializeDashboard();
+      });
+
+      // Make refreshData available globally
+      window.refreshData = async function () {
         await loadDashboardData();
-      } else {
-        showError('Cannot connect to backend API. Please start the backend service.');
+      };
+
+      async function initializeDashboard() {
+        // Initialize map
+        map = L.map('map').setView([50.0, 10.0], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors',
+          maxZoom: 19,
+        }).addTo(map);
+
+        // Check API connection
+        const apiStatus = await API.checkAPIConnection();
+        updateAPIStatus(apiStatus);
+
+        if (apiStatus.available) {
+          await loadDashboardData();
+        } else {
+          showError('Cannot connect to backend API. Please start the backend service.');
+        }
+
+        // Hide loading overlay
+        document.getElementById('loadingOverlay').style.display = 'none';
       }
-      
-      // Hide loading overlay
-      document.getElementById('loadingOverlay').style.display = 'none';
-    }
-    
-    async function loadDashboardData() {
-      try {
-        // Load data in parallel
-        const [stations, alerts, forecasts] = await Promise.all([
-          API.getStations(),
-          API.getActiveAlerts(),
-          API.getForecasts({ limit: 100 })
-        ]);
-        
-        // Update dashboard
-        displayStations(stations);
-        displayAlerts(alerts, stations);
-        displayForecasts(forecasts);
-        updateStats(stations, alerts);
-        
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
-        showError(`Failed to load data: ${error.message}`);
+
+      async function loadDashboardData() {
+        try {
+          // Load data in parallel
+          const [stations, alerts, forecasts] = await Promise.all([
+            API.getStations(),
+            API.getActiveAlerts(),
+            API.getForecasts({ limit: 100 }),
+          ]);
+
+          // Update dashboard
+          displayStations(stations);
+          displayAlerts(alerts, stations);
+          displayForecasts(forecasts);
+          updateStats(stations, alerts);
+        } catch (error) {
+          console.error('Error loading dashboard data:', error);
+          showError(`Failed to load data: ${error.message}`);
+        }
       }
-    }
-    
-    function displayStations(stations) {
-      // Clear existing markers
-      mapLayers.stations.forEach(marker => map.removeLayer(marker));
-      mapLayers.stations = [];
-      
-      if (!stations || stations.length === 0) {
-        console.warn('No stations to display');
-        return;
-      }
-      
-      // Center on first station
-      map.setView([stations[0].lat, stations[0].lon], 6);
-      
-      // Add stations to map
-      stations.forEach(station => {
-        const marker = L.marker([station.lat, station.lon])
-          .addTo(map)
-          .bindPopup(`
+
+      function displayStations(stations) {
+        // Clear existing markers
+        mapLayers.stations.forEach((marker) => map.removeLayer(marker));
+        mapLayers.stations = [];
+
+        if (!stations || stations.length === 0) {
+          console.warn('No stations to display');
+          return;
+        }
+
+        // Center on first station
+        map.setView([stations[0].lat, stations[0].lon], 6);
+
+        // Add stations to map
+        stations.forEach((station) => {
+          const marker = L.marker([station.lat, station.lon]).addTo(map).bindPopup(`
             <div style="font-family: Inter, sans-serif;">
               <strong style="font-size: 14px;">${station.name}</strong><br>
               <span style="color: #6B7280; font-size: 12px;">River: ${station.river_name}</span><br>
@@ -276,55 +318,56 @@
               <span style="color: #9CA3AF; font-size: 11px;">ID: ${station.station_code}</span>
             </div>
           `);
-        
-        mapLayers.stations.push(marker);
-      });
-    }
-    
-    function displayAlerts(alerts, stations) {
-      // Clear existing risk zones
-      mapLayers.riskZones.forEach(zone => map.removeLayer(zone));
-      mapLayers.riskZones = [];
-      
-      // Update alerts list
-      const alertsList = document.getElementById('alertsList');
-      
-      if (!alerts || alerts.length === 0) {
-        alertsList.innerHTML = '<p style="color: #10B981;">✓ No active alerts</p>';
-        return;
+
+          mapLayers.stations.push(marker);
+        });
       }
-      
-      // Create station lookup
-      const stationMap = {};
-      (stations || []).forEach(s => stationMap[s.id] = s);
-      
-      // Add alert zones to map
-      alerts.forEach(alert => {
-        const station = stationMap[alert.station_id];
-        if (!station) return;
-        
-        const colors = {
-          'info': '#3B82F6',
-          'warning': '#F59E0B',
-          'severe': '#EF4444',
-          'extreme': '#9333EA'
-        };
-        const color = colors[alert.level] || '#6B7280';
-        
-        const radius = {
-          'extreme': 8000,
-          'severe': 5000,
-          'warning': 3000,
-          'info': 2000
-        }[alert.level] || 2000;
-        
-        const circle = L.circle([station.lat, station.lon], {
-          color: color,
-          fillColor: color,
-          fillOpacity: 0.15,
-          weight: 2,
-          radius: radius
-        }).addTo(map).bindPopup(`
+
+      function displayAlerts(alerts, stations) {
+        // Clear existing risk zones
+        mapLayers.riskZones.forEach((zone) => map.removeLayer(zone));
+        mapLayers.riskZones = [];
+
+        // Update alerts list
+        const alertsList = document.getElementById('alertsList');
+
+        if (!alerts || alerts.length === 0) {
+          alertsList.innerHTML = '<p style="color: #10B981;">✓ No active alerts</p>';
+          return;
+        }
+
+        // Create station lookup
+        const stationMap = {};
+        (stations || []).forEach((s) => (stationMap[s.id] = s));
+
+        // Add alert zones to map
+        alerts.forEach((alert) => {
+          const station = stationMap[alert.station_id];
+          if (!station) return;
+
+          const colors = {
+            info: '#3B82F6',
+            warning: '#F59E0B',
+            severe: '#EF4444',
+            extreme: '#9333EA',
+          };
+          const color = colors[alert.level] || '#6B7280';
+
+          const radius =
+            {
+              extreme: 8000,
+              severe: 5000,
+              warning: 3000,
+              info: 2000,
+            }[alert.level] || 2000;
+
+          const circle = L.circle([station.lat, station.lon], {
+            color: color,
+            fillColor: color,
+            fillOpacity: 0.15,
+            weight: 2,
+            radius: radius,
+          }).addTo(map).bindPopup(`
           <div style="font-family: Inter, sans-serif;">
             <strong style="color: ${color}; font-size: 14px; text-transform: uppercase;">${alert.level} Alert</strong><br>
             <strong style="font-size: 13px;">${station.name}</strong><br>
@@ -332,20 +375,21 @@
             <p style="font-size: 11px; color: #6B7280; margin-top: 8px;">${alert.message}</p>
           </div>
         `);
-        
-        mapLayers.riskZones.push(circle);
-      });
-      
-      // Update alerts list in sidebar
-      alertsList.innerHTML = alerts.map(alert => {
-        const station = stationMap[alert.station_id];
-        const colors = {
-          'info': '#3B82F6',
-          'warning': '#F59E0B',
-          'severe': '#EF4444',
-          'extreme': '#9333EA'
-        };
-        return `
+
+          mapLayers.riskZones.push(circle);
+        });
+
+        // Update alerts list in sidebar
+        alertsList.innerHTML = alerts
+          .map((alert) => {
+            const station = stationMap[alert.station_id];
+            const colors = {
+              info: '#3B82F6',
+              warning: '#F59E0B',
+              severe: '#EF4444',
+              extreme: '#9333EA',
+            };
+            return `
           <div style="border-left: 3px solid ${colors[alert.level] || '#6B7280'}; padding: 12px; margin-bottom: 12px; background: #F9FAFB; border-radius: 4px;">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
               <strong style="font-size: 13px; text-transform: uppercase;">${alert.level}</strong>
@@ -359,62 +403,71 @@
             </div>
           </div>
         `;
-      }).join('');
-    }
-    
-    function displayForecasts(forecasts) {
-      if (!forecasts || forecasts.length === 0) {
-        document.getElementById('forecastsList').innerHTML = '<p style="color: #6B7280;">No forecasts available</p>';
-        return;
+          })
+          .join('');
       }
-      
-      // Sort by lead time for chart
-      const sortedForecasts = [...forecasts].sort((a, b) => a.lead_time_hours - b.lead_time_hours);
-      
-      // Take first 10 forecasts for chart
-      const chartData = sortedForecasts.slice(0, 10);
-      
-      // Destroy previous chart
-      if (forecastChart) {
-        forecastChart.destroy();
-      }
-      
-      // Create forecast chart
-      const ctx = document.getElementById('forecastChart').getContext('2d');
-      forecastChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: chartData.map(f => `+${f.lead_time_hours}h`),
-          datasets: [{
-            label: 'Discharge (m³/s)',
-            data: chartData.map(f => f.discharge_cumecs),
-            borderColor: '#2563EB',
-            backgroundColor: 'rgba(37, 99, 235, 0.1)',
-            borderWidth: 2,
-            tension: 0.3,
-            fill: true
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { font: { size: 10 } }
-            },
-            x: {
-              ticks: { font: { size: 10 } }
-            }
-          }
+
+      function displayForecasts(forecasts) {
+        if (!forecasts || forecasts.length === 0) {
+          document.getElementById('forecastsList').innerHTML =
+            '<p style="color: #6B7280;">No forecasts available</p>';
+          return;
         }
-      });
-      
-      // Update forecasts list
-      document.getElementById('forecastsList').innerHTML = sortedForecasts.slice(0, 5).map(f => `
+
+        // Sort by lead time for chart
+        const sortedForecasts = [...forecasts].sort(
+          (a, b) => a.lead_time_hours - b.lead_time_hours
+        );
+
+        // Take first 10 forecasts for chart
+        const chartData = sortedForecasts.slice(0, 10);
+
+        // Destroy previous chart
+        if (forecastChart) {
+          forecastChart.destroy();
+        }
+
+        // Create forecast chart
+        const ctx = document.getElementById('forecastChart').getContext('2d');
+        forecastChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: chartData.map((f) => `+${f.lead_time_hours}h`),
+            datasets: [
+              {
+                label: 'Discharge (m³/s)',
+                data: chartData.map((f) => f.discharge_cumecs),
+                borderColor: '#2563EB',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { font: { size: 10 } },
+              },
+              x: {
+                ticks: { font: { size: 10 } },
+              },
+            },
+          },
+        });
+
+        // Update forecasts list
+        document.getElementById('forecastsList').innerHTML = sortedForecasts
+          .slice(0, 5)
+          .map(
+            (f) => `
         <div style="padding: 10px; margin-bottom: 8px; background: #F9FAFB; border-radius: 4px;">
           <div style="display: flex; justify-content: space-between; font-size: 12px;">
             <span>Lead Time: +${f.lead_time_hours}h</span>
@@ -424,35 +477,36 @@
             ${new Date(f.model_run_time).toLocaleString()}
           </div>
         </div>
-      `).join('');
-    }
-    
-    function updateStats(stations, alerts) {
-      document.getElementById('stationCount').textContent = (stations || []).length;
-      document.getElementById('alertCount').textContent = (alerts || []).length;
-    }
-    
-    function updateAPIStatus(status) {
-      const indicator = document.getElementById('statusIndicator');
-      const text = document.getElementById('statusText');
-      
-      if (status.available) {
-        indicator.className = 'status-indicator online';
-        text.textContent = 'API Connected';
-      } else {
-        indicator.className = 'status-indicator offline';
-        text.textContent = 'API Offline';
+      `
+          )
+          .join('');
       }
-    }
-    
-    function showError(message) {
-      const container = document.querySelector('.sidebar-right');
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'error-message';
-      errorDiv.textContent = message;
-      container.insertBefore(errorDiv, container.firstChild);
-    }
-  </script>
-</body>
-</html>
 
+      function updateStats(stations, alerts) {
+        document.getElementById('stationCount').textContent = (stations || []).length;
+        document.getElementById('alertCount').textContent = (alerts || []).length;
+      }
+
+      function updateAPIStatus(status) {
+        const indicator = document.getElementById('statusIndicator');
+        const text = document.getElementById('statusText');
+
+        if (status.available) {
+          indicator.className = 'status-indicator online';
+          text.textContent = 'API Connected';
+        } else {
+          indicator.className = 'status-indicator offline';
+          text.textContent = 'API Offline';
+        }
+      }
+
+      function showError(message) {
+        const container = document.querySelector('.sidebar-right');
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = message;
+        container.insertBefore(errorDiv, container.firstChild);
+      }
+    </script>
+  </body>
+</html>

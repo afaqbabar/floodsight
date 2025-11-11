@@ -115,35 +115,35 @@ open http://localhost:8080/docs
 
 ### Health
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/v1/health` | Health check (returns app status + DB connectivity) |
-| `GET` | `/metrics` | Prometheus metrics |
+| Method | Endpoint     | Description                                         |
+| ------ | ------------ | --------------------------------------------------- |
+| `GET`  | `/v1/health` | Health check (returns app status + DB connectivity) |
+| `GET`  | `/metrics`   | Prometheus metrics                                  |
 
 ### Stations
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/v1/stations` | List all stations |
-| `GET` | `/v1/stations/{id}` | Get station by ID |
-| `POST` | `/v1/stations` | Create new station |
+| Method | Endpoint            | Description        |
+| ------ | ------------------- | ------------------ |
+| `GET`  | `/v1/stations`      | List all stations  |
+| `GET`  | `/v1/stations/{id}` | Get station by ID  |
+| `POST` | `/v1/stations`      | Create new station |
 
 ### Forecasts
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/v1/forecasts` | List forecasts (filter by station_id) |
-| `POST` | `/v1/forecasts` | Create forecast |
+| Method | Endpoint                   | Description                                                        |
+| ------ | -------------------------- | ------------------------------------------------------------------ |
+| `GET`  | `/v1/forecasts`            | List forecasts (filter by station_id)                              |
+| `POST` | `/v1/forecasts`            | Create forecast                                                    |
 | `POST` | `/v1/forecasts/ingest-dev` | **[NEW]** Manually trigger fake forecast ingestion (72h lead time) |
 
 ### Alerts
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/v1/alerts` | List alerts (filter by station_id, active_only) |
-| `POST` | `/v1/alerts` | Create alert |
-| `POST` | `/v1/alerts/compute` | **[NEW]** Compute alerts from recent forecasts |
-| `PATCH` | `/v1/alerts/{id}/deactivate` | Deactivate alert |
+| Method  | Endpoint                     | Description                                     |
+| ------- | ---------------------------- | ----------------------------------------------- |
+| `GET`   | `/v1/alerts`                 | List alerts (filter by station_id, active_only) |
+| `POST`  | `/v1/alerts`                 | Create alert                                    |
+| `POST`  | `/v1/alerts/compute`         | **[NEW]** Compute alerts from recent forecasts  |
+| `PATCH` | `/v1/alerts/{id}/deactivate` | Deactivate alert                                |
 
 ### Interactive API Docs
 
@@ -275,17 +275,20 @@ curl http://localhost:8080/v1/alerts?active_only=true
 ### Alert Computation Logic
 
 **Discharge Thresholds:**
+
 - **Info**: 800+ m³/s
-- **Warning**: 1200+ m³/s  
+- **Warning**: 1200+ m³/s
 - **Severe**: 1600+ m³/s
 - **Extreme**: 2000+ m³/s
 
 **Probability Calculation:**
+
 - ≤24h lead time: 85% probability
 - 25-48h lead time: 70% probability
 - 49-72h lead time: 55% probability
 
 **Process:**
+
 1. Analyzes recent forecasts (last 6 hours of model runs)
 2. Finds maximum discharge for each station
 3. Determines alert level based on thresholds
@@ -313,6 +316,7 @@ docker compose run --rm scheduler python -m app.workers.flows once
 ```
 
 **Features:**
+
 - ✅ **Hourly Ingestion**: Runs at the top of every hour (`0 * * * *`)
 - ✅ **Automatic Alert Computation**: Computes alerts immediately after ingestion
 - ✅ **Startup Job**: Runs ingestion once on startup, then schedules future runs
@@ -321,6 +325,7 @@ docker compose run --rm scheduler python -m app.workers.flows once
 - ✅ **Single Instance**: Prevents overlapping runs
 
 **Scheduler Architecture:**
+
 - **Technology**: APScheduler (alternative to Prefect due to version conflicts)
 - **Schedule**: Hourly cron job (`0 * * * *`)
 - **Flow**: Ingest forecasts → Compute alerts → Store results
@@ -625,4 +630,3 @@ MIT License - see [LICENSE](../LICENSE)
 ---
 
 Built with ❤️ for climate resilience.
-

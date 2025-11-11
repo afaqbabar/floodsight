@@ -14,6 +14,7 @@ The frontend and backend are now **fully integrated**! The dashboard displays **
 ## 📁 Files Created
 
 ### 1. **`public/assets/js/api-service.js`**
+
 API service module that handles all communication with the backend:
 
 ```javascript
@@ -26,17 +27,14 @@ API service module that handles all communication with the backend:
 ```
 
 ### 2. **`public/dashboard-api.html`**
+
 New dashboard that connects to live API:
 
 ```html
 <!-- Features: -->
-- Real-time API status indicator
-- Live station markers on map
-- Dynamic alert zones based on real data
-- Forecast charts from backend data
-- Active alerts list
-- Auto-refresh capability
-- Loading states and error handling
+- Real-time API status indicator - Live station markers on map - Dynamic alert zones based on real
+data - Forecast charts from backend data - Active alerts list - Auto-refresh capability - Loading
+states and error handling
 ```
 
 ---
@@ -103,11 +101,11 @@ npm run dev
 
 ### Access the Dashboards
 
-| Dashboard | URL | Data Source |
-|-----------|-----|-------------|
-| **Live API Dashboard** | http://localhost:5173/dashboard-api.html | ✅ Backend API |
+| Dashboard               | URL                                        | Data Source       |
+| ----------------------- | ------------------------------------------ | ----------------- |
+| **Live API Dashboard**  | http://localhost:5173/dashboard-api.html   | ✅ Backend API    |
 | **Mock Data Dashboard** | http://localhost:5173/dashboard-figma.html | ❌ Hardcoded data |
-| **Backend API Docs** | http://localhost:8080/docs | FastAPI Swagger |
+| **Backend API Docs**    | http://localhost:8080/docs                 | FastAPI Swagger   |
 
 ---
 
@@ -116,11 +114,13 @@ npm run dev
 ### Live Data Dashboard Features
 
 ✅ **API Status Indicator**
+
 - Green = Connected to backend
 - Red = Backend offline
 - Auto-updates
 
 ✅ **Real Monitoring Stations**
+
 - BERLIN-SPREE
 - ELBE-DRESDEN
 - RHINE-COLOGNE
@@ -128,16 +128,19 @@ npm run dev
 - MAIN-FRANKFURT
 
 ✅ **Live Alert Zones**
+
 - Color-coded by severity (info/warning/severe/extreme)
 - Probability percentages
 - Alert messages from backend
 
 ✅ **Forecast Charts**
+
 - Real discharge data (m³/s)
 - Lead time progression
 - Model run timestamps
 
 ✅ **Interactive Map**
+
 - Click stations → See details
 - Click alert zones → See full alert info
 - Pan/zoom across Europe
@@ -149,6 +152,7 @@ npm run dev
 ### CORS Settings
 
 Backend allows requests from:
+
 ```python
 BACKEND_CORS_ORIGINS = [
     "http://localhost:3000",
@@ -162,9 +166,10 @@ BACKEND_CORS_ORIGINS = [
 ```javascript
 // Automatically detects environment
 const API_CONFIG = {
-  BASE_URL: window.location.hostname === 'localhost' 
-    ? 'http://localhost:8080/v1'  // Development
-    : 'https://api.floodsight.com/v1'  // Production
+  BASE_URL:
+    window.location.hostname === 'localhost'
+      ? 'http://localhost:8080/v1' // Development
+      : 'https://api.floodsight.com/v1', // Production
 };
 ```
 
@@ -217,14 +222,14 @@ cd backend && docker compose stop api
 
 ## 📊 Comparison: Mock vs Live
 
-| Feature | Mock Dashboard | Live API Dashboard |
-|---------|----------------|-------------------|
-| **Stations** | 3 (London only) | 5 (Europe-wide) |
-| **Location** | Hardcoded UK | Real lat/lon from DB |
-| **Alerts** | Static circles | Dynamic from API |
-| **Forecasts** | Fake data | Real model runs |
-| **Updates** | Manual refresh | Live from backend |
-| **Data** | Embedded in HTML | API JSON responses |
+| Feature       | Mock Dashboard   | Live API Dashboard   |
+| ------------- | ---------------- | -------------------- |
+| **Stations**  | 3 (London only)  | 5 (Europe-wide)      |
+| **Location**  | Hardcoded UK     | Real lat/lon from DB |
+| **Alerts**    | Static circles   | Dynamic from API     |
+| **Forecasts** | Fake data        | Real model runs      |
+| **Updates**   | Manual refresh   | Live from backend    |
+| **Data**      | Embedded in HTML | API JSON responses   |
 
 ---
 
@@ -245,6 +250,7 @@ cd backend && docker compose stop api
 ### Loading State
 
 Shows spinner overlay while fetching data:
+
 ```
 ┌─────────────────────────────┐
 │                             │
@@ -257,6 +263,7 @@ Shows spinner overlay while fetching data:
 ### Error Handling
 
 Displays errors gracefully:
+
 ```
 ┌─────────────────────────────────────────┐
 │ ⚠️ Failed to load stations. Using      │
@@ -272,12 +279,13 @@ The dashboard includes a "Refresh Data" button:
 
 ```javascript
 // Manually refresh all data
-window.refreshData = async function() {
+window.refreshData = async function () {
   await loadDashboardData();
 };
 ```
 
 Click the button to reload:
+
 - Stations
 - Alerts
 - Forecasts
@@ -293,6 +301,7 @@ Without page refresh!
 **Problem:** Frontend can't connect to backend
 
 **Solution:**
+
 ```bash
 # Check backend is running
 docker compose ps
@@ -309,6 +318,7 @@ docker compose restart api
 **Problem:** `Access-Control-Allow-Origin` error
 
 **Solution:**
+
 1. Check backend CORS config includes `http://localhost:5173`
 2. Restart backend after config changes
 3. Clear browser cache
@@ -318,6 +328,7 @@ docker compose restart api
 **Problem:** API returns empty arrays
 
 **Solution:**
+
 ```bash
 # Seed database
 docker compose exec api python -m app.services.seed
@@ -334,6 +345,7 @@ curl -X POST http://localhost:8080/v1/alerts/compute
 **Problem:** Port 5173 or 8080 already in use
 
 **Solution:**
+
 ```bash
 # Find and kill process
 sudo lsof -ti:5173 | xargs kill -9
@@ -349,11 +361,13 @@ sudo lsof -ti:8080 | xargs kill -9
 ### Production Setup
 
 1. **Update API URL** in `api-service.js`:
+
 ```javascript
-BASE_URL: 'https://api.floodsight.com/v1'
+BASE_URL: 'https://api.floodsight.com/v1';
 ```
 
 2. **Update CORS** in backend `config.py`:
+
 ```python
 BACKEND_CORS_ORIGINS = [
     "https://floodsight.vercel.app",
@@ -362,11 +376,13 @@ BACKEND_CORS_ORIGINS = [
 ```
 
 3. **Build frontend**:
+
 ```bash
 npm run build
 ```
 
 4. **Deploy**:
+
 - Frontend → Vercel
 - Backend → Docker/K8s
 
@@ -376,18 +392,18 @@ npm run build
 
 Available in `api-service.js`:
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `getHealth()` | `GET /health` | Check API status |
-| `getStations()` | `GET /stations` | Get all stations |
-| `getStationById(id)` | `GET /stations/{id}` | Get one station |
-| `getForecasts()` | `GET /forecasts` | Get forecasts |
-| `getStationForecasts(id)` | `GET /stations/{id}/forecasts` | Station forecasts |
-| `getAlerts()` | `GET /alerts` | Get all alerts |
-| `getActiveAlerts()` | `GET /alerts?active_only=true` | Active alerts only |
-| `ingestFakeForecasts()` | `POST /forecasts/ingest-dev` | Trigger ingestion |
-| `computeAlerts()` | `POST /alerts/compute` | Trigger alerts |
-| `checkAPIConnection()` | - | Utility to test connection |
+| Method                    | Endpoint                       | Description                |
+| ------------------------- | ------------------------------ | -------------------------- |
+| `getHealth()`             | `GET /health`                  | Check API status           |
+| `getStations()`           | `GET /stations`                | Get all stations           |
+| `getStationById(id)`      | `GET /stations/{id}`           | Get one station            |
+| `getForecasts()`          | `GET /forecasts`               | Get forecasts              |
+| `getStationForecasts(id)` | `GET /stations/{id}/forecasts` | Station forecasts          |
+| `getAlerts()`             | `GET /alerts`                  | Get all alerts             |
+| `getActiveAlerts()`       | `GET /alerts?active_only=true` | Active alerts only         |
+| `ingestFakeForecasts()`   | `POST /forecasts/ingest-dev`   | Trigger ingestion          |
+| `computeAlerts()`         | `POST /alerts/compute`         | Trigger alerts             |
+| `checkAPIConnection()`    | -                              | Utility to test connection |
 
 ---
 
@@ -440,4 +456,3 @@ Available in `api-service.js`:
 **Ready for:** ✅ **Production Deployment**
 
 🎉 **FloodSight frontend and backend are now connected and displaying live data!**
-

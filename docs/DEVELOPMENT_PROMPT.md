@@ -1,13 +1,12 @@
-1. 
-Project: FloodSight landing site & minimal app
-Repo: https://github.com/afaqbabar/floodsight
-Hosting: Vercel
+1.  Project: FloodSight landing site & minimal app
+    Repo: https://github.com/afaqbabar/floodsight
+    Hosting: Vercel
 
 Your job in this workspace:
 
 Understand the codebase
 
-Read README.*, index.html, /assets, /css, floodsight.js, any /pages (privacy, terms/impressum), and deployment files (vercel.json, .env* if any).
+Read README._, index.html, /assets, /css, floodsight.js, any /pages (privacy, terms/impressum), and deployment files (vercel.json, .env_ if any).
 
 Generate a concise, bullet-point Codebase Overview (files, responsibilities, data flow).
 
@@ -79,11 +78,10 @@ Generate the Codebase Overview.
 
 Propose a one-screen PLAN.md. Wait for my “approve” keyword.
 
-After I say approve, implement changes, 
+After I say approve, implement changes,
 
-2. 
-We deployed FloodSight successfully to Vercel and Lighthouse scores are excellent. 
-However, there are some 404 errors for missing SVG assets:
+2.  We deployed FloodSight successfully to Vercel and Lighthouse scores are excellent.
+    However, there are some 404 errors for missing SVG assets:
 
 - /hero-map-placeholder.svg
 - /logos/citylab.svg
@@ -91,24 +89,24 @@ However, there are some 404 errors for missing SVG assets:
 - /logos/university.svg
 - /logos/iot.svg
 
-Fix these missing assets. 
+Fix these missing assets.
 
 If the images are used in the landing page (like partner logos or hero placeholders), do one of the following:
+
 1. Preferably add simple placeholder SVGs (grey or white logos) inside /public/logos/ and /public/.
 2. If any image is not needed, remove or comment out the <img> tags in index.html.
 
 After fixing, ensure there are **no 404s** in the browser console and all visual elements still render cleanly.
 
 Then:
+
 - Update the commit with a short summary (e.g. "Fix: missing SVG assets").
 - Push the changes to main.
 - Confirm that the site redeploys successfully on Vercel.
-3.
-verify in browser console that no 404 errors remain after deployment
 
+3.  verify in browser console that no 404 errors remain after deployment
 
-4. 
-then output:
+4.  then output:
 
 DIFF summary
 
@@ -131,7 +129,7 @@ Goal: Add a lightweight, no-friction DevSecOps baseline suitable for a static si
 
 Read & understand
 
-Read README.*, index.html, /assets, /css, any *.js (e.g., floodsight.js), legal pages (/privacy.html, /terms.html, /impressum.html), and existing vercel.json.
+Read README._, index.html, /assets, /css, any _.js (e.g., floodsight.js), legal pages (/privacy.html, /terms.html, /impressum.html), and existing vercel.json.
 
 Produce a short Codebase Overview (files, responsibilities, nav/links, deployment specifics).
 
@@ -141,7 +139,7 @@ Security headers on Vercel (extend, don’t replace)
 
 Keep the existing vercel.json content (rewrites/routes).
 
-Add a "headers" section that applies to /(.*) with:
+Add a "headers" section that applies to /(.\*) with:
 
 Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 
@@ -162,7 +160,7 @@ If CSP breaks anything, temporarily switch to Content-Security-Policy-Report-Onl
 GitHub Actions CI (create .github/workflows/ci.yml)
 Jobs to add:
 
-Link check with Lychee (scan *.html, **/*.md; sensible timeouts; use ${{ secrets.GITHUB_TOKEN }}).
+Link check with Lychee (scan _.html, \*\*/_.md; sensible timeouts; use ${{ secrets.GITHUB_TOKEN }}).
 
 Secrets scan with Gitleaks (use full history, --redact, --exit-code 1).
 
@@ -276,153 +274,143 @@ Templates (use these exact contents unless repo needs minor tweaks)
 
 name: ci
 on:
-  pull_request:
-  push: { branches: [main] }
-  schedule:
-    - cron: "0 2 * * 0"
+pull_request:
+push: { branches: [main] }
+schedule: - cron: "0 2 \* \* 0"
 
 permissions:
-  contents: read
+contents: read
 
 jobs:
-  link-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check links with lychee
-        uses: lycheeverse/lychee-action@v1
-        with:
-          args: --verbose --no-progress --max-concurrency 5 --retry-wait-time 2 --timeout 20s ".*\\.html" "**/*.md"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+link-check:
+runs-on: ubuntu-latest
+steps: - uses: actions/checkout@v4 - name: Check links with lychee
+uses: lycheeverse/lychee-action@v1
+with:
+args: --verbose --no-progress --max-concurrency 5 --retry-wait-time 2 --timeout 20s "._\\.html" "\*\*/_.md"
+env:
+GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  secret-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
-      - name: Gitleaks (secrets scanning)
-        uses: gitleaks/gitleaks-action@v2
-        with:
-          args: detect --no-banner --source . --redact --exit-code 1
+secret-scan:
+runs-on: ubuntu-latest
+steps: - uses: actions/checkout@v4
+with: { fetch-depth: 0 } - name: Gitleaks (secrets scanning)
+uses: gitleaks/gitleaks-action@v2
+with:
+args: detect --no-banner --source . --redact --exit-code 1
 
-  sast-js:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Semgrep scan
-        uses: returntocorp/semgrep-action@v1
-        with:
-          auditOn: push
-          config: p/ci
+sast-js:
+runs-on: ubuntu-latest
+steps: - uses: actions/checkout@v4 - name: Semgrep scan
+uses: returntocorp/semgrep-action@v1
+with:
+auditOn: push
+config: p/ci
 
-  html-lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: npm i -g htmlhint
-      - run: htmlhint "**/*.html"
+html-lint:
+runs-on: ubuntu-latest
+steps: - uses: actions/checkout@v4 - run: npm i -g htmlhint - run: htmlhint "\*_/_.html"
 
-  lighthouse:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: "20" }
-      - name: Run Lighthouse CI on production
-        run: npx @lhci/cli autorun --collect.url=https://floodsight.vercel.app --upload.target=temporary-public-storage
-
+lighthouse:
+runs-on: ubuntu-latest
+steps: - uses: actions/checkout@v4 - uses: actions/setup-node@v4
+with: { node-version: "20" } - name: Run Lighthouse CI on production
+run: npx @lhci/cli autorun --collect.url=https://floodsight.vercel.app --upload.target=temporary-public-storage
 
 .htmlhintrc
 
 {
-  "attr-lowercase": true,
-  "attr-no-duplication": true,
-  "doctype-first": false,
-  "doctype-html5": true,
-  "tagname-lowercase": true,
-  "tag-pair": true,
-  "tag-self-close": false,
-  "id-unique": true,
-  "spec-char-escape": true,
-  "head-script-disabled": false,
-  "img-alt-require": true
+"attr-lowercase": true,
+"attr-no-duplication": true,
+"doctype-first": false,
+"doctype-html5": true,
+"tagname-lowercase": true,
+"tag-pair": true,
+"tag-self-close": false,
+"id-unique": true,
+"spec-char-escape": true,
+"head-script-disabled": false,
+"img-alt-require": true
 }
-
 
 SECURITY.md
 
 # Security Policy
 
 ## Reporting a vulnerability
+
 Please email security@floodsight.app or open a private GitHub Security Advisory. Do **not** file public issues for sensitive reports.
 
 ## Practices
+
 - No secrets in the repository; use GitHub Actions Secrets and Vercel Environment Variables.
 - CI runs: Link check (Lychee), Secret scan (Gitleaks), Static analysis (Semgrep), HTML lint (HTMLHint), Lighthouse (production).
 - Security headers are enforced via `vercel.json`.
 
 ## Scope
-Static site (HTML/CSS/JS). Issues are typically: missing headers, broken links, unsafe external assets, or leaked secrets.
 
+Static site (HTML/CSS/JS). Issues are typically: missing headers, broken links, unsafe external assets, or leaked secrets.
 
 vercel.json (merge example)
 
 Keep existing keys (rewrites/routes). Add this headers block; do not remove current content.
 
 {
-  "rewrites": [
-    { "source": "/privacy", "destination": "/privacy.html" },
-    { "source": "/terms", "destination": "/terms.html" },
-    { "source": "/impressum", "destination": "/impressum.html" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "no-referrer-when-downgrade" },
-        { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" },
-        { "key": "X-XSS-Protection", "value": "0" },
-        { "key": "Content-Security-Policy",
-          "value": "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
-        }
-      ]
-    }
-  ]
+"rewrites": [
+{ "source": "/privacy", "destination": "/privacy.html" },
+{ "source": "/terms", "destination": "/terms.html" },
+{ "source": "/impressum", "destination": "/impressum.html" }
+],
+"headers": [
+{
+"source": "/(.\*)",
+"headers": [
+{ "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+{ "key": "X-Content-Type-Options", "value": "nosniff" },
+{ "key": "X-Frame-Options", "value": "DENY" },
+{ "key": "Referrer-Policy", "value": "no-referrer-when-downgrade" },
+{ "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" },
+{ "key": "X-XSS-Protection", "value": "0" },
+{ "key": "Content-Security-Policy",
+"value": "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
 }
-
+]
+}
+]
+}
 
 PLAN.md (sample)
 
 # PLAN
+
 - Add DevSecOps baseline for static Vercel site:
-  1) Security headers via `vercel.json` (merge, not replace)
-  2) CI: Lychee, Gitleaks, Semgrep, HTMLHint, Lighthouse
-  3) Docs: TESTING.md + README updates; SECURITY.md
+  1. Security headers via `vercel.json` (merge, not replace)
+  2. CI: Lychee, Gitleaks, Semgrep, HTMLHint, Lighthouse
+  3. Docs: TESTING.md + README updates; SECURITY.md
 - Keep stack simple; no framework or build changes.
 - Validate: headers visible on prod; CI green; no 404s.
-
 
 TESTING.md (sample)
 
 # Testing & Verification
 
 ## Headers
+
 - Browser: DevTools → Network → Document → Response Headers (check CSP, HSTS, etc.)
 - CLI: `curl -I https://floodsight.vercel.app | grep -i -E "content-security-policy|strict-transport-security|x-content-type-options|x-frame-options"`
 
 ## CI
+
 - See GitHub → Actions → `ci` workflow for:
   - Lychee, Gitleaks, Semgrep, HTMLHint, Lighthouse
 - Re-run workflow on latest commit or open a PR.
 
 ## Lighthouse
+
 - Run in Chrome Lighthouse panel or rely on CI step (LHCI output link in logs).
 
 ## Optional pre-commit
+
 - `pip install pre-commit && pre-commit install`
 - Hooks: lychee, whitespace, EOF fixer, large files.
 
@@ -458,6 +446,7 @@ or in GitHub web UI → click Add file ▸ Create new file
 SECURITY_NEXT.md (all caps)
 
 3️⃣ Paste this content
+
 # 🔐 FloodSight — Post-Merge Security Hardening Checklist
 
 Your initial DevSecOps baseline is live ✅  
@@ -466,24 +455,24 @@ Next steps focus on incremental hardening, automation, and audit readiness.
 ---
 
 ## 1️⃣ Platform & Workflow
+
 - [ ] **Protect `main` branch**  
-  → Settings ▸ Branches ▸ Add rule ▸ Require pull request reviews & “CI must pass”.
-- [ ] **Dependabot for GitHub Actions**  
+      → Settings ▸ Branches ▸ Add rule ▸ Require pull request reviews & “CI must pass”.
+- [ ] **Dependabot for GitHub Actions**
   ```yaml
   # .github/dependabot.yml
   version: 2
   updates:
-    - package-ecosystem: "github-actions"
-      directory: "/"
-      schedule: { interval: "weekly" }
+    - package-ecosystem: 'github-actions'
+      directory: '/'
+      schedule: { interval: 'weekly' }
+  ```
 
-
- Status badge in README
+Status badge in README
 
 ![CI](https://github.com/afaqbabar/floodsight/actions/workflows/ci.yml/badge.svg)
 
-
- Enable GitHub security features
+Enable GitHub security features
 
 Dependabot alerts
 
@@ -493,43 +482,43 @@ Secret scanning
 
 2️⃣ Continuous Verification
 
- Run curl -I https://floodsight.vercel.app weekly or add a cron job to verify headers.
+Run curl -I https://floodsight.vercel.app weekly or add a cron job to verify headers.
 
- Use Lighthouse CI scores to track regressions.
+Use Lighthouse CI scores to track regressions.
 
- Review CI logs for any Lychee broken links.
+Review CI logs for any Lychee broken links.
 
 3️⃣ Privacy & Legal
 
- Review privacy.html and terms.html for completeness (align with GDPR).
+Review privacy.html and terms.html for completeness (align with GDPR).
 
- Add link to SECURITY.md in footer (“Responsible Disclosure”).
+Add link to SECURITY.md in footer (“Responsible Disclosure”).
 
- Document any cookies or analytics tools.
+Document any cookies or analytics tools.
 
 4️⃣ Future Hardening Ideas
 
- Integrate OWASP ZAP scan in staging.
+Integrate OWASP ZAP scan in staging.
 
- Add S3/OBS access policy review (when backend/API added).
+Add S3/OBS access policy review (when backend/API added).
 
- Add audit logs retention (if backend introduced).
+Add audit logs retention (if backend introduced).
 
- Consider DNS CNAME verification for sub-domain integrity.
+Consider DNS CNAME verification for sub-domain integrity.
 
 ✅ Verification command
 curl -I https://floodsight.vercel.app | grep -i -E "content-security-policy|strict-transport-security|x-frame-options|referrer-policy"
 
-
 Last updated: {{current_date}}
-
 
 Replace `{{current_date}}` with today’s date.
 
 ---
 
 ### 4️⃣ Commit and push
+
 If using VS Code:
+
 ```bash
 git add SECURITY_NEXT.md
 git commit -m "Add post-merge security hardening checklist"
@@ -1643,3 +1632,4 @@ When done, print:
 Summary of created/modified files
 
 Next step recommendation (e.g. integrate real ECMWF data or deploy to K3s)
+```

@@ -14,7 +14,7 @@ export const ConsentCategories = {
   NECESSARY: 'necessary',
   PREFERENCES: 'preferences',
   ANALYTICS: 'analytics',
-  MARKETING: 'marketing'
+  MARKETING: 'marketing',
 };
 
 /**
@@ -39,7 +39,7 @@ export function getConsent() {
       preferences: categories.includes(ConsentCategories.PREFERENCES),
       analytics: categories.includes(ConsentCategories.ANALYTICS),
       marketing: categories.includes(ConsentCategories.MARKETING),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   } catch (e) {
     console.error('Failed to parse consent cookie:', e);
@@ -53,10 +53,10 @@ export function getConsent() {
  */
 export function saveConsent(preferences) {
   const categories = [CONSENT_VERSION];
-  
+
   // Necessary is always included
   categories.push(ConsentCategories.NECESSARY);
-  
+
   if (preferences.preferences) {
     categories.push(ConsentCategories.PREFERENCES);
   }
@@ -76,9 +76,11 @@ export function saveConsent(preferences) {
   }
 
   // Dispatch custom event for other scripts to react
-  window.dispatchEvent(new CustomEvent('consentUpdated', { 
-    detail: preferences 
-  }));
+  window.dispatchEvent(
+    new CustomEvent('consentUpdated', {
+      detail: preferences,
+    })
+  );
 
   console.log('✅ Consent saved:', preferences);
 }
@@ -116,7 +118,7 @@ function initAnalytics() {
   // Initialize Google Analytics (example)
   // Only loads if analytics consent is given
   console.log('📊 Analytics initialized');
-  
+
   // Example: Load Google Analytics
   // window.dataLayer = window.dataLayer || [];
   // function gtag(){dataLayer.push(arguments);}
@@ -161,4 +163,3 @@ if (typeof window !== 'undefined') {
     initAnalytics();
   }
 }
-

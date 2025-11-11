@@ -1,20 +1,24 @@
 # Folder Structure Improvements
 
 ## Summary
+
 The folder structure has been reorganized to improve maintainability and follow best practices for project organization.
 
 ## Changes Made
 
 ### 1. Removed Duplicates
+
 - **Deleted**: `docker-compose.yml` (duplicate)
 - **Kept**: `docker-compose.yaml` (comprehensive version with dev/prod profiles)
 - **Reason**: Having two docker-compose files was confusing. The `.yaml` version is more comprehensive with multiple service profiles.
 
 ### 2. Moved Development Artifacts
+
 - **Moved**: `prompt.txt` → `docs/DEVELOPMENT_PROMPT.md`
 - **Reason**: This 1455-line development prompt file is documentation, not a root-level file. Moved to docs/ and renamed with `.md` extension for clarity.
 
 ### 3. Consolidated Scripts
+
 - **Moved**: `UPDATE_DESIGN.sh` → `scripts/update-design.sh`
 - **Added**: npm script `npm run update-design` for convenience
 - **Updated**: Usage instructions in the script header
@@ -22,6 +26,7 @@ The folder structure has been reorganized to improve maintainability and follow 
 - **Reason**: All scripts should be in the `scripts/` directory for consistency. Also renamed to lowercase for convention.
 
 ### 4. Consolidated Nginx Configs
+
 - **Moved**: `nginx.conf` → `nginx/nginx.conf`
 - **Updated**: References in `Dockerfile` and `docker-compose.yaml`
 - **Result**: All nginx-related configs are now in the `nginx/` directory:
@@ -30,6 +35,7 @@ The folder structure has been reorganized to improve maintainability and follow 
 - **Reason**: Related configuration files should be grouped together.
 
 ### 5. Updated References
+
 - Updated `Dockerfile` to reference `nginx/nginx.conf`
 - Updated `docker-compose.yaml` to reference `nginx/nginx.conf`
 - Updated `README.md` project structure documentation
@@ -70,6 +76,7 @@ floodsight/
 If you had local references to the moved files:
 
 **Docker Builds:**
+
 ```bash
 # No changes needed - Dockerfile has been updated
 docker build -t floodsight .
@@ -77,6 +84,7 @@ docker-compose up
 ```
 
 **Design Token Updates:**
+
 ```bash
 # Old way:
 ./UPDATE_DESIGN.sh
@@ -88,6 +96,7 @@ npm run update-design
 ```
 
 **Nginx Config:**
+
 - The nginx config is now at `nginx/nginx.conf`
 - Docker builds automatically reference the new location
 
@@ -102,10 +111,9 @@ npm run update-design
 ✅ All references have been automatically updated  
 ✅ No breaking changes for existing workflows  
 ✅ Docker builds work with new structure  
-✅ CI/CD pipelines unaffected  
+✅ CI/CD pipelines unaffected
 
 ---
 
 **Date**: November 11, 2025  
 **Status**: ✅ Complete
-
