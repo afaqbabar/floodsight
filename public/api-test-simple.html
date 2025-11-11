@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Test - Simple</title>
+    <style>
+      body {
+        font-family: monospace;
+        padding: 20px;
+        background: #1a1a1a;
+        color: #0f0;
+      }
+      .box {
+        background: #000;
+        border: 2px solid #0f0;
+        padding: 20px;
+        margin: 10px 0;
+        border-radius: 5px;
+      }
+      .error {
+        color: #f00;
+        border-color: #f00;
+      }
+      .success {
+        color: #0f0;
+        border-color: #0f0;
+      }
+      button {
+        background: #0f0;
+        color: #000;
+        border: none;
+        padding: 10px 20px;
+        margin: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        font-family: monospace;
+      }
+      pre {
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔧 API Connection Test</h1>
+
+    <div class="box">
+      <strong>Current URL:</strong> <span id="url"></span><br />
+      <strong>Hostname:</strong> <span id="hostname"></span><br />
+      <strong>Expected API URL:</strong> <span id="apiUrl"></span>
+    </div>
+
+    <button onclick="testDirect()">Test API Directly (fetch)</button>
+    <button onclick="testWithModule()">Test with Module</button>
+
+    <div id="output"></div>
+
+    <script>
+      // Display config
+      document.getElementById('url').textContent = window.location.href;
+      document.getElementById('hostname').textContent = window.location.hostname;
+
+      // Calculate expected API URL
+      const hostname = window.location.hostname;
+      let apiUrl;
+      if (
+        hostname.startsWith('192.168.') ||
+        hostname.startsWith('10.') ||
+        hostname.startsWith('172.')
+      ) {
+        apiUrl = `http://${hostname}:8080/v1`;
+      } else if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        apiUrl = 'http://localhost:8080/v1';
+      } else {
+        apiUrl = 'https://api.floodsight.com/v1';
+      }
+      document.getElementById('apiUrl').textContent = apiUrl;
+
+      function addOutput(title, data, isError = false) {
+        const output = document.getElementById('output');
+        const box = document.createElement('div');
+        box.className = `box ${isError ? 'error' : 'success'}`;
+        box.innerHTML = `<strong>${title}</strong><pre>${JSON.stringify(data, null, 2)}</pre>`;
+        output.insertBefore(box, output.firstChild);
+      }
+
+      // Test 1: Direct fetch
+      async function testDirect() {
+        try {
+          const response = await fetch(`${apiUrl}/health`);
+          const data = await response.json();
+          addOutput('✅ Direct Fetch Success', {
+            url: `${apiUrl}/health`,
+            status: response.status,
+            data: data,
+          });
+        } catch (error) {
+          addOutput(
+            '❌ Direct Fetch Failed',
+            {
+              url: `${apiUrl}/health`,
+              error: error.message,
+              stack: error.stack,
+            },
+            true
+          );
+        }
+      }
+
+      // Test 2: With module
+      async function testWithModule() {
+        try {
+          const API = await import('/assets/js/api-service.js');
+          addOutput('✅ Module Loaded', {
+            config: API.getAPIConfig(),
+          });
+
+          const health = await API.getHealth();
+          addOutput('✅ Module API Call Success', health);
+        } catch (error) {
+          addOutput(
+            '❌ Module Test Failed',
+            {
+              error: error.message,
+              stack: error.stack,
+            },
+            true
+          );
+        }
+      }
+
+      // Auto-run direct test on load
+      testDirect();
+    </script>
+  </body>
+</html>

@@ -457,7 +457,7 @@ Next steps focus on incremental hardening, automation, and audit readiness.
 ## 1️⃣ Platform & Workflow
 
 - [ ] **Protect `main` branch**  
-      → Settings ▸ Branches ▸ Add rule ▸ Require pull request reviews & “CI must pass”.
+       → Settings ▸ Branches ▸ Add rule ▸ Require pull request reviews & “CI must pass”.
 - [ ] **Dependabot for GitHub Actions**
   ```yaml
   # .github/dependabot.yml
