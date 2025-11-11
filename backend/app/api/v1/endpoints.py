@@ -19,6 +19,8 @@ from app.core.config import settings
 from app.core.logging import get_logger
 from app.db.models import Alert, Forecast, Station
 from app.db.session import get_db
+from app.services.glefas import ingest_fake_forecast
+from app.services.alerts import compute_alerts_from_forecasts, create_alerts_from_forecasts
 
 logger = get_logger(__name__)
 
@@ -182,6 +184,43 @@ async def create_forecast(
     return db_forecast
 
 
+@router.post(
+    "/forecasts/ingest-dev",
+    status_code=status.HTTP_201_CREATED,
+    tags=["Forecasts"],
+)
+async def ingest_dev_forecasts(
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Manually trigger fake forecast ingestion for development/testing.
+    
+    This endpoint:
+    - Generates fake GloFAS forecast data for all stations
+    - Creates forecasts for 72-hour lead time (6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72 hours)
+    - Useful for testing alert computation and data flow
+    
+    In production, this will be replaced by scheduled Prefect flows
+    that download real ECMWF GloFAS data.
+    """
+    logger.info("Manual forecast ingestion triggered")
+    
+    try:
+        forecast_count = await ingest_fake_forecast(db)
+        
+        return {
+            "status": "success",
+            "message": f"Ingested {forecast_count} forecasts",
+            "forecasts_created": forecast_count,
+        }
+    except Exception as e:
+        logger.error(f"Forecast ingestion failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Forecast ingestion failed: {str(e)}",
+        )
+
+
 # Alert endpoints
 @router.get("/alerts", response_model=List[AlertResponse], tags=["Alerts"])
 async def list_alerts(
@@ -268,4 +307,51 @@ async def deactivate_alert(
     
     logger.info(f"Deactivated alert {alert_id}")
     return alert
+
+
+@router.post(
+    "/alerts/compute",
+    status_code=status.HTTP_201_CREATED,
+    tags=["Alerts"],
+)
+async def compute_alerts(
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Compute alerts from recent forecast data.
+    
+    This endpoint:
+    - Analyzes recent forecasts (last 6 hours)
+    - Determines alert levels based on discharge thresholds:
+      - info: 800+ m³/s
+      - warning: 1200+ m³/s  
+      - severe: 1600+ m³/s
+      - extreme: 2000+ m³/s
+    - Calculates probability based on forecast lead time
+    - Creates/updates alert records in database
+    
+    Returns computed alerts with station information.
+    """
+    logger.info("Alert computation triggered")
+    
+    try:
+        # Compute alerts from forecasts
+        computed_alerts = await compute_alerts_from_forecasts(db)
+        
+        # Create alerts in database
+        alerts_created = await create_alerts_from_forecasts(db)
+        
+        return {
+            "status": "success",
+            "message": f"Computed {len(computed_alerts)} alerts, created {alerts_created} in database",
+            "alerts_computed": len(computed_alerts),
+            "alerts_created": alerts_created,
+            "alerts": computed_alerts,
+        }
+    except Exception as e:
+        logger.error(f"Alert computation failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Alert computation failed: {str(e)}",
+        )
 

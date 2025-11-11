@@ -129,6 +129,7 @@ open http://localhost:8080/docs
 |--------|----------|-------------|
 | `GET` | `/v1/forecasts` | List forecasts (filter by station_id) |
 | `POST` | `/v1/forecasts` | Create forecast |
+| `POST` | `/v1/forecasts/ingest-dev` | **[NEW]** Manually trigger fake forecast ingestion (72h lead time) |
 
 ### Alerts
 
@@ -136,6 +137,7 @@ open http://localhost:8080/docs
 |--------|----------|-------------|
 | `GET` | `/v1/alerts` | List alerts (filter by station_id, active_only) |
 | `POST` | `/v1/alerts` | Create alert |
+| `POST` | `/v1/alerts/compute` | **[NEW]** Compute alerts from recent forecasts |
 | `PATCH` | `/v1/alerts/{id}/deactivate` | Deactivate alert |
 
 ### Interactive API Docs
@@ -245,7 +247,45 @@ poetry run pytest -v
 
 ---
 
-## 🌊 Data Ingestion
+## 🌊 Data Ingestion & Alert Computation
+
+### Phase B - Data Flow (✅ Complete)
+
+**End-to-End Workflow:**
+
+```bash
+# 1. Seed sample stations (if not already done)
+docker compose exec api python -m app.services.seed
+
+# 2. Ingest fake forecasts (72-hour lead time)
+curl -X POST http://localhost:8080/v1/forecasts/ingest-dev
+
+# 3. Compute alerts from forecasts
+curl -X POST http://localhost:8080/v1/alerts/compute
+
+# 4. View active alerts
+curl http://localhost:8080/v1/alerts?active_only=true
+```
+
+### Alert Computation Logic
+
+**Discharge Thresholds:**
+- **Info**: 800+ m³/s
+- **Warning**: 1200+ m³/s  
+- **Severe**: 1600+ m³/s
+- **Extreme**: 2000+ m³/s
+
+**Probability Calculation:**
+- ≤24h lead time: 85% probability
+- 25-48h lead time: 70% probability
+- 49-72h lead time: 55% probability
+
+**Process:**
+1. Analyzes recent forecasts (last 6 hours of model runs)
+2. Finds maximum discharge for each station
+3. Determines alert level based on thresholds
+4. Calculates probability based on forecast lead time
+5. Deactivates old alerts and creates new ones
 
 ### Manual Ingestion (Fake Data)
 
@@ -253,8 +293,8 @@ poetry run pytest -v
 # Via API
 curl -X POST http://localhost:8080/v1/forecasts/ingest-dev
 
-# Via Python script
-poetry run python -m app.services.glefas
+# Via Python script (inside container)
+docker compose exec api python -m app.services.glefas
 ```
 
 ### Real GloFAS Data (TODO - Phase B2)
@@ -483,7 +523,7 @@ ports:
 ### ✅ Phase A - Complete
 
 - [x] FastAPI + SQLAlchemy (async)
-- [x] PostgreSQL + PostGIS
+- [x] PostgreSQL (Alpine, ARM64-compatible)
 - [x] Database models (Station, Forecast, Alert)
 - [x] API endpoints (/health, /stations, /forecasts, /alerts)
 - [x] Alembic migrations
@@ -491,11 +531,13 @@ ports:
 - [x] Prometheus metrics
 - [x] Seed script
 
-### 🔄 Phase B - Data Flow (Next)
+### ✅ Phase B - Data Flow (Complete)
 
-- [ ] `/v1/forecasts/ingest-dev` endpoint
-- [ ] `/v1/alerts` computation logic
-- [ ] End-to-end test flow
+- [x] `POST /v1/forecasts/ingest-dev` endpoint
+- [x] `POST /v1/alerts/compute` endpoint
+- [x] Alert computation logic with thresholds
+- [x] Probability calculation based on lead time
+- [x] End-to-end test flow working
 
 ### ⏳ Phase B2 - Prefect Integration
 
