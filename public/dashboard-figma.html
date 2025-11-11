@@ -479,11 +479,21 @@
       };
 
       function populateFilters(stations) {
-        if (!stations || stations.length === 0) return;
+        if (!stations || stations.length === 0) {
+          console.warn('populateFilters: No stations data');
+          return;
+        }
+
+        console.log(`populateFilters: Processing ${stations.length} stations`);
 
         // Populate countries
         const countries = [...new Set(stations.map((s) => s.country))].sort();
         const countryFilter = document.getElementById('country-filter');
+        if (!countryFilter) {
+          console.error('country-filter element not found!');
+          return;
+        }
+        console.log('Countries:', countries);
         countries.forEach((country) => {
           const option = document.createElement('option');
           option.value = country.toLowerCase();
@@ -494,12 +504,18 @@
         // Populate basins (river names)
         const basins = [...new Set(stations.map((s) => s.river_name))].sort();
         const basinFilter = document.getElementById('basin-filter');
+        if (!basinFilter) {
+          console.error('basin-filter element not found!');
+          return;
+        }
+        console.log('Basins:', basins);
         basins.forEach((basin) => {
           const option = document.createElement('option');
           option.value = basin.toLowerCase().replace(/\s+/g, '-');
           option.textContent = basin;
           basinFilter.appendChild(option);
         });
+        console.log('✅ Filters populated successfully');
       }
 
       function displayAlertsSidebar(alerts, stations) {

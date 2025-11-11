@@ -78,13 +78,41 @@ export async function getHealth() {
 }
 
 /**
+ * Transform station data from backend to frontend format
+ */
+function transformStation(station) {
+  // Derive country from city name
+  const cityCountryMap = {
+    Berlin: 'Germany',
+    Dresden: 'Germany',
+    Cologne: 'Germany',
+    Frankfurt: 'Germany',
+    Vienna: 'Austria',
+  };
+
+  // Extract city name from station name (e.g., "Berlin Spree" → "Berlin")
+  const cityName = station.name.split(' ')[0];
+  const country = cityCountryMap[cityName] || 'Unknown';
+
+  return {
+    ...station,
+    station_code: station.code, // Map code → station_code
+    river_name: station.river_basin, // Map river_basin → river_name
+    country: country, // Add derived country
+  };
+}
+
+/**
  * Get all stations
  * GET /stations
  */
 export async function getStations(params = {}) {
   const queryParams = new URLSearchParams(params);
   const endpoint = `/stations${queryParams.toString() ? '?' + queryParams : ''}`;
-  return fetchAPI(endpoint);
+  const stations = await fetchAPI(endpoint);
+
+  // Transform stations to include frontend-expected fields
+  return Array.isArray(stations) ? stations.map(transformStation) : stations;
 }
 
 /**
