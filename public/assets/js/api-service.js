@@ -6,10 +6,23 @@
 
 // API Configuration
 const API_CONFIG = {
-  // Use environment-based URL (defaults to localhost for development)
-  BASE_URL: window.location.hostname === 'localhost' 
-    ? 'http://localhost:8080/v1' 
-    : 'https://api.floodsight.com/v1',
+  // Automatically detect the correct API URL based on current hostname
+  BASE_URL: (() => {
+    const hostname = window.location.hostname;
+    
+    // If accessing via local network IP (192.168.x.x), use that IP for API
+    if (hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.')) {
+      return `http://${hostname}:8080/v1`;
+    }
+    
+    // If accessing via localhost, use localhost for API
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:8080/v1';
+    }
+    
+    // For production/deployed version, use production API
+    return 'https://api.floodsight.com/v1';
+  })(),
   
   TIMEOUT: 10000, // 10 seconds
 };

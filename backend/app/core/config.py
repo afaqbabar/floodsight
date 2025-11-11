@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:5173",
+        "http://192.168.178.50:5173",  # Local network access
         "https://floodsight.vercel.app",
     ]
 
