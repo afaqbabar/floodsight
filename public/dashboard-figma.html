@@ -164,23 +164,20 @@
 
           <select class="filter-dropdown" id="basin-filter">
             <option value="">Basin</option>
-            <option value="thames">Thames</option>
-            <option value="severn">Severn</option>
-            <option value="trent">Trent</option>
+            <!-- Dynamically populated -->
           </select>
 
           <select class="filter-dropdown" id="country-filter">
             <option value="">Country</option>
-            <option value="uk">United Kingdom</option>
-            <option value="france">France</option>
-            <option value="germany">Germany</option>
+            <!-- Dynamically populated -->
           </select>
 
           <select class="filter-dropdown" id="leadtime-filter">
-            <option value="">Lead Time</option>
+            <option value="">All Lead Times</option>
             <option value="24">24 hours</option>
             <option value="48" selected>48 hours</option>
             <option value="72">72 hours</option>
+            <option value="168">7 days</option>
           </select>
         </div>
 
@@ -267,8 +264,8 @@
 
         <!-- River Name Section -->
         <div class="panel-section">
-          <h3 class="panel-section__title">Thames River</h3>
-          <p class="panel-section__subtitle">Central London Forecast Area</p>
+          <h3 class="panel-section__title" id="mainStationTitle">Loading Station Data...</h3>
+          <p class="panel-section__subtitle" id="mainStationSubtitle">Connecting to API...</p>
 
           <!-- Line Chart with Chart.js -->
           <div class="chart-container" style="height: 180px">
@@ -439,6 +436,9 @@
           // Display alerts in sidebar
           displayAlertsSidebar(alerts, stations);
 
+          // Populate filters dynamically
+          populateFilters(stations);
+
           // Update timestamp
           document.getElementById('updateTime').textContent =
             `Updated: ${new Date().toLocaleTimeString()} • Live Data`;
@@ -455,7 +455,12 @@
         const station = allStations.find((s) => s.id === stationId);
         if (!station) return;
 
-        // Update station info
+        // Update main title section
+        document.getElementById('mainStationTitle').textContent = station.river_name;
+        document.getElementById('mainStationSubtitle').textContent =
+          `${station.name} Forecast Area`;
+
+        // Update station info in details section
         document.getElementById('selectedStationName').textContent = station.name;
         document.getElementById('selectedStationInfo').textContent =
           `${station.river_name} • ${station.country}`;
@@ -472,6 +477,30 @@
           updateForecastChart(stationForecasts);
         }
       };
+
+      function populateFilters(stations) {
+        if (!stations || stations.length === 0) return;
+
+        // Populate countries
+        const countries = [...new Set(stations.map((s) => s.country))].sort();
+        const countryFilter = document.getElementById('country-filter');
+        countries.forEach((country) => {
+          const option = document.createElement('option');
+          option.value = country.toLowerCase();
+          option.textContent = country;
+          countryFilter.appendChild(option);
+        });
+
+        // Populate basins (river names)
+        const basins = [...new Set(stations.map((s) => s.river_name))].sort();
+        const basinFilter = document.getElementById('basin-filter');
+        basins.forEach((basin) => {
+          const option = document.createElement('option');
+          option.value = basin.toLowerCase().replace(/\s+/g, '-');
+          option.textContent = basin;
+          basinFilter.appendChild(option);
+        });
+      }
 
       function displayAlertsSidebar(alerts, stations) {
         const alertsPanel = document.getElementById('activeAlertsPanel');
