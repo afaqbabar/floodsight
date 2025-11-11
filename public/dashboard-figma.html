@@ -277,14 +277,19 @@
 
           <div
             style="display: flex; justify-content: space-between; margin-top: 12px; font-size: 13px"
+            id="stationStats"
           >
             <div>
-              <span style="color: var(--color-muted)">Current Level:</span>
-              <strong style="color: var(--color-foreground); margin-left: 4px">3.2m</strong>
+              <span style="color: var(--color-muted)">Station ID:</span>
+              <strong style="color: var(--color-foreground); margin-left: 4px" id="stationId"
+                >-</strong
+              >
             </div>
             <div>
-              <span style="color: var(--color-muted)">Peak Expected:</span>
-              <strong style="color: var(--color-warning); margin-left: 4px">4.8m</strong>
+              <span style="color: var(--color-muted)">Country:</span>
+              <strong style="color: var(--color-primary); margin-left: 4px" id="stationCountry"
+                >-</strong
+              >
             </div>
           </div>
         </div>
@@ -300,28 +305,12 @@
           </div>
 
           <div class="data-source" style="margin-top: 12px">
-            <strong>Data Source:</strong> ECMWF & Copernicus EMS
+            <strong>Data Source:</strong> FloodSight API (Live)
           </div>
-          <div class="updated-time">Updated 2 hours ago • Next update in 6 hours</div>
+          <div class="updated-time" id="updateTime">Loading data...</div>
 
-          <div
-            style="
-              margin-top: 16px;
-              padding: 12px;
-              background: #fef3c7;
-              border-left: 3px solid #f59e0b;
-              border-radius: 4px;
-            "
-          >
-            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px">
-              <span style="font-size: 18px">⚠️</span>
-              <div>
-                <strong style="color: #92400e">Medium Risk Alert</strong>
-                <p style="margin: 4px 0 0 0; color: #78350f; font-size: 12px">
-                  Elevated water levels expected in 48h
-                </p>
-              </div>
-            </div>
+          <div id="activeAlertsPanel" style="margin-top: 16px">
+            <!-- Alerts will be dynamically inserted here -->
           </div>
         </div>
 
@@ -379,20 +368,37 @@
         .addTo(map)
         .bindPopup('<strong>Low Risk Zone</strong><br>Chelsea & Battersea');
 
+      // Global state for layer toggles
+      let riskZones = [];
+      let stationMarkers = [];
+      let allStations = [];
+      let allAlerts = [];
+      let allForecasts = [];
+
       // Load and display real data from API
       import('/assets/js/api-service.js')
         .then(async (API) => {
-          const [stations, alerts] = await Promise.all([API.getStations(), API.getActiveAlerts()]);
+          const [stations, alerts, forecasts] = await Promise.all([
+            API.getStations(),
+            API.getActiveAlerts(),
+            API.getForecasts({ limit: 100 }),
+          ]);
+
+          allStations = stations || [];
+          allAlerts = alerts || [];
+          allForecasts = forecasts || [];
 
           // Display stations
           if (stations && stations.length > 0) {
             map.setView([stations[0].lat, stations[0].lon], 6);
             stations.forEach((station) => {
-              L.marker([station.lat, station.lon]).addTo(map).bindPopup(`
+              const marker = L.marker([station.lat, station.lon]).addTo(map).bindPopup(`
               <strong>${station.name}</strong><br>
               River: ${station.river_name}<br>
-              Country: ${station.country}
+              Country: ${station.country}<br>
+              <button onclick="selectStation(${station.id})" style="margin-top:8px;padding:4px 8px;background:#2563EB;color:white;border:none;border-radius:4px;cursor:pointer;">View Details</button>
             `);
+              stationMarkers.push({ marker, station });
             });
           }
 
@@ -415,7 +421,7 @@
               const radius =
                 { extreme: 8000, severe: 5000, warning: 3000, info: 2000 }[alert.level] || 2000;
 
-              L.circle([station.lat, station.lon], {
+              const circle = L.circle([station.lat, station.lon], {
                 color: color,
                 fillColor: color,
                 fillOpacity: 0.25,
@@ -424,12 +430,116 @@
               })
                 .addTo(map)
                 .bindPopup(
-                  `<strong style="color: ${color}; text-transform: uppercase;">${alert.level} Alert</strong><br><strong>${station.name}</strong><br>Probability: ${alert.probability ? (alert.probability * 100).toFixed(0) : 'N/A'}%`
+                  `<strong style="color: ${color}; text-transform: uppercase;">${alert.level} Alert</strong><br><strong>${station.name}</strong><br>Probability: ${alert.probability ? (alert.probability * 100).toFixed(0) : 'N/A'}%<br><small>${alert.message}</small>`
                 );
+              riskZones.push(circle);
             });
+          }
+
+          // Display alerts in sidebar
+          displayAlertsSidebar(alerts, stations);
+
+          // Update timestamp
+          document.getElementById('updateTime').textContent =
+            `Updated: ${new Date().toLocaleTimeString()} • Live Data`;
+
+          // Select first station by default
+          if (stations && stations.length > 0) {
+            window.selectStation(stations[0].id);
           }
         })
         .catch((error) => console.error('Failed to load API data:', error));
+
+      // Function to select and display station details
+      window.selectStation = function (stationId) {
+        const station = allStations.find((s) => s.id === stationId);
+        if (!station) return;
+
+        // Update station info
+        document.getElementById('selectedStationName').textContent = station.name;
+        document.getElementById('selectedStationInfo').textContent =
+          `${station.river_name} • ${station.country}`;
+        document.getElementById('stationId').textContent = station.station_code;
+        document.getElementById('stationCountry').textContent = station.country;
+
+        // Filter forecasts for this station
+        const stationForecasts = allForecasts
+          .filter((f) => f.station_id === stationId && f.discharge_cumecs != null)
+          .sort((a, b) => a.lead_time_hours - b.lead_time_hours)
+          .slice(0, 10);
+
+        if (stationForecasts.length > 0) {
+          updateForecastChart(stationForecasts);
+        }
+      };
+
+      function displayAlertsSidebar(alerts, stations) {
+        const alertsPanel = document.getElementById('activeAlertsPanel');
+        if (!alerts || alerts.length === 0) {
+          alertsPanel.innerHTML = `<div style="padding:12px;background:#f0fdf4;border-left:3px solid #10b981;border-radius:4px;font-size:13px;color:#065f46"><strong>✓ No Active Alerts</strong><p style="margin:4px 0 0 0;">All systems normal</p></div>`;
+          return;
+        }
+
+        const stationMap = {};
+        (stations || []).forEach((s) => (stationMap[s.id] = s));
+
+        // Show only first 3 alerts
+        const html = alerts
+          .slice(0, 3)
+          .map((alert) => {
+            const station = stationMap[alert.station_id];
+            const colors = {
+              info: { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af' },
+              warning: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e' },
+              severe: { bg: '#fee2e2', border: '#ef4444', text: '#991b1b' },
+              extreme: { bg: '#fae8ff', border: '#9333ea', text: '#581c87' },
+            };
+            const style = colors[alert.level] || colors.severe;
+            return `<div style="margin-bottom:8px;padding:12px;background:${style.bg};border-left:3px solid ${style.border};border-radius:4px"><div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="font-size:18px">${alert.level === 'extreme' ? '🚨' : alert.level === 'severe' ? '⚠️' : alert.level === 'warning' ? '⚡' : 'ℹ️'}</span><div><strong style="color:${style.text};text-transform:uppercase">${alert.level}</strong><p style="margin:4px 0 0 0;color:${style.text};font-size:12px">${station ? station.name : 'Station #' + alert.station_id}</p></div></div></div>`;
+          })
+          .join('');
+        alertsPanel.innerHTML = html;
+      }
+
+      function updateForecastChart(forecasts) {
+        const ctx = document.getElementById('forecastLineChart');
+        if (!ctx) return;
+
+        if (window.forecastLineChart) {
+          window.forecastLineChart.destroy();
+        }
+
+        window.forecastLineChart = new Chart(ctx.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: forecasts.map((f) => `+${f.lead_time_hours}h`),
+            datasets: [
+              {
+                label: 'Discharge (m³/s)',
+                data: forecasts.map((f) => f.discharge_cumecs),
+                borderColor: '#2563EB',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#2563EB',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, grid: { color: '#E5E7EB' } },
+              x: { grid: { display: false } },
+            },
+          },
+        });
+      }
 
       // Initialize Line Chart
       const lineCtx = document.getElementById('forecastLineChart').getContext('2d');
