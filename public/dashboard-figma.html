@@ -379,20 +379,57 @@
         .addTo(map)
         .bindPopup('<strong>Low Risk Zone</strong><br>Chelsea & Battersea');
 
-      // Add monitoring stations
-      const stations = [
-        { name: 'London Bridge Station', lat: 51.5081, lng: -0.0759, level: 3.2 },
-        { name: 'Tower Bridge Station', lat: 51.5055, lng: -0.0754, level: 3.4 },
-        { name: 'Westminster Station', lat: 51.5007, lng: -0.1246, level: 3.1 },
-      ];
+      // Load and display real data from API
+      import('/assets/js/api-service.js')
+        .then(async (API) => {
+          const [stations, alerts] = await Promise.all([API.getStations(), API.getActiveAlerts()]);
 
-      stations.forEach((station) => {
-        const marker = L.marker([station.lat, station.lng]).addTo(map).bindPopup(`
-          <strong>${station.name}</strong><br>
-          Current Level: ${station.level}m<br>
-          Status: <span style="color: #10B981;">Normal</span>
-        `);
-      });
+          // Display stations
+          if (stations && stations.length > 0) {
+            map.setView([stations[0].lat, stations[0].lon], 6);
+            stations.forEach((station) => {
+              L.marker([station.lat, station.lon]).addTo(map).bindPopup(`
+              <strong>${station.name}</strong><br>
+              River: ${station.river_name}<br>
+              Country: ${station.country}
+            `);
+            });
+          }
+
+          // Display alerts as risk zones
+          if (alerts && alerts.length > 0) {
+            const stationMap = {};
+            stations.forEach((s) => (stationMap[s.id] = s));
+
+            alerts.forEach((alert) => {
+              const station = stationMap[alert.station_id];
+              if (!station) return;
+
+              const colors = {
+                info: '#3B82F6',
+                warning: '#F59E0B',
+                severe: '#EF4444',
+                extreme: '#9333EA',
+              };
+              const color = colors[alert.level] || '#EF4444';
+              const radius =
+                { extreme: 8000, severe: 5000, warning: 3000, info: 2000 }[alert.level] || 2000;
+
+              L.circle([station.lat, station.lon], {
+                color: color,
+                fillColor: color,
+                fillOpacity: 0.25,
+                weight: 2,
+                radius: radius,
+              })
+                .addTo(map)
+                .bindPopup(
+                  `<strong style="color: ${color}; text-transform: uppercase;">${alert.level} Alert</strong><br><strong>${station.name}</strong><br>Probability: ${alert.probability ? (alert.probability * 100).toFixed(0) : 'N/A'}%`
+                );
+            });
+          }
+        })
+        .catch((error) => console.error('Failed to load API data:', error));
 
       // Initialize Line Chart
       const lineCtx = document.getElementById('forecastLineChart').getContext('2d');
