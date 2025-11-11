@@ -1452,4 +1452,194 @@ Commit: feat(platform): add container + gitops manifests
 
 At the end of each phase, show changed files and a short diff summary.
 
-#####################
+##############################################################################################################
+###########################################################################################################
+######################################################################################################
+
+Project: 🌊 FloodSight — Backend API
+Repository: https://github.com/afaqbabar/floodsight
+
+Goal: Implement a full backend inside /backend with FastAPI, Postgres/PostGIS, Prefect (for scheduled data ingestion), and CI/CD.
+The frontend (Next.js) already exists and is deployed on Vercel.
+
+🧩 PHASE A — Backend Architecture & Setup
+
+Create a new folder /backend and implement this structure:
+
+backend/
+  app/
+    core/ (config, logging, security)
+    db/ (session, base, models, migrations)
+    api/v1/ (router, endpoints)
+    services/ (glefas.py, geoutils.py, seed.py)
+    workers/ (flows.py)
+    main.py
+  tests/
+  Dockerfile
+  docker-compose.yml
+  pyproject.toml
+  alembic.ini
+  .env.example
+
+
+Use FastAPI + SQLAlchemy (async) + Postgres/PostGIS.
+
+Add models:
+
+Station: id, code, name, lat, lon, river_basin
+
+Forecast: station_id, ts, lead_hours, discharge_m3s
+
+Alert: station_id, issued_at, level, probability, message
+
+Add endpoints:
+
+/v1/health → simple status
+
+/v1/stations → list
+
+/v1/forecasts → list + POST /ingest-dev
+
+/v1/alerts → compute thresholds
+
+Use alembic migrations; asyncpg driver.
+
+Configure JWT-based auth via Supabase (stub OK in dev mode).
+
+Add Docker Compose (FastAPI + PostGIS).
+
+Add Prometheus /metrics endpoint.
+
+Write README_backend.md with instructions to run locally:
+
+docker compose up --build
+alembic upgrade head
+python -m app.services.seed
+open http://localhost:8080/docs
+
+⚙️ PHASE B — Data Flow & API Logic
+
+Add services/seed.py to populate a few sample stations (Berlin-Spree, Elbe-Dresden, etc.).
+
+Add services/glefas.py:
+
+Create a stub function ingest_fake_forecast() that populates fake data for 72h lead time.
+
+Later it will fetch ECMWF GloFAS GRIB files and parse via xarray + cfgrib.
+
+Add /v1/forecasts/ingest-dev to call that function manually.
+
+Add /v1/alerts to aggregate recent forecasts and output alert levels (info, warning, severe).
+
+End-to-end test flow:
+
+alembic upgrade head
+
+seed stations
+
+POST /v1/forecasts/ingest-dev
+
+GET /v1/alerts
+
+🕒 PHASE B2 — Prefect Integration (Automated ingestion)
+
+Install prefect in dependencies.
+
+Add a file backend/app/workers/flows.py implementing a Prefect flow:
+
+from datetime import datetime, timezone
+from prefect import flow, task
+from app.db.session import AsyncSessionLocal
+from app.services.glefas import ingest_fake_forecast
+import asyncio
+
+@task
+async def fetch_and_store_forecasts():
+    async with AsyncSessionLocal() as db:
+        await ingest_fake_forecast(db)
+        print(f"[{datetime.now(timezone.utc)}] Ingest completed.")
+
+@flow(name="floodsight-forecast-ingest", retries=1, retry_delay_seconds=60)
+def floodsight_ingest_flow():
+    asyncio.run(fetch_and_store_forecasts())
+
+if __name__ == "__main__":
+    floodsight_ingest_flow()
+
+
+Add this flow to docker-compose.yml as a worker service (optional).
+
+Schedule it using Prefect Cloud/Server or via cron (@hourly) for now.
+
+Ensure logs appear in console; in later steps, we’ll integrate Prefect Orion UI or Prefect Cloud dashboard.
+
+🔐 PHASE C — DevSecOps Integration
+
+Create .github/workflows/backend-ci.yml to:
+
+Run Python install & lint
+
+Build and push Docker image to GHCR
+
+Add /deploy/k8s/base/api-deployment.yaml for K3s (Raspberry Pi) deployment:
+
+Deployment, Service, and Ingress manifests
+
+ReadinessProbe: /v1/health
+
+Add .env.example including:
+
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/floodsight
+SUPABASE_JWKS_URL=https://<project>.supabase.co/auth/v1/keys
+PREFECT_API_URL=http://prefect:4200
+
+
+Add vercel.json rewrite:
+
+{
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://api.floodsight.example.com/:path*" }
+  ]
+}
+
+
+Configure container scanning (Trivy) and Dependabot.
+
+Ensure CI logs print image tag and push status.
+
+📦 Dependencies
+fastapi
+uvicorn[standard]
+sqlalchemy[asyncio]
+asyncpg
+alembic
+pydantic-settings
+httpx
+PyJWT
+prefect
+python-multipart
+prometheus-client
+
+✅ Deliverables
+
+All backend code committed under /backend
+
+Working local environment: docker compose up
+
+API available at http://localhost:8080/docs
+
+Prefect flow runs manually (python -m app.workers.flows) and can be scheduled
+
+README_backend.md explaining setup & architecture
+
+CI pipeline building + pushing image to GHCR
+
+Make everything clean, modular, async, and production-ready.
+Use PEP8 formatting, type hints, and concise docstrings.
+Include comments for where real ECMWF GloFAS ingestion will plug in later.
+
+When done, print:
+
+Summary of created/modified files
+
+Next step recommendation (e.g. integrate real ECMWF data or deploy to K3s)

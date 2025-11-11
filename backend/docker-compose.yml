@@ -1,0 +1,125 @@
+version: '3.9'
+
+services:
+  # PostgreSQL with PostGIS extension
+  db:
+    image: postgres:16-alpine
+    container_name: floodsight-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: floodsight
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - floodsight-network
+
+  # FastAPI Backend
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: floodsight-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/floodsight
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - LOG_LEVEL=INFO
+      - BACKEND_CORS_ORIGINS=["http://localhost:3000","http://localhost:5173"]
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app:ro
+      - ./alembic:/app/alembic:ro
+    networks:
+      - floodsight-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Development hot-reload mode (optional)
+  api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: floodsight-api-dev
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+    ports:
+      - "8081:8080"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/floodsight
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+      - ./alembic:/app/alembic
+    networks:
+      - floodsight-network
+    profiles:
+      - dev
+
+  # Prefect Server (optional, for orchestration)
+  prefect:
+    image: prefecthq/prefect:2.14-python3.11
+    container_name: floodsight-prefect
+    restart: unless-stopped
+    command: prefect server start --host 0.0.0.0
+    ports:
+      - "4200:4200"
+    environment:
+      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://postgres:postgres@db:5432/prefect
+      - PREFECT_SERVER_API_HOST=0.0.0.0
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - floodsight-network
+    profiles:
+      - prefect
+
+  # Redis (optional, for caching)
+  redis:
+    image: redis:7-alpine
+    container_name: floodsight-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - floodsight-network
+    profiles:
+      - cache
+
+networks:
+  floodsight-network:
+    driver: bridge
+    name: floodsight-backend-network
+
+volumes:
+  postgres_data:
+    name: floodsight-postgres-data
+  redis_data:
+    name: floodsight-redis-data
+
