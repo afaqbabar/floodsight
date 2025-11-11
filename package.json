@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "tokens:apply": "node scripts/apply-tokens.js",
+    "update-design": "./scripts/update-design.sh",
     "format": "prettier --write \"**/*.{html,css,js,json,md}\"",
     "format:check": "prettier --check \"**/*.{html,css,js,json,md}\"",
     "lint": "eslint \"public/assets/js/**/*.js\"",

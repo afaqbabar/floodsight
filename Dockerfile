@@ -31,7 +31,7 @@ RUN apk add --no-cache nodejs npm
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Copy custom nginx config
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Copy health check script
 COPY --from=builder /app/public/health.html /usr/share/nginx/html/health.html

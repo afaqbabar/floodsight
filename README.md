@@ -86,6 +86,7 @@ floodsight/
 ├── 📁 docs/                # Documentation
 │   ├── TESTING.md
 │   ├── DEPLOYMENT_GUIDE.md
+│   ├── DEVELOPMENT_PROMPT.md
 │   └── ...
 ├── 📁 deploy/              # Kubernetes & GitOps configs
 │   ├── k8s/
@@ -106,7 +107,9 @@ floodsight/
 │   └── flux/               # FluxCD GitOps (legacy)
 ├── 📁 scripts/
 │   ├── lighthouse.js       # Lighthouse CI runner
-│   └── apply-tokens.js     # Design token generator (NEW)
+│   ├── apply-tokens.js     # Design token generator
+│   ├── build-meta.js       # Build metadata generator
+│   └── update-design.sh    # Design token update helper
 ├── 📁 tests/
 │   └── smoke.spec.js       # Playwright tests
 ├── 📁 .github/
@@ -117,7 +120,6 @@ floodsight/
 ├── vercel.json             # Vercel config (routes, headers, CSP)
 ├── vite.config.js          # Vite build configuration
 ├── Dockerfile              # Multi-stage production container
-├── nginx.conf              # Nginx configuration for container
 ├── docker-compose.yaml     # Local Docker development
 └── package.json            # Dependencies & scripts
 ```

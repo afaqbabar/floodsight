@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Quick script to update design tokens and see changes
-# Usage: ./UPDATE_DESIGN.sh
+# Usage: npm run update-design or ./scripts/update-design.sh
 
 echo "🎨 FloodSight Design Token Updater"
 echo "=================================="
