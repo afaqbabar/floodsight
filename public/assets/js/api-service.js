@@ -25,12 +25,9 @@ const API_CONFIG = {
     }
 
     // For production/deployed version on Vercel
-    // TODO: Set up production API at api.floodsight.com
-    // For now, use demo/fallback endpoint
     if (hostname === 'floodsight.vercel.app' || hostname.includes('vercel.app')) {
-      // Vercel deployment - API not available yet
-      console.warn('⚠️ Production API not configured. Dashboard will show demo data.');
-      return null; // Will trigger demo mode
+      // Use Vercel Functions API (relative path)
+      return '/api/v1';
     }
     
     // Fallback for other production domains
