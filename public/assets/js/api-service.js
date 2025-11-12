@@ -25,9 +25,9 @@ const API_CONFIG = {
     }
 
     // For production/deployed version - Using Cloudflare Tunnel to Pi
-    // Replace this URL with your actual Cloudflare Tunnel URL
-    // Get it by running: cloudflared tunnel --url http://localhost:8080
-    return 'https://your-tunnel-url.trycloudflare.com/v1';  // TODO: Replace with your tunnel URL
+    // Tunnel URL: https://verde-silver-front-changed.trycloudflare.com
+    // Backend: Raspberry Pi (192.168.178.50:8080) via Cloudflare Tunnel
+    return 'https://verde-silver-front-changed.trycloudflare.com/v1';
   })(),
 
   TIMEOUT: 10000, // 10 seconds
