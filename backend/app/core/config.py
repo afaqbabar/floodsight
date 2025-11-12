@@ -32,6 +32,18 @@ class Settings(BaseSettings):
             return json.loads(v)
         return v
 
+    @field_validator("GLOFAS_LEADTIMES", mode="before")
+    @classmethod
+    def parse_glofas_leadtimes(cls, v: str | List[int]) -> List[int]:
+        """Parse lead times from JSON string or comma separated values."""
+        if isinstance(v, str):
+            try:
+                parsed = json.loads(v)
+            except json.JSONDecodeError:
+                parsed = [int(item.strip()) for item in v.split(",") if item.strip()]
+            return parsed
+        return v
+
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/floodsight"
     DATABASE_POOL_SIZE: int = 20
@@ -53,9 +65,41 @@ class Settings(BaseSettings):
     # Metrics
     METRICS_ENABLED: bool = True
 
-    # ECMWF/GloFAS
-    ECMWF_API_KEY: str = ""
-    ECMWF_API_URL: str = "https://cds.climate.copernicus.eu/api/v2"
+    # GloFAS / ECMWF Copernicus Data Store
+    GLOFAS_INGEST_MODE: str = "auto"  # Options: auto, real, fake
+    CDS_API_URL: str = "https://cds.climate.copernicus.eu/api/v2"
+    CDS_API_KEY: str = ""
+    CDS_API_EMAIL: str = ""
+    CDS_API_VERIFY: bool = True
+    CDS_API_TIMEOUT: int = 900  # seconds
+    GLOFAS_SYSTEM_VERSION: str = "version_4_0"
+    GLOFAS_PRODUCT_TYPE: str = "control_forecast"
+    GLOFAS_VARIABLE: str = "river_discharge_in_the_last_6_hours"
+    GLOFAS_LEADTIMES: List[int] = [
+        6,
+        12,
+        18,
+        24,
+        30,
+        36,
+        42,
+        48,
+        54,
+        60,
+        66,
+        72,
+        78,
+        84,
+        90,
+        96,
+        102,
+        108,
+        114,
+        120,
+    ]
+    GLOFAS_BUFFER_DEGREES: float = 1.5
+    GLOFAS_MAX_RECORDS_PER_STATION: int = 120
+    GLOFAS_RUN_LAG_HOURS: int = 6
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -9,6 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     curl \
+    libhdf5-dev \
+    libnetcdf-dev \
+    libeccodes0 \
+    libeccodes-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
@@ -34,6 +38,9 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     curl \
+    libhdf5-dev \
+    libnetcdf-dev \
+    libeccodes0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python packages from builder

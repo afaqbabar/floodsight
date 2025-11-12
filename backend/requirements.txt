@@ -27,6 +27,12 @@ python-multipart==0.0.9
 # Scheduling (Phase B2)
 apscheduler==3.10.4
 
+# GloFAS data ingestion
+cdsapi==0.6.1
+xarray==2024.5.0
+netCDF4==1.6.5
+pandas==2.2.2
+
 # Monitoring
 prometheus-client==0.19.0
 

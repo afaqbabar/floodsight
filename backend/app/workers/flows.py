@@ -23,7 +23,7 @@ from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
 from app.db.session import AsyncSessionLocal
 from app.services.alerts import create_alerts_from_forecasts
-from app.services.glefas import ingest_fake_forecast
+from app.services.glefas import ingest_forecasts
 
 # Setup logging
 setup_logging()
@@ -43,8 +43,10 @@ async def fetch_and_store_forecasts() -> int:
     
     try:
         async with AsyncSessionLocal() as db:
-            forecast_count = await ingest_fake_forecast(db)
-            logger.info(f"✅ Ingested {forecast_count} forecasts")
+            forecast_count, ingestion_mode = await ingest_forecasts(db)
+            logger.info(
+                "✅ Ingested %s forecasts (mode=%s)", forecast_count, ingestion_mode
+            )
             return forecast_count
     except Exception as e:
         logger.error(f"❌ Forecast ingestion failed: {e}", exc_info=True)

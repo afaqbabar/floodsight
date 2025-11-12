@@ -134,7 +134,8 @@ open http://localhost:8080/docs
 | ------ | -------------------------- | ------------------------------------------------------------------ |
 | `GET`  | `/v1/forecasts`            | List forecasts (filter by station_id)                              |
 | `POST` | `/v1/forecasts`            | Create forecast                                                    |
-| `POST` | `/v1/forecasts/ingest-dev` | **[NEW]** Manually trigger fake forecast ingestion (72h lead time) |
+| `POST` | `/v1/forecasts/ingest`     | Trigger real GloFAS ingestion (auto fallback to fake)              |
+| `POST` | `/v1/forecasts/ingest-dev` | Manually trigger fake forecast ingestion (72h lead time)           |
 
 ### Alerts
 
@@ -346,30 +347,49 @@ schedule = "*/30 * * * *"
 schedule = "0 3 * * *"
 ```
 
-### Manual Ingestion (Fake Data)
+### Manual Ingestion
 
 ```bash
-# Via API
+# Auto/real mode (respects GLOFAS_INGEST_MODE, tries real → fake fallback)
+curl -X POST http://localhost:8080/v1/forecasts/ingest
+
+# Force synthetic demo data
 curl -X POST http://localhost:8080/v1/forecasts/ingest-dev
-
-# Via Python script (inside container)
-docker compose exec api python -m app.services.glefas
 ```
 
-### Real GloFAS Data (TODO - Phase C)
+### Real GloFAS Data (Phase C ✅)
 
-```python
-# app/services/glefas.py will be extended to:
-# 1. Download GRIB files from ECMWF CDS
-# 2. Parse with xarray + cfgrib
-# 3. Extract discharge at station coordinates
-# 4. Store forecasts in database
+The scheduler and `/v1/forecasts/ingest` endpoint now support real GloFAS data via the Copernicus Data Store (CDS).
 
-# Example workflow:
-# import xarray as xr
-# ds = xr.open_dataset('glofas.grib', engine='cfgrib')
-# discharge = ds.sel(latitude=lat, longitude=lon, method='nearest')
+1. **Create a CDS account**: https://cds.climate.copernicus.eu/api-how-to  
+2. **Generate API key** and add to `.env`:
+
+   ```env
+   GLOFAS_INGEST_MODE=real        # or auto (default) / fake
+   CDS_API_EMAIL=you@example.com
+   CDS_API_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+   ```
+
+3. **(Optional)** tweak advanced settings:
+
+   ```env
+   GLOFAS_SYSTEM_VERSION=version_4_0
+   GLOFAS_PRODUCT_TYPE=control_forecast
+   GLOFAS_LEADTIMES=[6,12,18,24,30,36,42,48,54,60,66,72]
+   GLOFAS_BUFFER_DEGREES=1.5
+   ```
+
+4. **Restart the API / scheduler** to load new settings.
+
+Logs will now show:
+
 ```
+Starting real GloFAS forecast ingestion...
+Requesting GloFAS forecast: {...}
+Ingested 360 GloFAS forecasts across 5 stations (model run 2025-11-12T00:00:00+00:00)
+```
+
+If credentials are missing or CDS is unavailable, the system transparently falls back to synthetic data (unless `GLOFAS_INGEST_MODE=real`).
 
 ---
 

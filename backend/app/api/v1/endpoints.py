@@ -19,7 +19,12 @@ from app.core.config import settings
 from app.core.logging import get_logger
 from app.db.models import Alert, Forecast, Station
 from app.db.session import get_db
-from app.services.glefas import ingest_fake_forecast
+from app.services.glefas import (
+    GlofasCredentialsError,
+    GlofasIngestionError,
+    ingest_fake_forecast,
+    ingest_forecasts,
+)
 from app.services.alerts import compute_alerts_from_forecasts, create_alerts_from_forecasts
 
 logger = get_logger(__name__)
@@ -182,6 +187,43 @@ async def create_forecast(
     
     logger.info(f"Created forecast for station {forecast.station_id}: {forecast.discharge_m3s} m³/s")
     return db_forecast
+
+
+@router.post(
+    "/forecasts/ingest",
+    status_code=status.HTTP_201_CREATED,
+    tags=["Forecasts"],
+)
+async def ingest_forecasts_api(
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Trigger forecast ingestion (real GloFAS or fallback to fake).
+    
+    Behaviour depends on ``GLOFAS_INGEST_MODE``:
+    - ``auto`` (default): try real ingestion, fallback to fake.
+    - ``real``: require real ingestion (errors if unavailable).
+    - ``fake``: generate synthetic data.
+    """
+    logger.info("Manual forecast ingestion (auto/real) triggered")
+    try:
+        forecast_count, mode = await ingest_forecasts(db)
+        return {
+            "status": "success",
+            "message": f"Ingested {forecast_count} forecasts ({mode})",
+            "forecasts_created": forecast_count,
+            "mode": mode,
+        }
+    except GlofasCredentialsError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+    except GlofasIngestionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(exc),
+        ) from exc
 
 
 @router.post(
