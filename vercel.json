@@ -18,7 +18,7 @@
         { "key": "X-XSS-Protection", "value": "0" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; img-src 'self' data: https: https://*.tile.openstreetmap.org; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://unpkg.com; font-src 'self' data:; connect-src 'self' https://*.tile.openstreetmap.org https://api.floodsight.com http://localhost:8080 http://192.168.0.0/16 http://10.0.0.0/8 http://172.16.0.0/12; frame-ancestors 'none'"
+          "value": "default-src 'self'; img-src 'self' data: https: https://*.tile.openstreetmap.org; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://unpkg.com; font-src 'self' data:; connect-src 'self' https://*.tile.openstreetmap.org https://*.trycloudflare.com https://api.floodsight.com http://localhost:8080 http://192.168.0.0/16 http://10.0.0.0/8 http://172.16.0.0/12; frame-ancestors 'none'"
         }
       ]
     },
