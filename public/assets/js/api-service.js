@@ -24,7 +24,16 @@ const API_CONFIG = {
       return 'http://192.168.178.50:8080/v1';
     }
 
-    // For production/deployed version, use production API
+    // For production/deployed version on Vercel
+    // TODO: Set up production API at api.floodsight.com
+    // For now, use demo/fallback endpoint
+    if (hostname === 'floodsight.vercel.app' || hostname.includes('vercel.app')) {
+      // Vercel deployment - API not available yet
+      console.warn('⚠️ Production API not configured. Dashboard will show demo data.');
+      return null; // Will trigger demo mode
+    }
+    
+    // Fallback for other production domains
     return 'https://api.floodsight.com/v1';
   })(),
 
@@ -35,6 +44,11 @@ const API_CONFIG = {
  * Generic fetch wrapper with error handling
  */
 async function fetchAPI(endpoint, options = {}) {
+  // Check if API is configured
+  if (!API_CONFIG.BASE_URL) {
+    throw new Error('API endpoint not configured - running in demo mode');
+  }
+
   const url = `${API_CONFIG.BASE_URL}${endpoint}`;
 
   const controller = new AbortController();
