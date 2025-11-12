@@ -24,14 +24,10 @@ const API_CONFIG = {
       return 'http://192.168.178.50:8080/v1';
     }
 
-    // For production/deployed version on Vercel
-    if (hostname === 'floodsight.vercel.app' || hostname.includes('vercel.app')) {
-      // Use Vercel Functions API (relative path)
-      return '/api/v1';
-    }
-    
-    // Fallback for other production domains
-    return 'https://api.floodsight.com/v1';
+    // For production/deployed version
+    // TODO: Replace with your Fly.io app URL after deployment
+    // Example: https://floodsight-api.fly.dev/v1
+    return 'https://floodsight-api.fly.dev/v1';
   })(),
 
   TIMEOUT: 10000, // 10 seconds

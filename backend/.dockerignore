@@ -4,36 +4,18 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual environments
-venv/
 env/
+venv/
 ENV/
 .venv
 
-# Environment variables
-.env
-.env.local
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
 
 # IDEs
 .vscode/
@@ -42,41 +24,13 @@ ENV/
 *.swo
 *~
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-test-results/
-
-# Logs
-*.log
-logs/
-
 # OS
 .DS_Store
 Thumbs.db
 
-# Git
-.git/
-.gitignore
-.gitattributes
-
-# Documentation
-*.md
-docs/
-
-# CI/CD
-.github/
-
-# Alembic versions (migrations are included, but compiled files are not)
-alembic/versions/*.pyc
-
-# Prefect
-.prefect/
-
-# Docker
+# Project specific
+*.log
+.env
+.env.local
 docker-compose.yml
-Dockerfile
-.dockerignore
-
+README.md

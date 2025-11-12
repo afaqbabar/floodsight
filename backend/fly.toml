@@ -1,0 +1,57 @@
+# Fly.io Configuration for FloodSight Backend API
+# Learn more: https://fly.io/docs/reference/configuration/
+
+app = "floodsight-api"
+primary_region = "fra" # Frankfurt, Germany (EU)
+
+[build]
+  dockerfile = "Dockerfile.fly"
+
+[env]
+  APP_NAME = "FloodSight API"
+  APP_VERSION = "0.1.0"
+  ENVIRONMENT = "production"
+  DEBUG = "false"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false  # Keep always running (no cold starts)
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/v1/health"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 8080
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 100
+    soft_limit = 80
+
+[[vm]]
+  size = "shared-cpu-1x"  # 256 MB RAM (free tier)
+  memory = "256mb"
+  cpus = 1
+
+# Persistent volume for local database (optional - only if not using Fly Postgres)
+# [[mounts]]
+#   source = "floodsight_data"
+#   destination = "/data"
+
