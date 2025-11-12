@@ -24,10 +24,10 @@ const API_CONFIG = {
       return 'http://192.168.178.50:8080/v1';
     }
 
-    // For production/deployed version
-    // TODO: Replace with your Fly.io app URL after deployment
-    // Example: https://floodsight-api.fly.dev/v1
-    return 'https://floodsight-api.fly.dev/v1';
+    // For production/deployed version - Using Cloudflare Tunnel to Pi
+    // Replace this URL with your actual Cloudflare Tunnel URL
+    // Get it by running: cloudflared tunnel --url http://localhost:8080
+    return 'https://your-tunnel-url.trycloudflare.com/v1';  // TODO: Replace with your tunnel URL
   })(),
 
   TIMEOUT: 10000, // 10 seconds
