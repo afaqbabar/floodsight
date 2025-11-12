@@ -19,9 +19,9 @@ const API_CONFIG = {
       return `http://${hostname}:8080/v1`;
     }
 
-    // If accessing via localhost, use localhost for API
+    // If accessing via localhost, use Raspberry Pi IP for backend API
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:8080/v1';
+      return 'http://192.168.178.50:8080/v1';
     }
 
     // For production/deployed version, use production API

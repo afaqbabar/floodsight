@@ -375,97 +375,168 @@
       // Load and display real data from API
       import('/assets/js/api-service.js')
         .then(async (API) => {
-          const [stations, alerts, forecasts] = await Promise.all([
-            API.getStations(),
-            API.getActiveAlerts(),
-            API.getForecasts({ limit: 100 }),
-          ]);
+          console.log('🌐 Connecting to API:', API.getAPIConfig().baseUrl);
+          
+          let stations = [];
+          let alerts = [];
+          let forecasts = [];
 
-          allStations = stations || [];
-          allAlerts = alerts || [];
-          allForecasts = forecasts || [];
+          try {
+            // Try to fetch data from API with individual error handling
+            const results = await Promise.allSettled([
+              API.getStations().catch(err => {
+                console.warn('⚠️ Failed to load stations:', err.message);
+                return [];
+              }),
+              API.getActiveAlerts().catch(err => {
+                console.warn('⚠️ Failed to load alerts:', err.message);
+                return [];
+              }),
+              API.getForecasts({ limit: 100 }).catch(err => {
+                console.warn('⚠️ Failed to load forecasts:', err.message);
+                return [];
+              }),
+            ]);
 
-          // Display stations
-          if (stations && stations.length > 0) {
-            map.setView([stations[0].lat, stations[0].lon], 6);
-            stations.forEach((station) => {
-              const marker = L.marker([station.lat, station.lon]).addTo(map).bindPopup(`
-              <strong>${station.name}</strong><br>
-              River: ${station.river_name}<br>
-              Country: ${station.country}<br>
-              <button onclick="selectStation(${station.id})" style="margin-top:8px;padding:4px 8px;background:#2563EB;color:white;border:none;border-radius:4px;cursor:pointer;">View Details</button>
-            `);
-              stationMarkers.push({ marker, station });
-            });
-          }
+            stations = results[0].status === 'fulfilled' ? (results[0].value || []) : [];
+            alerts = results[1].status === 'fulfilled' ? (results[1].value || []) : [];
+            forecasts = results[2].status === 'fulfilled' ? (results[2].value || []) : [];
 
-          // Display alerts as risk zones
-          if (alerts && alerts.length > 0) {
-            const stationMap = {};
-            stations.forEach((s) => (stationMap[s.id] = s));
+            allStations = stations;
+            allAlerts = alerts;
+            allForecasts = forecasts;
 
-            alerts.forEach((alert) => {
-              const station = stationMap[alert.station_id];
-              if (!station) return;
+            // Show API status
+            if (stations.length === 0 && alerts.length === 0 && forecasts.length === 0) {
+              showAPIError('API is not available. Showing demo data.');
+            } else {
+              document.getElementById('updateTime').textContent =
+                `Updated: ${new Date().toLocaleTimeString()} • Live Data`;
+            }
 
-              const colors = {
-                info: '#3B82F6',
-                warning: '#F59E0B',
-                severe: '#EF4444',
-                extreme: '#9333EA',
-              };
-              const color = colors[alert.level] || '#EF4444';
-              const radius =
-                { extreme: 8000, severe: 5000, warning: 3000, info: 2000 }[alert.level] || 2000;
+            // Display stations
+            if (stations && stations.length > 0) {
+              // Remove hardcoded zones when we have real data
+              map.eachLayer((layer) => {
+                if (layer instanceof L.Circle && layer !== highRiskZone && layer !== mediumRiskZone && layer !== lowRiskZone) {
+                  // Keep API-generated circles
+                } else if (layer === highRiskZone || layer === mediumRiskZone || layer === lowRiskZone) {
+                  map.removeLayer(layer);
+                }
+              });
 
-              const circle = L.circle([station.lat, station.lon], {
-                color: color,
-                fillColor: color,
-                fillOpacity: 0.25,
-                weight: 2,
-                radius: radius,
-              })
-                .addTo(map)
-                .bindPopup(
-                  `<strong style="color: ${color}; text-transform: uppercase;">${alert.level} Alert</strong><br><strong>${station.name}</strong><br>Probability: ${alert.probability ? (alert.probability * 100).toFixed(0) : 'N/A'}%<br><small>${alert.message}</small>`
-                );
-              riskZones.push(circle);
-            });
-          }
+              // Center map on first station
+              map.setView([stations[0].lat, stations[0].lon], 6);
+              
+              stations.forEach((station) => {
+                const marker = L.marker([station.lat, station.lon]).addTo(map).bindPopup(`
+                <strong>${station.name}</strong><br>
+                River: ${station.river_name || station.river_basin || 'N/A'}<br>
+                Country: ${station.country || 'N/A'}<br>
+                <button onclick="selectStation(${station.id})" style="margin-top:8px;padding:4px 8px;background:#2563EB;color:white;border:none;border-radius:4px;cursor:pointer;">View Details</button>
+              `);
+                stationMarkers.push({ marker, station });
+              });
+            }
 
-          // Display alerts in sidebar
-          displayAlertsSidebar(alerts, stations);
+            // Display alerts as risk zones
+            if (alerts && alerts.length > 0 && stations && stations.length > 0) {
+              const stationMap = {};
+              stations.forEach((s) => (stationMap[s.id] = s));
 
-          // Populate filters dynamically
-          populateFilters(stations);
+              alerts.forEach((alert) => {
+                const station = stationMap[alert.station_id];
+                if (!station) return;
 
-          // Update timestamp
-          document.getElementById('updateTime').textContent =
-            `Updated: ${new Date().toLocaleTimeString()} • Live Data`;
+                const colors = {
+                  info: '#3B82F6',
+                  warning: '#F59E0B',
+                  severe: '#EF4444',
+                  extreme: '#9333EA',
+                };
+                const color = colors[alert.level] || '#EF4444';
+                const radius =
+                  { extreme: 8000, severe: 5000, warning: 3000, info: 2000 }[alert.level] || 2000;
 
-          // Select first station by default
-          if (stations && stations.length > 0) {
-            window.selectStation(stations[0].id);
+                const circle = L.circle([station.lat, station.lon], {
+                  color: color,
+                  fillColor: color,
+                  fillOpacity: 0.25,
+                  weight: 2,
+                  radius: radius,
+                })
+                  .addTo(map)
+                  .bindPopup(
+                    `<strong style="color: ${color}; text-transform: uppercase;">${alert.level} Alert</strong><br><strong>${station.name}</strong><br>Probability: ${alert.probability ? (alert.probability * 100).toFixed(0) : 'N/A'}%<br><small>${alert.message || 'No message'}</small>`
+                  );
+                riskZones.push(circle);
+              });
+            }
+
+            // Display alerts in sidebar
+            displayAlertsSidebar(alerts, stations);
+
+            // Populate filters dynamically
+            populateFilters(stations);
+
+            // Select first station by default if we have data
+            if (stations && stations.length > 0) {
+              window.selectStation(stations[0].id);
+            } else {
+              // Show demo message
+              document.getElementById('mainStationTitle').textContent = 'Demo Mode';
+              document.getElementById('mainStationSubtitle').textContent = 'API not available - showing sample data';
+            }
+          } catch (error) {
+            console.error('❌ API Error:', error);
+            showAPIError('Failed to connect to API. Please check your connection.');
           }
         })
-        .catch((error) => console.error('Failed to load API data:', error));
+        .catch((error) => {
+          console.error('❌ Failed to load API module:', error);
+          showAPIError('API service unavailable. Please refresh the page.');
+        });
+
+      // Show API error message
+      function showAPIError(message) {
+        const updateTimeEl = document.getElementById('updateTime');
+        if (updateTimeEl) {
+          updateTimeEl.innerHTML = `<span style="color: #EF4444;">⚠️ ${message}</span>`;
+        }
+        
+        const mainTitle = document.getElementById('mainStationTitle');
+        if (mainTitle && mainTitle.textContent === 'Loading Station Data...') {
+          mainTitle.textContent = 'API Unavailable';
+          document.getElementById('mainStationSubtitle').textContent = message;
+        }
+      }
 
       // Function to select and display station details
       window.selectStation = function (stationId) {
         const station = allStations.find((s) => s.id === stationId);
-        if (!station) return;
+        if (!station) {
+          console.warn('Station not found:', stationId);
+          return;
+        }
 
         // Update main title section
-        document.getElementById('mainStationTitle').textContent = station.river_name;
-        document.getElementById('mainStationSubtitle').textContent =
-          `${station.name} Forecast Area`;
+        const mainTitle = document.getElementById('mainStationTitle');
+        const mainSubtitle = document.getElementById('mainStationSubtitle');
+        const stationIdEl = document.getElementById('stationId');
+        const stationCountryEl = document.getElementById('stationCountry');
 
-        // Update station info in details section
-        document.getElementById('selectedStationName').textContent = station.name;
-        document.getElementById('selectedStationInfo').textContent =
-          `${station.river_name} • ${station.country}`;
-        document.getElementById('stationId').textContent = station.station_code;
-        document.getElementById('stationCountry').textContent = station.country;
+        if (mainTitle) {
+          mainTitle.textContent = station.river_name || station.river_basin || station.name || 'Unknown Station';
+        }
+        if (mainSubtitle) {
+          mainSubtitle.textContent = `${station.name || 'Station'} Forecast Area`;
+        }
+        if (stationIdEl) {
+          stationIdEl.textContent = station.station_code || station.code || station.id || '-';
+        }
+        if (stationCountryEl) {
+          stationCountryEl.textContent = station.country || 'Unknown';
+        }
 
         // Filter forecasts for this station
         const stationForecasts = allForecasts
@@ -475,46 +546,57 @@
 
         if (stationForecasts.length > 0) {
           updateForecastChart(stationForecasts);
+        } else {
+          // Show message if no forecasts available
+          console.info('No forecasts available for station:', stationId);
+        }
+
+        // Pan map to station
+        if (station.lat && station.lon) {
+          map.setView([station.lat, station.lon], 10);
         }
       };
 
       function populateFilters(stations) {
         if (!stations || stations.length === 0) {
           console.warn('populateFilters: No stations data');
+          // Keep default "All" options
           return;
         }
 
         console.log(`populateFilters: Processing ${stations.length} stations`);
 
         // Populate countries
-        const countries = [...new Set(stations.map((s) => s.country))].sort();
+        const countries = [...new Set(stations.map((s) => s.country).filter(Boolean))].sort();
         const countryFilter = document.getElementById('country-filter');
-        if (!countryFilter) {
-          console.error('country-filter element not found!');
-          return;
+        if (countryFilter && countries.length > 0) {
+          // Clear existing options except "Country" placeholder
+          while (countryFilter.children.length > 1) {
+            countryFilter.removeChild(countryFilter.lastChild);
+          }
+          countries.forEach((country) => {
+            const option = document.createElement('option');
+            option.value = country.toLowerCase();
+            option.textContent = country;
+            countryFilter.appendChild(option);
+          });
         }
-        console.log('Countries:', countries);
-        countries.forEach((country) => {
-          const option = document.createElement('option');
-          option.value = country.toLowerCase();
-          option.textContent = country;
-          countryFilter.appendChild(option);
-        });
 
         // Populate basins (river names)
-        const basins = [...new Set(stations.map((s) => s.river_name))].sort();
+        const basins = [...new Set(stations.map((s) => s.river_name || s.river_basin).filter(Boolean))].sort();
         const basinFilter = document.getElementById('basin-filter');
-        if (!basinFilter) {
-          console.error('basin-filter element not found!');
-          return;
+        if (basinFilter && basins.length > 0) {
+          // Clear existing options except "Basin" placeholder
+          while (basinFilter.children.length > 1) {
+            basinFilter.removeChild(basinFilter.lastChild);
+          }
+          basins.forEach((basin) => {
+            const option = document.createElement('option');
+            option.value = basin.toLowerCase().replace(/\s+/g, '-');
+            option.textContent = basin;
+            basinFilter.appendChild(option);
+          });
         }
-        console.log('Basins:', basins);
-        basins.forEach((basin) => {
-          const option = document.createElement('option');
-          option.value = basin.toLowerCase().replace(/\s+/g, '-');
-          option.textContent = basin;
-          basinFilter.appendChild(option);
-        });
         console.log('✅ Filters populated successfully');
       }
 
@@ -711,9 +793,47 @@
 
           // Control map layers
           if (layer === 'forecast') {
-            isActive ? map.addLayer(highRiskZone) : map.removeLayer(highRiskZone);
-            isActive ? map.addLayer(mediumRiskZone) : map.removeLayer(mediumRiskZone);
-            isActive ? map.addLayer(lowRiskZone) : map.removeLayer(lowRiskZone);
+            // Toggle API-generated risk zones if available, otherwise use demo zones
+            if (riskZones.length > 0) {
+              riskZones.forEach((zone) => {
+                if (isActive) {
+                  map.addLayer(zone);
+                } else {
+                  map.removeLayer(zone);
+                }
+              });
+            } else {
+              // Fallback to demo zones
+              if (isActive) {
+                map.addLayer(highRiskZone);
+                map.addLayer(mediumRiskZone);
+                map.addLayer(lowRiskZone);
+              } else {
+                map.removeLayer(highRiskZone);
+                map.removeLayer(mediumRiskZone);
+                map.removeLayer(lowRiskZone);
+              }
+            }
+          } else if (layer === 'observations') {
+            // Toggle station markers
+            stationMarkers.forEach(({ marker }) => {
+              if (isActive) {
+                map.addLayer(marker);
+              } else {
+                map.removeLayer(marker);
+              }
+            });
+          } else if (layer === 'risk-zones') {
+            // Same as forecast for now
+            if (riskZones.length > 0) {
+              riskZones.forEach((zone) => {
+                if (isActive) {
+                  map.addLayer(zone);
+                } else {
+                  map.removeLayer(zone);
+                }
+              });
+            }
           }
 
           console.log(`Toggle ${layer}:`, isActive);
@@ -723,8 +843,38 @@
       // Filter dropdowns
       document.querySelectorAll('.filter-dropdown').forEach((select) => {
         select.addEventListener('change', (e) => {
-          console.log(`Filter ${e.target.id}:`, e.target.value);
-          // In real app, this would filter the map data
+          const filterId = e.target.id;
+          const filterValue = e.target.value.toLowerCase();
+          
+          console.log(`Filter ${filterId}:`, filterValue);
+
+          // Filter station markers on map
+          stationMarkers.forEach(({ marker, station }) => {
+            let show = true;
+
+            if (filterId === 'country-filter' && filterValue) {
+              show = station.country && station.country.toLowerCase() === filterValue;
+            } else if (filterId === 'basin-filter' && filterValue) {
+              const basin = (station.river_name || station.river_basin || '').toLowerCase().replace(/\s+/g, '-');
+              show = basin === filterValue;
+            } else if (filterId === 'leadtime-filter' && filterValue) {
+              // Filter by lead time - check if station has forecasts with this lead time
+              const hasForecast = allForecasts.some(
+                (f) => f.station_id === station.id && f.lead_time_hours === parseInt(filterValue)
+              );
+              show = hasForecast || filterValue === '';
+            }
+
+            if (show) {
+              if (!map.hasLayer(marker)) {
+                map.addLayer(marker);
+              }
+            } else {
+              if (map.hasLayer(marker)) {
+                map.removeLayer(marker);
+              }
+            }
+          });
         });
       });
 
