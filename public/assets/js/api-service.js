@@ -33,6 +33,9 @@ const API_CONFIG = {
   TIMEOUT: 10000, // 10 seconds
 };
 
+// Export BASE_URL for use in other modules
+export const BASE_URL = API_CONFIG.BASE_URL;
+
 /**
  * Generic fetch wrapper with error handling
  */
