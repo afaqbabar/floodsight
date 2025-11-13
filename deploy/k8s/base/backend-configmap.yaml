@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: floodsight-backend-config
+  namespace: floodsight
+  labels:
+    app: floodsight
+    component: backend
+data:
+  # Application settings
+  APP_NAME: "FloodSight Backend API"
+  APP_VERSION: "0.1.0"
+  ENVIRONMENT: "production"
+  DEBUG: "false"
+  LOG_LEVEL: "INFO"
+  
+  # API settings
+  API_V1_PREFIX: "/v1"
+  METRICS_ENABLED: "true"
+  
+  # CORS origins (JSON array format)
+  BACKEND_CORS_ORIGINS: '["https://floodsight.vercel.app","https://floodsight.com","http://localhost:3000","http://localhost:5173","http://192.168.178.50:5173","http://192.168.178.50:8080"]'
+  
+  # GloFAS ingestion settings
+  GLOFAS_INGEST_MODE: "real"  # Only use real ECMWF data, never fake
+  CDS_API_URL: "https://ewds.climate.copernicus.eu/api"
+  GLOFAS_SYSTEM_VERSION: "operational"  # EWDS uses "operational" not "version_4_0"
+  GLOFAS_HYDROLOGICAL_MODEL: "lisflood"
+  GLOFAS_VARIABLE: "river_discharge_in_the_last_24_hours"
+  GLOFAS_RUN_LAG_HOURS: "30"  # Request data from 30h ago (ensures yesterday's data is available)
+  
+  # Alert thresholds (m³/s) - Balanced for all river sizes
+  # Rhine/Danube won't trigger until real flooding (>3000)
+  # Main/Elbe will trigger appropriately (>600)
+  ALERT_THRESHOLD_INFO: "600"
+  ALERT_THRESHOLD_WARNING: "1500"
+  ALERT_THRESHOLD_SEVERE: "3000"
+  ALERT_THRESHOLD_EXTREME: "5000"
+  
+  # Scheduler settings
+  SCHEDULER_ENABLED: "true"
+  SCHEDULER_CRON: "0 * * * *"  # Hourly
+  
+  # Cache settings (if Redis is used)
+  CACHE_ENABLED: "false"
+  CACHE_TTL: "300"
+  
+  # Rate limiting
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_PER_MINUTE: "60"
+

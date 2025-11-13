@@ -13,6 +13,7 @@
     <!-- CSS: Design tokens + Figma dashboard styles -->
     <link rel="stylesheet" href="/assets/css/tokens.css" />
     <link rel="stylesheet" href="/assets/css/dashboard-figma.css" />
+    <link rel="stylesheet" href="/assets/css/sidebar-enhanced.css" />
     <link rel="stylesheet" href="/assets/css/cookie-banner.css" />
 
     <!-- Leaflet CSS for map -->
@@ -134,9 +135,10 @@
 
       <ul class="nav-bar__menu">
         <li><a href="/">Home</a></li>
-        <li><a href="/dashboard-figma.html" class="active">Dashboard</a></li>
+        <li><a href="/dashboard-figma.html" class="active">Live Dashboard</a></li>
+        <li><a href="/analytics-dashboard.html">📊 Analytics</a></li>
+        <li><a href="/admin-dashboard.html">⚙️ Admin</a></li>
         <li><a href="#alerts">Alerts</a></li>
-        <li><a href="#about">About</a></li>
       </ul>
 
       <button class="nav-bar__cta">Create Alert</button>
@@ -156,66 +158,137 @@
     <div class="dashboard-grid">
       <!-- Left Sidebar -->
       <aside class="sidebar-left">
-        <h2 class="sidebar-left__title">Sialdar</h2>
+        <h2 class="sidebar-left__title">Filters & Layers</h2>
 
         <!-- Filters Section -->
         <div class="sidebar-section">
           <h3 class="sidebar-section__title">Filters</h3>
 
-          <select class="filter-dropdown" id="basin-filter">
-            <option value="">Basin</option>
-            <!-- Dynamically populated -->
-          </select>
+          <label class="filter-label">
+            Basin
+            <select class="filter-dropdown" id="basin-filter">
+              <option value="">All Basins</option>
+              <!-- Dynamically populated -->
+            </select>
+          </label>
 
-          <select class="filter-dropdown" id="country-filter">
-            <option value="">Country</option>
-            <!-- Dynamically populated -->
-          </select>
+          <label class="filter-label">
+            Country
+            <select class="filter-dropdown" id="country-filter">
+              <option value="">All Countries</option>
+              <!-- Dynamically populated -->
+            </select>
+          </label>
 
-          <select class="filter-dropdown" id="leadtime-filter">
-            <option value="">All Lead Times</option>
-            <option value="24">24 hours</option>
-            <option value="48" selected>48 hours</option>
-            <option value="72">72 hours</option>
-            <option value="168">7 days</option>
-          </select>
+          <label class="filter-label">
+            Forecast Lead Time
+            <select class="filter-dropdown" id="leadtime-filter">
+              <option value="">All Lead Times</option>
+              <option value="24">24 hours</option>
+              <option value="48" selected>48 hours</option>
+              <option value="72">72 hours</option>
+              <option value="120">5 days</option>
+              <option value="168">7 days</option>
+            </select>
+          </label>
+
+          <label class="filter-label">
+            Alert Level
+            <select class="filter-dropdown" id="alert-filter">
+              <option value="">All Levels</option>
+              <option value="extreme">🔴 Extreme</option>
+              <option value="severe">🟠 Severe</option>
+              <option value="warning">🟡 Warning</option>
+              <option value="info">🔵 Info</option>
+            </select>
+          </label>
+
+          <button class="filter-reset-btn" id="reset-filters">
+            Reset Filters
+          </button>
         </div>
 
         <!-- Layers Section -->
         <div class="sidebar-section">
-          <h3 class="sidebar-section__title">Layers</h3>
+          <h3 class="sidebar-section__title">Map Layers</h3>
 
           <div class="layer-toggle">
-            <span class="layer-toggle__label">Forecast</span>
-            <div class="toggle-switch active" data-layer="forecast"></div>
+            <div class="layer-info">
+              <span class="layer-toggle__label">🌊 Forecast Points</span>
+              <span class="layer-toggle__desc">GloFAS flood forecasts</span>
+            </div>
+            <label class="toggle-switch-wrapper">
+              <input type="checkbox" class="toggle-switch-input" id="layer-forecast" checked data-layer="forecast">
+              <span class="toggle-switch-slider"></span>
+            </label>
           </div>
 
           <div class="layer-toggle">
-            <span class="layer-toggle__label">Observations</span>
-            <div class="toggle-switch" data-layer="observations"></div>
+            <div class="layer-info">
+              <span class="layer-toggle__label">📊 Observations</span>
+              <span class="layer-toggle__desc">Real-time gauge data</span>
+            </div>
+            <label class="toggle-switch-wrapper">
+              <input type="checkbox" class="toggle-switch-input" id="layer-observations" data-layer="observations">
+              <span class="toggle-switch-slider"></span>
+            </label>
           </div>
 
           <div class="layer-toggle">
-            <span class="layer-toggle__label">Risk Zones</span>
-            <div class="toggle-switch" data-layer="risk-zones"></div>
+            <div class="layer-info">
+              <span class="layer-toggle__label">⚠️ Risk Zones</span>
+              <span class="layer-toggle__desc">Flood risk areas</span>
+            </div>
+            <label class="toggle-switch-wrapper">
+              <input type="checkbox" class="toggle-switch-input" id="layer-risk-zones" data-layer="risk-zones">
+              <span class="toggle-switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="layer-toggle">
+            <div class="layer-info">
+              <span class="layer-toggle__label">🚨 Active Alerts</span>
+              <span class="layer-toggle__desc">Current flood alerts</span>
+            </div>
+            <label class="toggle-switch-wrapper">
+              <input type="checkbox" class="toggle-switch-input" id="layer-alerts" checked data-layer="alerts">
+              <span class="toggle-switch-slider"></span>
+            </label>
           </div>
         </div>
 
         <!-- Legend -->
         <div class="legend">
-          <h3 class="legend__title">Flood Risk Level</h3>
+          <h3 class="legend__title">Alert Levels</h3>
           <div class="legend-item">
-            <div class="legend-item__color legend-item__color--high"></div>
-            <span>High Risk</span>
+            <div class="legend-item__color" style="background: #dc2626;"></div>
+            <span class="legend-item__label">Extreme</span>
+            <span class="legend-item__value">Catastrophic flooding</span>
           </div>
           <div class="legend-item">
-            <div class="legend-item__color legend-item__color--medium"></div>
-            <span>Medium Risk</span>
+            <div class="legend-item__color" style="background: #f97316;"></div>
+            <span class="legend-item__label">Severe</span>
+            <span class="legend-item__value">Major flooding</span>
           </div>
           <div class="legend-item">
-            <div class="legend-item__color legend-item__color--low"></div>
-            <span>Low Risk</span>
+            <div class="legend-item__color" style="background: #f59e0b;"></div>
+            <span class="legend-item__label">Warning</span>
+            <span class="legend-item__value">Flooding likely</span>
           </div>
+          <div class="legend-item">
+            <div class="legend-item__color" style="background: #3b82f6;"></div>
+            <span class="legend-item__label">Info</span>
+            <span class="legend-item__value">Elevated levels</span>
+          </div>
+          <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 11px; color: #6b7280;">
+            <strong>Note:</strong> Thresholds vary by river size. Rhine/Danube: 3000-9000 m³/s, Main/Elbe: 400-2500 m³/s
+          </div>
+        </div>
+
+        <!-- Active Filters Display -->
+        <div class="active-filters" id="active-filters" style="display: none;">
+          <h3 class="sidebar-section__title">Active Filters</h3>
+          <div id="active-filters-list"></div>
         </div>
       </aside>
 
@@ -373,6 +446,9 @@
       let allForecasts = [];
       let forecastLineChart = null;
       let forecastBarChart = null;
+      
+      // Create marker layer group for sidebar controls
+      const markerLayerGroup = L.layerGroup().addTo(map);
 
       // Load and display real data from API
       import('/assets/js/api-service.js')
@@ -434,15 +510,28 @@
               // Center map on first station
               map.setView([stations[0].lat, stations[0].lon], 6);
               
+              // Create markers with station metadata
               stations.forEach((station) => {
-                const marker = L.marker([station.lat, station.lon]).addTo(map).bindPopup(`
-                <strong>${station.name}</strong><br>
-                River: ${station.river_name || station.river_basin || 'N/A'}<br>
-                Country: ${station.country || 'N/A'}<br>
-                <button onclick="selectStation(${station.id})" style="margin-top:8px;padding:4px 8px;background:#2563EB;color:white;border:none;border-radius:4px;cursor:pointer;">View Details</button>
-              `);
+                const marker = L.marker([station.lat, station.lon]);
+                marker.station = station; // Attach station data for filtering
+                marker.bindPopup(`
+                  <strong>${station.name}</strong><br>
+                  River: ${station.river_name || station.river_basin || 'N/A'}<br>
+                  Country: ${station.country || 'N/A'}<br>
+                  <button onclick="selectStation(${station.id})" style="margin-top:8px;padding:4px 8px;background:#2563EB;color:white;border:none;border-radius:4px;cursor:pointer;">View Details</button>
+                `);
+                marker.addTo(markerLayerGroup);
                 stationMarkers.push({ marker, station });
               });
+
+              // Initialize sidebar controls with map and markers
+              import('/assets/js/sidebar-controls.js')
+                .then((module) => {
+                  module.sidebarControls.init(map, markerLayerGroup);
+                })
+                .catch((err) => {
+                  console.warn('⚠️ Failed to load sidebar controls:', err);
+                });
             }
 
             // Display alerts as risk zones
@@ -556,7 +645,7 @@
         if (stationForecasts.length > 0) {
           const limitedForecasts = stationForecasts.slice(0, 20);
           updateForecastChart(limitedForecasts);
-          updateForecastBarChart(limitedForecasts);
+          updateForecastBarChart(limitedForecasts, station);
           updateForecastMetadata(limitedForecasts, station);
         } else {
           console.info('No forecasts available for station:', stationId);
@@ -715,7 +804,7 @@
         });
       }
 
-      function updateForecastBarChart(forecasts) {
+      function updateForecastBarChart(forecasts, station) {
         const ctx = document.getElementById('forecastBarChart');
         if (!ctx || !forecasts || forecasts.length === 0) return;
 
@@ -737,10 +826,48 @@
           return dateObj.toLocaleDateString(undefined, { weekday: 'short' });
         });
         const values = sortedKeys.map((key) => dailyPeakMap[key]);
+        
+        // Get station-specific thresholds based on passed station
+        const stationName = station?.name || '';
+        
+        console.log('🔍 Bar Chart Debug:', {
+          stationId: station?.id,
+          stationName: stationName,
+          stationCode: station?.code
+        });
+        
+        // Define river-specific thresholds for bar chart colors
+        let severeThreshold = 1500;  // default
+        let warningThreshold = 800;  // default
+        
+        if (stationName.includes('Rhine') || stationName.includes('Cologne')) {
+          severeThreshold = 6000;  // Rhine severe flooding
+          warningThreshold = 3500; // Rhine high water
+        } else if (stationName.includes('Danube') || stationName.includes('Vienna')) {
+          severeThreshold = 5500;  // Danube severe flooding
+          warningThreshold = 3000; // Danube high water
+        } else if (stationName.includes('Elbe') || stationName.includes('Dresden')) {
+          severeThreshold = 2000;  // Elbe severe flooding
+          warningThreshold = 800;  // Elbe high water
+        } else if (stationName.includes('Main') || stationName.includes('Frankfurt')) {
+          severeThreshold = 800;   // Main severe flooding
+          warningThreshold = 400;  // Main high water
+        } else if (stationName.includes('Spree') || stationName.includes('Berlin')) {
+          severeThreshold = 80;    // Spree severe flooding
+          warningThreshold = 40;   // Spree high water
+        }
+        
+        console.log('🎨 Thresholds applied:', {
+          station: stationName,
+          warningThreshold,
+          severeThreshold,
+          maxValue: Math.max(...values)
+        });
+        
         const colors = values.map((value) => {
-          if (value >= 1000) return '#EF4444';
-          if (value >= 600) return '#F59E0B';
-          return '#3B82F6';
+          if (value >= severeThreshold) return '#EF4444';  // Red - severe/extreme
+          if (value >= warningThreshold) return '#F59E0B'; // Orange - warning
+          return '#3B82F6';  // Blue - normal/info
         });
 
         if (forecastBarChart) {
@@ -830,20 +957,21 @@
 
       function normalizeForecast(forecast) {
         if (!forecast) return null;
-        const normalized = { ...forecast };
-        normalized.lead_time_hours =
-          typeof forecast.lead_time_hours === 'number'
-            ? forecast.lead_time_hours
-            : typeof forecast.lead_hours === 'number'
-            ? forecast.lead_hours
-            : typeof forecast.lead_time === 'number'
-            ? forecast.lead_time
-            : null;
-        normalized.discharge_cumecs =
-          forecast.discharge_cumecs ?? forecast.discharge_m3s ?? forecast.discharge ?? null;
-        normalized.ts = forecast.ts ?? forecast.timestamp ?? forecast.forecast_time ?? null;
-        normalized.model_run = forecast.model_run ?? forecast.issue_time ?? forecast.generated_at ?? null;
-        normalized.source = forecast.source || 'FloodSight API';
+        // Normalize API field names to frontend expectations
+        const normalized = {
+          ...forecast,
+          // Map API field names to frontend expectations
+          lead_time_hours: forecast.lead_hours ?? forecast.lead_time_hours ?? forecast.lead_time ?? null,
+          discharge_cumecs: forecast.discharge_m3s ?? forecast.discharge_cumecs ?? forecast.discharge ?? null,
+          forecast_timestamp: forecast.ts ?? forecast.forecast_timestamp ?? forecast.timestamp ?? forecast.forecast_time ?? null,
+          station_name: forecast.station?.name ?? forecast.station_name ?? null,
+          // Keep original fields too
+          lead_hours: forecast.lead_hours ?? forecast.lead_time_hours ?? null,
+          discharge_m3s: forecast.discharge_m3s ?? forecast.discharge_cumecs ?? null,
+          ts: forecast.ts ?? forecast.forecast_timestamp ?? forecast.timestamp ?? null,
+          model_run: forecast.model_run ?? forecast.issue_time ?? forecast.generated_at ?? null,
+          source: forecast.source || 'FloodSight API',
+        };
         return normalized;
       }
 

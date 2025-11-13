@@ -10,24 +10,24 @@ const API_CONFIG = {
   BASE_URL: (() => {
     const hostname = window.location.hostname;
 
-    // If accessing via local network IP (192.168.x.x), use that IP for API
+    // If accessing via local network IP (192.168.x.x), use backend API on port 30636
     if (
       hostname.startsWith('192.168.') ||
       hostname.startsWith('10.') ||
       hostname.startsWith('172.')
     ) {
-      return `http://${hostname}:8080/v1`;
+      return 'http://192.168.178.50:30636/v1';
     }
 
-    // If accessing via localhost, use Raspberry Pi IP for backend API
+    // If accessing via localhost, use Raspberry Pi backend API
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://192.168.178.50:8080/v1';
+      return 'http://192.168.178.50:30636/v1';
     }
 
-    // For production/deployed version - Using Cloudflare Tunnel to Pi
-    // Tunnel URL: https://verde-silver-front-changed.trycloudflare.com
-    // Backend: Raspberry Pi (192.168.178.50:8080) via Cloudflare Tunnel
-    return 'https://verde-silver-front-changed.trycloudflare.com/v1';
+    // For production/deployed version - Using Cloudflare Tunnel for backend API
+    // Backend API Tunnel: https://shoe-mere-livestock-mild.trycloudflare.com
+    // Backend: Kubernetes on Raspberry Pi (port 30636) via Cloudflare Tunnel
+    return 'https://shoe-mere-livestock-mild.trycloudflare.com/v1';
   })(),
 
   TIMEOUT: 10000, // 10 seconds
@@ -106,6 +106,11 @@ function transformStation(station) {
     station_code: station.code, // Map code → station_code
     river_name: station.river_basin, // Map river_basin → river_name
     country: country, // Add derived country
+    // Ensure lat/lon are available as both formats
+    latitude: station.lat ?? station.latitude,
+    longitude: station.lon ?? station.longitude,
+    lat: station.lat ?? station.latitude,
+    lon: station.lon ?? station.longitude,
   };
 }
 
