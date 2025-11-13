@@ -98,7 +98,6 @@ function transformStation(station) {
     Cologne: 'Germany',
     Frankfurt: 'Germany',
     Vienna: 'Austria',
-    Harrington: 'United Kingdom',
   };
 
   // Extract city name from station name (e.g., "Berlin Spree" → "Berlin")
