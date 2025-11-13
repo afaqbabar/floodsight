@@ -93,11 +93,38 @@ export async function getHealth() {
 function transformStation(station) {
   // Derive country from city name
   const cityCountryMap = {
+    // Europe
     Berlin: 'Germany',
     Dresden: 'Germany',
     Cologne: 'Germany',
     Frankfurt: 'Germany',
     Vienna: 'Austria',
+    Ferrara: 'Italy',
+    Lyon: 'France',
+    Warsaw: 'Poland',
+    Kiev: 'Ukraine',
+    Nizhny: 'Russia',
+    // Asia
+    Patna: 'India',
+    Guwahati: 'India',
+    Phnom: 'Cambodia',
+    Wuhan: 'China',
+    Hyderabad: 'Pakistan',
+    Mandalay: 'Myanmar',
+    Moulmein: 'Myanmar',
+    // Africa
+    Niamey: 'Niger',
+    Khartoum: 'Sudan',
+    Kinshasa: 'DR Congo',
+    Tete: 'Mozambique',
+    // Americas
+    Manaus: 'Brazil',
+    Corrientes: 'Argentina',
+    Ciudad: 'Venezuela',
+    Memphis: 'USA',
+    Kansas: 'USA',
+    // Australia
+    Echuca: 'Australia',
   };
 
   // Extract city name from station name (e.g., "Berlin Spree" → "Berlin")
