@@ -1,13 +1,40 @@
 """Logging configuration."""
 import logging
 import sys
+import json
+from datetime import datetime
 from typing import Any
 
 from app.core.config import settings
 
 
+class JSONFormatter(logging.Formatter):
+    """JSON log formatter for structured logging in production."""
+    
+    def format(self, record: logging.LogRecord) -> str:
+        log_data = {
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "module": record.module,
+            "function": record.funcName,
+            "line": record.lineno,
+        }
+        
+        # Add exception info if present
+        if record.exc_info:
+            log_data["exception"] = self.formatException(record.exc_info)
+        
+        # Add extra fields from record
+        if hasattr(record, "extra"):
+            log_data.update(record.extra)
+        
+        return json.dumps(log_data)
+
+
 class ColoredFormatter(logging.Formatter):
-    """Colored log formatter."""
+    """Colored log formatter for development."""
 
     grey = "\x1b[38;21m"
     blue = "\x1b[38;5;39m"
@@ -45,10 +72,15 @@ def setup_logging() -> None:
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(log_level)
 
-    # Format
+    # Format - JSON for production, colored for development
     log_format = "%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d | %(message)s"
     
-    if settings.DEBUG:
+    # Use JSON logs in production for better parsing by log aggregators
+    use_json_logs = not settings.DEBUG and settings.ENVIRONMENT == "production"
+    
+    if use_json_logs:
+        formatter = JSONFormatter()
+    elif settings.DEBUG:
         formatter = ColoredFormatter(log_format)
     else:
         formatter = logging.Formatter(log_format, datefmt="%Y-%m-%d %H:%M:%S")

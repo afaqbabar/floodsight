@@ -14,6 +14,8 @@ from app.api.v1.schemas import (
     HealthResponse,
     StationCreate,
     StationResponse,
+    TelemetryEvent,
+    TelemetryResponse,
 )
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -38,8 +40,13 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> HealthResponse:
     """
     Health check endpoint.
     
-    Returns application status and database connectivity.
+    Returns application status, database connectivity, and process metrics.
     """
+    import time
+    import psutil
+    import os
+    from app.main import APP_START_TIME
+    
     try:
         # Test database connection
         await db.execute(select(1))
@@ -48,12 +55,53 @@ async def health_check(db: AsyncSession = Depends(get_db)) -> HealthResponse:
         logger.error(f"Database health check failed: {e}")
         db_status = "disconnected"
     
+    # Get process metrics
+    try:
+        process = psutil.Process(os.getpid())
+        memory_mb = process.memory_info().rss / 1024 / 1024
+        cpu_percent = process.cpu_percent(interval=0.1)
+        uptime_seconds = time.time() - APP_START_TIME
+    except Exception as e:
+        logger.warning(f"Failed to get process metrics: {e}")
+        memory_mb = 0.0
+        cpu_percent = 0.0
+        uptime_seconds = 0.0
+    
     return HealthResponse(
         status="ok" if db_status == "connected" else "degraded",
         app=settings.APP_NAME,
         version=settings.APP_VERSION,
         environment=settings.ENVIRONMENT,
         database=db_status,
+        uptime_seconds=uptime_seconds,
+        memory_mb=memory_mb,
+        cpu_percent=cpu_percent,
+    )
+
+
+# Telemetry endpoint
+@router.post("/telemetry", response_model=TelemetryResponse, tags=["Telemetry"])
+async def log_telemetry(event: TelemetryEvent) -> TelemetryResponse:
+    """
+    Log frontend telemetry events.
+    
+    Receives client-side events like errors, page views, or user actions.
+    Logs them for analysis and optionally forwards to monitoring systems.
+    """
+    logger.info(
+        f"Telemetry event: {event.event_name}",
+        extra={
+            "event_name": event.event_name,
+            "timestamp": event.timestamp,
+            "page": event.page,
+            "user_agent": event.user_agent,
+            "context": event.context,
+        },
+    )
+    
+    return TelemetryResponse(
+        status="ok",
+        message="Event received",
     )
 
 

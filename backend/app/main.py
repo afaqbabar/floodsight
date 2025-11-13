@@ -4,18 +4,27 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 from fastapi.responses import Response
 import time
+import psutil
+import os
 
 from app.api.v1.endpoints import router as v1_router
+from app.api.v1.users import router as users_router
+from app.api.v1.webhooks_rules import router as webhooks_rules_router
+from app.api.v1.analytics import router as analytics_router
 from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
+from app.core.errors import init_error_reporting
 from app.db.session import close_db, init_db
 
 # Set up logging
 setup_logging()
 logger = get_logger(__name__)
+
+# Initialize error reporting (Sentry)
+init_error_reporting()
 
 # Prometheus metrics
 REQUEST_COUNT = Counter(
@@ -28,6 +37,19 @@ REQUEST_DURATION = Histogram(
     "HTTP request duration in seconds",
     ["method", "endpoint"],
 )
+
+# Process metrics
+PROCESS_MEMORY_BYTES = Gauge(
+    "floodsight_process_memory_bytes",
+    "Process memory usage in bytes",
+)
+PROCESS_CPU_PERCENT = Gauge(
+    "floodsight_process_cpu_percent",
+    "Process CPU usage percentage",
+)
+
+# Track application start time for uptime calculation
+APP_START_TIME = time.time()
 
 
 @asynccontextmanager
@@ -100,8 +122,11 @@ async def metrics_middleware(request, call_next):
         return await call_next(request)
 
 
-# Include API router
+# Include API routers
 app.include_router(v1_router, prefix=settings.API_V1_PREFIX)
+app.include_router(users_router, prefix=settings.API_V1_PREFIX)
+app.include_router(webhooks_rules_router, prefix=settings.API_V1_PREFIX)
+app.include_router(analytics_router, prefix=settings.API_V1_PREFIX)
 
 
 # Root endpoint
@@ -127,6 +152,14 @@ async def metrics():
     """
     if not settings.METRICS_ENABLED:
         return Response(content="Metrics disabled", status_code=404)
+    
+    # Update process metrics before generating output
+    try:
+        process = psutil.Process(os.getpid())
+        PROCESS_MEMORY_BYTES.set(process.memory_info().rss)
+        PROCESS_CPU_PERCENT.set(process.cpu_percent(interval=0.1))
+    except Exception as e:
+        logger.warning(f"Failed to update process metrics: {e}")
     
     return Response(
         content=generate_latest(),

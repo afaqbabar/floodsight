@@ -16,6 +16,7 @@ psycopg2-binary==2.9.9
 
 # Configuration
 pydantic-settings==2.1.0
+email-validator==2.1.0
 
 # HTTP client
 httpx==0.26.0
@@ -28,13 +29,18 @@ python-multipart==0.0.9
 apscheduler==3.10.4
 
 # GloFAS data ingestion
-cdsapi==0.6.1
-xarray==2024.5.0
-netCDF4==1.6.5
+cdsapi>=0.7.7  # New CDS API with Personal Access Tokens
+xarray==2024.11.0
+netCDF4==1.7.3
 pandas==2.2.2
 
 # Monitoring
 prometheus-client==0.19.0
+psutil==5.9.6  # Process and system metrics
+
+# Notifications
+aiohttp==3.9.1
+aiosmtplib==3.0.1
 
 # Development dependencies (uncomment if needed)
 # pytest==7.4.3
