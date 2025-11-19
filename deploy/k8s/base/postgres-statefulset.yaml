@@ -35,9 +35,8 @@ spec:
               name: floodsight-backend-secrets
               key: postgres-password
               optional: true
-        # Fallback if secret doesn't exist
-        - name: POSTGRES_PASSWORD
-          value: postgres
+        # Note: If secret doesn't exist, PostgreSQL will use default or fail
+        # For production, ensure floodsight-backend-secrets/postgres-password exists
         volumeMounts:
         - name: postgres-data
           mountPath: /var/lib/postgresql/data
