@@ -274,8 +274,30 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "chore(k8s): update backend image digest to ${{ steps.build-and-push.outputs.digest }}"
-            git push
-            echo "✅ Pushed kustomization update to trigger ArgoCD sync"
+            
+            # Pull and rebase to avoid conflicts with concurrent pushes
+            echo "🔄 Pulling latest changes before push..."
+            git pull --rebase origin main
+            
+            # Push with retry logic (in case of race conditions)
+            MAX_RETRIES=3
+            RETRY_COUNT=0
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if git push; then
+                echo "✅ Pushed kustomization update to trigger ArgoCD sync"
+                break
+              else
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                  echo "⚠️ Push failed, retrying ($RETRY_COUNT/$MAX_RETRIES)..."
+                  git pull --rebase origin main
+                  sleep 2
+                else
+                  echo "❌ Push failed after $MAX_RETRIES attempts"
+                  exit 1
+                fi
+              fi
+            done
           fi
 
       - name: Print image tags
