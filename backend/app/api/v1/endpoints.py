@@ -1151,9 +1151,9 @@ async def get_maritime_demo_data(
         alerts_query = select(Alert).where(
             and_(
                 Alert.level.in_(["warning", "severe", "extreme"]),
-                Alert.created_at >= seven_days_ago
+                Alert.issued_at >= seven_days_ago
             )
-        ).order_by(desc(Alert.created_at)).limit(10)
+        ).order_by(desc(Alert.issued_at)).limit(10)
         alerts_result = await db.execute(alerts_query)
         alerts = alerts_result.scalars().all()
         
