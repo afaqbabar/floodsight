@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for FloodSight
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:25-alpine AS builder
 
 LABEL maintainer="FloodSight Team"
 LABEL description="FloodSight - Real-time flood monitoring and forecasting"
