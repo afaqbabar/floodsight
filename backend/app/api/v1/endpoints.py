@@ -1,5 +1,5 @@
 """API v1 endpoints."""
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -1071,4 +1071,136 @@ async def get_grounding_risk_heatmap(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate grounding risk heatmap: {str(e)}"
+        )
+
+
+@router.get("/maritime/demo-data", response_model=dict, tags=["Maritime"])
+async def get_maritime_demo_data(
+    vessel_type: str = Query("medium", description="Vessel type for grounding risk"),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Fast single-response endpoint for the Maritime Demo page.
+    
+    Combines all maritime data sources into one JSON response:
+    - Vessel detections (dark vessels)
+    - Flood plumes
+    - Port risk summary
+    - Grounding risk heatmap
+    - Recent maritime alerts
+    
+    **Args:**
+    - `vessel_type`: Vessel type: 'small', 'medium', 'large', 'vlcc' (default: 'medium')
+    
+    **Response:** Combined maritime data for demo dashboard
+    """
+    from app.services.plume_detection import get_plumes_geojson
+    from app.services.port_siltation import get_port_risk_summary
+    from app.services.grounding_risk_tiles import get_grounding_risk_features
+    from sqlalchemy import select, desc, and_
+    from geoalchemy2.shape import to_shape
+    from shapely.geometry import mapping
+    
+    logger.info(f"Maritime demo data request for vessel_type={vessel_type}")
+    
+    try:
+        # 1. Get vessel detections (last 7 days)
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+        vessels_query = select(VesselDetection).where(
+            VesselDetection.detection_time >= seven_days_ago
+        ).order_by(desc(VesselDetection.detection_time))
+        vessels_result = await db.execute(vessels_query)
+        vessels = vessels_result.scalars().all()
+        
+        vessels_geojson = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": mapping(to_shape(v.geom)),
+                    "properties": {
+                        "id": v.id,
+                        "confidence": v.confidence,
+                        "vessel_length_m": v.vessel_length_m,
+                        "vessel_width_m": v.vessel_width_m,
+                        "detection_time": v.detection_time.isoformat(),
+                        "scene_id": v.scene_id,
+                    }
+                }
+                for v in vessels
+            ]
+        }
+        
+        # 2. Get flood plumes (last 7 days)
+        plumes_geojson = await get_plumes_geojson(db, days=7)
+        
+        # 3. Get port risk summary
+        ports_summary = await get_port_risk_summary(db)
+        
+        # 4. Get grounding risk heatmap features
+        vessel_draught = VESSEL_DRAUGHTS.get(vessel_type, VESSEL_DRAUGHTS["medium"])
+        grounding_features = await get_grounding_risk_features(db, 5, 16, 10, vessel_draught)
+        grounding_geojson = {
+            "type": "FeatureCollection",
+            "features": grounding_features,
+            "metadata": {
+                "vessel_draught_m": vessel_draught,
+                "vessel_type": vessel_type,
+            }
+        }
+        
+        # 5. Get recent maritime alerts
+        alerts_query = select(Alert).where(
+            and_(
+                Alert.level.in_(["warning", "severe", "extreme"]),
+                Alert.created_at >= seven_days_ago
+            )
+        ).order_by(desc(Alert.created_at)).limit(10)
+        alerts_result = await db.execute(alerts_query)
+        alerts = alerts_result.scalars().all()
+        
+        alerts_list = [
+            {
+                "id": a.id,
+                "station_id": a.station_id,
+                "level": a.level,
+                "message": a.message,
+                "created_at": a.created_at.isoformat(),
+                "acknowledged_at": a.acknowledged_at.isoformat() if a.acknowledged_at else None,
+            }
+            for a in alerts
+        ]
+        
+        # 6. Calculate summary statistics
+        active_vessels = len([v for v in vessels if (datetime.now(timezone.utc) - v.detection_time).days < 1])
+        active_plumes = len(plumes_geojson.get("features", []))
+        high_risk_ports = len([p for p in ports_summary if p.get("safe_draught_m", 0) < 5.0])
+        
+        # Combine everything
+        demo_data = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "vessel_type": vessel_type,
+            "summary": {
+                "active_vessels_24h": active_vessels,
+                "total_vessels_7d": len(vessels),
+                "active_plumes": active_plumes,
+                "high_risk_ports": high_risk_ports,
+                "total_ports": len(ports_summary),
+                "recent_alerts": len(alerts_list),
+            },
+            "vessels": vessels_geojson,
+            "plumes": plumes_geojson,
+            "ports": ports_summary,
+            "grounding_risk": grounding_geojson,
+            "alerts": alerts_list,
+        }
+        
+        logger.info(f"Maritime demo data generated: {len(vessels)} vessels, {active_plumes} plumes, {len(ports_summary)} ports")
+        return demo_data
+        
+    except Exception as e:
+        logger.error(f"Failed to generate maritime demo data: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate maritime demo data: {str(e)}"
         )

@@ -13,6 +13,7 @@ export default {
         index: resolve(__dirname, 'public/index.html'),
         dashboard: resolve(__dirname, 'public/dashboard.html'),
         'dashboard-figma': resolve(__dirname, 'public/dashboard-figma.html'),
+        'maritime-demo': resolve(__dirname, 'public/maritime-demo.html'),
         impressum: resolve(__dirname, 'public/impressum.html'),
         privacy: resolve(__dirname, 'public/privacy.html'),
         cookies: resolve(__dirname, 'public/cookies.html'),
