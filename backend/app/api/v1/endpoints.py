@@ -1157,17 +1157,16 @@ async def get_maritime_demo_data(
         alerts_result = await db.execute(alerts_query)
         alerts = alerts_result.scalars().all()
         
-        alerts_list = [
-            {
-                "id": a.id,
-                "station_id": a.station_id,
-                "level": a.level,
-                "message": a.message,
-                "created_at": a.created_at.isoformat(),
-                "acknowledged_at": a.acknowledged_at.isoformat() if a.acknowledged_at else None,
-            }
-            for a in alerts
-        ]
+            alerts_list = [
+                {
+                    "id": a.id,
+                    "station_id": a.station_id,
+                    "level": a.level,
+                    "message": a.message,
+                    "issued_at": a.issued_at.isoformat(),
+                }
+                for a in alerts
+            ]
         
         # 6. Calculate summary statistics
         active_vessels = len([v for v in vessels if (datetime.now(timezone.utc) - v.detection_time).days < 1])
