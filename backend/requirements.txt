@@ -45,7 +45,7 @@ psutil==5.9.6  # Process and system metrics
 
 # Notifications
 aiohttp==3.9.1
-aiosmtplib==3.0.1
+aiosmtplib==3.0.2
 
 # Development dependencies (uncomment if needed)
 # pytest==7.4.3
