@@ -634,3 +634,139 @@ async def ingest_vessels_api(
             detail=f"Sentinel-1 vessel detection failed: {str(e)}",
         )
 
+
+
+# ==================== Maritime: Port Siltation & Safe Draught ====================
+
+from app.services.port_siltation import calculate_port_safe_draught, calculate_all_ports
+from app.api.v1.schemas import PortSafeDraughtResponse, PortRiskSummary, PortFairwayResponse
+from app.db.models import PortFairway, PortSafeDraughtLog
+
+
+@router.get("/maritime/port-risk", response_model=PortSafeDraughtResponse, tags=["Maritime"])
+async def get_port_risk(
+    port: str = "Port of Duisburg",
+    db: AsyncSession = Depends(get_db),
+) -> PortSafeDraughtResponse:
+    """
+    Get current safe draught and risk assessment for a port.
+    
+    **Example:** `/v1/maritime/port-risk?port=Port of Duisburg`
+    
+    Returns:
+        Current safe draught, siltation depth, and risk level
+    """
+    logger.info(f"Port risk request: {port}")
+    
+    calculation = await calculate_port_safe_draught(db, port)
+    
+    if not calculation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Port not found or no discharge data available: {port}"
+        )
+    
+    return PortSafeDraughtResponse(**calculation)
+
+
+@router.get("/maritime/port-risk/summary", response_model=List[PortRiskSummary], tags=["Maritime"])
+async def get_all_ports_risk_summary(
+    db: AsyncSession = Depends(get_db),
+) -> List[PortRiskSummary]:
+    """
+    Get risk summary for all active ports (for dashboard widget).
+    
+    Returns:
+        List of port risk summaries with color-coded status
+    """
+    logger.info("Fetching risk summary for all ports")
+    
+    calculations = await calculate_all_ports(db)
+    
+    summaries = []
+    for calc in calculations:
+        # Determine color based on risk level
+        color_map = {
+            "normal": "green",
+            "reduced": "yellow",
+            "critical": "red"
+        }
+        
+        # Generate status message
+        status_messages = {
+            "normal": f"Safe draught: {calc['safe_draught_m']:.1f}m (Normal)",
+            "reduced": f"⚠️ Reduced draught: {calc['safe_draught_m']:.1f}m",
+            "critical": f"🚨 Critical: {calc['safe_draught_m']:.1f}m - Navigation restricted"
+        }
+        
+        summary = PortRiskSummary(
+            port_name=calc["port_name"],
+            port_code=calc["port_code"],
+            safe_draught_m=calc["safe_draught_m"],
+            risk_level=calc["risk_level"],
+            draught_change_24h_m=calc.get("draught_change_24h_m"),
+            status_message=status_messages.get(calc["risk_level"], "Unknown status"),
+            color=color_map.get(calc["risk_level"], "gray")
+        )
+        
+        summaries.append(summary)
+    
+    logger.info(f"Returning risk summary for {len(summaries)} ports")
+    
+    return summaries
+
+
+@router.get("/maritime/ports", response_model=List[PortFairwayResponse], tags=["Maritime"])
+async def list_ports(
+    db: AsyncSession = Depends(get_db),
+    active_only: bool = True,
+) -> List[PortFairwayResponse]:
+    """
+    List all port fairways.
+    
+    Args:
+        active_only: Only return active ports (default: True)
+    
+    Returns:
+        List of port fairways
+    """
+    query = select(PortFairway)
+    
+    if active_only:
+        query = query.where(PortFairway.is_active == True)
+    
+    result = await db.execute(query)
+    ports = result.scalars().all()
+    
+    logger.info(f"Returning {len(ports)} ports")
+    
+    return [PortFairwayResponse.model_validate(port) for port in ports]
+
+
+@router.post("/maritime/calculate-all-ports", status_code=status.HTTP_200_OK, tags=["Maritime"])
+async def trigger_port_calculations(
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Manually trigger safe draught calculations for all ports.
+    
+    Returns:
+        Summary of calculations performed
+    """
+    logger.info("Manual trigger: calculating safe draught for all ports")
+    
+    try:
+        calculations = await calculate_all_ports(db)
+        
+        return {
+            "status": "success",
+            "message": f"Calculated safe draught for {len(calculations)} ports",
+            "ports_calculated": len(calculations),
+            "calculations": calculations
+        }
+    except Exception as e:
+        logger.error(f"Failed to calculate port safe draughts: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to calculate port safe draughts: {str(e)}"
+        )

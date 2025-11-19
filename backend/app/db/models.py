@@ -484,3 +484,90 @@ class VesselDetection(Base):
     def __repr__(self) -> str:
         return f"<VesselDetection(scene_id={self.scene_id}, time={self.detection_time}, confidence={self.confidence})>"
 
+
+class PortFairway(Base):
+    """Port navigable channels for siltation/safe-draught monitoring."""
+
+    __tablename__ = "port_fairways"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    
+    # Geospatial polygon (navigable channel)
+    geom = mapped_column(Geometry('POLYGON', srid=4326), nullable=False, index=True)
+    
+    # Port identification
+    name: Mapped[str] = mapped_column(String(255), nullable=False, index=True, unique=True)
+    port_code: Mapped[str] = mapped_column(String(50), nullable=False, index=True)  # e.g., "DEDUISBURG"
+    
+    # Reference draught (metres below water surface)
+    reference_draught_m: Mapped[float] = mapped_column(Float, nullable=False)  # Normal navigable depth
+    
+    # Baseline discharge for siltation calculation (m³/s)
+    baseline_discharge_m3s: Mapped[float] = mapped_column(Float, nullable=False)
+    
+    # Optional metadata
+    country: Mapped[Optional[str]] = mapped_column(String(2), nullable=True)  # ISO 2-letter code
+    river_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    def __repr__(self) -> str:
+        return f"<PortFairway(name={self.name}, reference_draught={self.reference_draught_m}m)>"
+
+
+class PortSafeDraughtLog(Base):
+    """Time-series log of safe draught calculations for ports."""
+
+    __tablename__ = "port_safe_draught_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    
+    # Foreign key to port_fairways
+    port_fairway_id: Mapped[int] = mapped_column(
+        Integer, 
+        nullable=False, 
+        index=True
+    )
+    
+    # Calculation timestamp
+    calculation_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), 
+        nullable=False, 
+        index=True
+    )
+    
+    # Current discharge (m³/s) - from GloFAS
+    current_discharge_m3s: Mapped[float] = mapped_column(Float, nullable=False)
+    
+    # Estimated siltation depth (metres)
+    siltation_depth_m: Mapped[float] = mapped_column(Float, nullable=False)
+    
+    # Calculated safe draught (reference_draught - siltation_depth)
+    safe_draught_m: Mapped[float] = mapped_column(Float, nullable=False)
+    
+    # Change from previous calculation
+    draught_change_24h_m: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    
+    # Risk level: "normal", "reduced", "critical"
+    risk_level: Mapped[str] = mapped_column(String(50), default="normal", nullable=False)
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    def __repr__(self) -> str:
+        return f"<PortSafeDraughtLog(port_id={self.port_fairway_id}, safe_draught={self.safe_draught_m}m, risk={self.risk_level})>"
+

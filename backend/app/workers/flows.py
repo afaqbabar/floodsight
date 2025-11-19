@@ -25,6 +25,8 @@ from app.db.session import AsyncSessionLocal
 from app.services.alerts import create_alerts_from_forecasts
 from app.services.glefas import ingest_forecasts
 from app.services.sentinel1 import ingest_sentinel1_with_vessels
+from app.services.port_siltation import calculate_all_ports
+from app.services.port_alerts import compute_all_maritime_alerts
 
 # Setup logging
 setup_logging()
@@ -96,12 +98,39 @@ async def process_sentinel1_vessels() -> int:
         return 0
 
 
-async def run_complete_flow() -> tuple[int, int, int]:
+async def process_port_siltation() -> int:
     """
-    Complete ingestion flow: Ingest forecasts + Compute alerts + Detect vessels.
+    Calculate port safe draughts and check for siltation alerts.
     
     Returns:
-        Tuple of (forecast_count, alerts_count, vessel_count)
+        Number of port alerts created
+    """
+    logger.info("=" * 60)
+    logger.info(f"PORT SILTATION MONITORING STARTED - {datetime.now(timezone.utc)}")
+    logger.info("=" * 60)
+    
+    try:
+        async with AsyncSessionLocal() as db:
+            # Calculate safe draughts for all ports
+            calculations = await calculate_all_ports(db)
+            logger.info(f"✅ Calculated safe draught for {len(calculations)} ports")
+            
+            # Check for alerts
+            alerts = await compute_all_maritime_alerts(db)
+            logger.info(f"✅ Created {len(alerts)} maritime alerts")
+            
+            return len(alerts)
+    except Exception as e:
+        logger.error(f"❌ Port siltation monitoring failed: {e}", exc_info=True)
+        return 0
+
+
+async def run_complete_flow() -> tuple[int, int, int, int]:
+    """
+    Complete ingestion flow: Ingest forecasts + Compute alerts + Detect vessels + Port siltation.
+    
+    Returns:
+        Tuple of (forecast_count, alerts_count, vessel_count, port_alerts_count)
     """
     logger.info("🌊 FloodSight Complete Ingestion Flow Started")
     
@@ -119,19 +148,23 @@ async def run_complete_flow() -> tuple[int, int, int]:
         # Step 3: Process Sentinel-1 for vessel detection (maritime extension)
         vessel_count = await process_sentinel1_vessels()
         
+        # Step 4: Calculate port safe draughts and check for alerts (maritime phase 2)
+        port_alerts_count = await process_port_siltation()
+        
         logger.info(
-            f"🎉 Flow completed: {forecast_count} forecasts, {alerts_count} alerts, {vessel_count} vessels"
+            f"🎉 Flow completed: {forecast_count} forecasts, {alerts_count} alerts, "
+            f"{vessel_count} vessels, {port_alerts_count} port alerts"
         )
         
         logger.info("=" * 60)
         logger.info(f"FLOW COMPLETED - {datetime.now(timezone.utc)}")
         logger.info("=" * 60)
         
-        return forecast_count, alerts_count, vessel_count
+        return forecast_count, alerts_count, vessel_count, port_alerts_count
         
     except Exception as e:
         logger.error(f"❌ Flow failed: {e}", exc_info=True)
-        return 0, 0, 0
+        return 0, 0, 0, 0
 
 
 def floodsight_ingest_flow() -> None:

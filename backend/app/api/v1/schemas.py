@@ -356,3 +356,53 @@ class VesselDetectionGeoJSON(BaseModel):
     geometry: Dict[str, Any]
     properties: Dict[str, Any]
 
+
+# Port Fairway schemas
+class PortFairwayBase(BaseModel):
+    """Base port fairway schema."""
+    name: str = Field(..., min_length=1, max_length=255)
+    port_code: str = Field(..., min_length=1, max_length=50)
+    reference_draught_m: float = Field(..., gt=0)
+    baseline_discharge_m3s: float = Field(..., gt=0)
+    country: Optional[str] = Field(None, max_length=2)
+    river_name: Optional[str] = Field(None, max_length=255)
+    is_active: bool = True
+
+
+class PortFairwayResponse(PortFairwayBase):
+    """Schema for port fairway response."""
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+# Port Safe Draught schemas
+class PortSafeDraughtResponse(BaseModel):
+    """Schema for port safe draught calculation response."""
+    port_name: str
+    port_code: str
+    calculation_time: datetime
+    reference_draught_m: float
+    current_discharge_m3s: float
+    baseline_discharge_m3s: float
+    siltation_depth_m: float
+    safe_draught_m: float
+    draught_change_24h_m: Optional[float] = None
+    risk_level: str  # "normal", "reduced", "critical"
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PortRiskSummary(BaseModel):
+    """Schema for port risk summary (for dashboard widget)."""
+    port_name: str
+    port_code: str
+    safe_draught_m: float
+    risk_level: str
+    draught_change_24h_m: Optional[float] = None
+    status_message: str  # Human-readable status
+    color: str  # Color code for UI: "green", "yellow", "red"
+    
+    model_config = ConfigDict(from_attributes=True)
