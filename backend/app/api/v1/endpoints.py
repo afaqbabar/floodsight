@@ -1121,8 +1121,6 @@ async def get_maritime_demo_data(
                     "properties": {
                         "id": v.id,
                         "confidence": v.confidence,
-                        "vessel_length_m": v.vessel_length_m,
-                        "vessel_width_m": v.vessel_width_m,
                         "detection_time": v.detection_time.isoformat(),
                         "scene_id": v.scene_id,
                     }
