@@ -177,6 +177,21 @@ class User(Base):
     
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     
+    # Pricing tier & Maritime Edition feature flags
+    pricing_tier: Mapped[str] = mapped_column(
+        String(50), default="free", nullable=False
+    )  # 'free', 'basic', 'premium', 'enterprise', 'maritime'
+    
+    has_maritime_vessel_detection: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )  # Phase 1: CFAR vessel detection & dark vessel monitoring
+    has_maritime_port_monitoring: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )  # Phase 2: Port safe draught & siltation estimation
+    has_maritime_plume_tracking: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )  # Phase 3: Flood plume detection & nutrient monitoring
+    
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

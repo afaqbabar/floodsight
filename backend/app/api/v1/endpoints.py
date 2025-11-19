@@ -948,3 +948,126 @@ async def trigger_plume_detection(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to detect plumes: {str(e)}"
         )
+
+
+# ==================== Grounding Risk Tiles ====================
+
+from fastapi.responses import Response
+from app.services.grounding_risk_tiles import generate_mvt_tile, VESSEL_DRAUGHTS
+
+
+@router.get("/maritime/grounding-risk/tiles/{z}/{x}/{y}.pbf", tags=["Maritime"])
+async def get_grounding_risk_tile(
+    z: int,
+    x: int,
+    y: int,
+    vessel_draught: Optional[float] = None,
+    vessel_type: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """
+    Get grounding risk vector tile for map visualization.
+    
+    Returns Mapbox Vector Tile (MVT) with color-coded grounding risk:
+    - **Green**: Safe (clearance > 2m)
+    - **Yellow**: Caution (0.5m < clearance <= 2m)
+    - **Red**: Danger (clearance <= 0.5m)
+    
+    **Risk calculation:** `clearance = safe_draught - vessel_draught`
+    
+    **Args:**
+    - `z`: Tile zoom level (0-22)
+    - `x`: Tile X coordinate
+    - `y`: Tile Y coordinate
+    - `vessel_draught`: Vessel draught in metres (optional)
+    - `vessel_type`: Vessel type: 'small', 'medium', 'large', 'vlcc' (optional)
+    
+    **Example:** `/v1/maritime/grounding-risk/tiles/8/132/84.pbf?vessel_type=large`
+    """
+    # Determine vessel draught
+    if vessel_draught is None:
+        if vessel_type and vessel_type in VESSEL_DRAUGHTS:
+            vessel_draught = VESSEL_DRAUGHTS[vessel_type]
+        else:
+            vessel_draught = VESSEL_DRAUGHTS["medium"]  # Default to medium vessel
+    
+    logger.info(
+        f"Grounding risk tile request: z={z}, x={x}, y={y}, "
+        f"vessel_draught={vessel_draught:.2f}m"
+    )
+    
+    try:
+        tile_data = await generate_mvt_tile(db, z, x, y, vessel_draught)
+        
+        if tile_data is None:
+            # Empty tile (HTTP 204 No Content)
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
+        
+        # Return tile with appropriate content type
+        # For now, returning GeoJSON; in production, use actual MVT/PBF
+        return Response(
+            content=tile_data,
+            media_type="application/json",  # Change to "application/vnd.mapbox-vector-tile" for real MVT
+            headers={
+                "Cache-Control": "public, max-age=300",  # Cache for 5 minutes
+                "Access-Control-Allow-Origin": "*",
+            }
+        )
+    except Exception as e:
+        logger.error(f"Failed to generate tile {z}/{x}/{y}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate grounding risk tile: {str(e)}"
+        )
+
+
+@router.get("/maritime/grounding-risk/heatmap", response_model=dict, tags=["Maritime"])
+async def get_grounding_risk_heatmap(
+    vessel_draught: Optional[float] = None,
+    vessel_type: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Get grounding risk heatmap data for dashboard widget.
+    
+    Returns all active ports with their current grounding risk levels.
+    
+    **Args:**
+    - `vessel_draught`: Vessel draught in metres (optional)
+    - `vessel_type`: Vessel type: 'small', 'medium', 'large', 'vlcc' (optional)
+    
+    **Response:** GeoJSON FeatureCollection with risk-colored port polygons
+    """
+    from app.services.grounding_risk_tiles import get_grounding_risk_features
+    
+    # Determine vessel draught
+    if vessel_draught is None:
+        if vessel_type and vessel_type in VESSEL_DRAUGHTS:
+            vessel_draught = VESSEL_DRAUGHTS[vessel_type]
+        else:
+            vessel_draught = VESSEL_DRAUGHTS["medium"]
+    
+    logger.info(f"Heatmap request: vessel_draught={vessel_draught:.2f}m")
+    
+    try:
+        # Get all ports (use a large tile that covers typical European waters)
+        # z=5 covers a large area
+        features = await get_grounding_risk_features(db, 5, 16, 10, vessel_draught)
+        
+        geojson = {
+            "type": "FeatureCollection",
+            "features": features,
+            "metadata": {
+                "vessel_draught_m": vessel_draught,
+                "vessel_type": vessel_type or "medium",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        }
+        
+        return geojson
+    except Exception as e:
+        logger.error(f"Failed to generate heatmap: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate grounding risk heatmap: {str(e)}"
+        )
