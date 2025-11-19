@@ -40,7 +40,7 @@ resources:
 
 # Image configuration
 images:
-- digest: sha256:bb251b24cf6b8133ca4b9a3732a9b0612d6681a593513b0b2f2818735f332bc5
+- digest: sha256:7b41dbce784e7c7fe515b97c4d965ed437e37ebce7c4036a68899aab0dda88d7
   name: ghcr.io/afaqbabar/floodsight-backend
   newName: ghcr.io/afaqbabar/floodsight-backend
   newTag: latest
