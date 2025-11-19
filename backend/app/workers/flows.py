@@ -24,6 +24,7 @@ from app.core.logging import get_logger, setup_logging
 from app.db.session import AsyncSessionLocal
 from app.services.alerts import create_alerts_from_forecasts
 from app.services.glefas import ingest_forecasts
+from app.services.sentinel1 import ingest_sentinel1_with_vessels
 
 # Setup logging
 setup_logging()
@@ -74,14 +75,35 @@ async def compute_and_store_alerts() -> int:
         return 0
 
 
-async def run_complete_flow() -> tuple[int, int]:
+async def process_sentinel1_vessels() -> int:
     """
-    Complete ingestion flow: Ingest forecasts + Compute alerts.
+    Process Sentinel-1 SAR scenes for vessel detection.
     
     Returns:
-        Tuple of (forecast_count, alerts_count)
+        Number of vessel detections
     """
-    logger.info("🌊 FloodSight Ingestion Flow Started")
+    logger.info("=" * 60)
+    logger.info(f"SENTINEL-1 VESSEL DETECTION STARTED - {datetime.now(timezone.utc)}")
+    logger.info("=" * 60)
+    
+    try:
+        async with AsyncSessionLocal() as db:
+            vessel_count = await ingest_sentinel1_with_vessels(db)
+            logger.info(f"✅ Detected {vessel_count} vessels")
+            return vessel_count
+    except Exception as e:
+        logger.error(f"❌ Sentinel-1 vessel detection failed: {e}", exc_info=True)
+        return 0
+
+
+async def run_complete_flow() -> tuple[int, int, int]:
+    """
+    Complete ingestion flow: Ingest forecasts + Compute alerts + Detect vessels.
+    
+    Returns:
+        Tuple of (forecast_count, alerts_count, vessel_count)
+    """
+    logger.info("🌊 FloodSight Complete Ingestion Flow Started")
     
     try:
         # Step 1: Ingest forecasts
@@ -91,21 +113,25 @@ async def run_complete_flow() -> tuple[int, int]:
         alerts_count = 0
         if forecast_count > 0:
             alerts_count = await compute_and_store_alerts()
-            logger.info(
-                f"🎉 Flow completed: {forecast_count} forecasts, {alerts_count} alerts"
-            )
         else:
             logger.warning("⚠️ No forecasts ingested, skipping alert computation")
+        
+        # Step 3: Process Sentinel-1 for vessel detection (maritime extension)
+        vessel_count = await process_sentinel1_vessels()
+        
+        logger.info(
+            f"🎉 Flow completed: {forecast_count} forecasts, {alerts_count} alerts, {vessel_count} vessels"
+        )
         
         logger.info("=" * 60)
         logger.info(f"FLOW COMPLETED - {datetime.now(timezone.utc)}")
         logger.info("=" * 60)
         
-        return forecast_count, alerts_count
+        return forecast_count, alerts_count, vessel_count
         
     except Exception as e:
         logger.error(f"❌ Flow failed: {e}", exc_info=True)
-        return 0, 0
+        return 0, 0, 0
 
 
 def floodsight_ingest_flow() -> None:

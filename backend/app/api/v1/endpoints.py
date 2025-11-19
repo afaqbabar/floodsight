@@ -16,10 +16,12 @@ from app.api.v1.schemas import (
     StationResponse,
     TelemetryEvent,
     TelemetryResponse,
+    VesselDetectionResponse,
+    VesselDetectionGeoJSON,
 )
 from app.core.config import settings
 from app.core.logging import get_logger
-from app.db.models import Alert, Forecast, Station
+from app.db.models import Alert, Forecast, Station, VesselDetection
 from app.db.session import get_db
 from app.services.glefas import (
     GlofasCredentialsError,
@@ -28,6 +30,7 @@ from app.services.glefas import (
     ingest_forecasts,
 )
 from app.services.alerts import compute_alerts_from_forecasts, create_alerts_from_forecasts
+from app.services.sentinel1 import ingest_sentinel1_with_vessels
 
 logger = get_logger(__name__)
 
@@ -443,5 +446,191 @@ async def compute_alerts(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Alert computation failed: {str(e)}",
+        )
+
+
+# Vessel Detection endpoints (Maritime Extension)
+@router.get("/vessels", response_model=List[VesselDetectionResponse], tags=["Vessels"])
+async def list_vessel_detections(
+    scene_id: str | None = None,
+    min_confidence: float = 0.0,
+    in_river_mouth: bool | None = None,
+    in_port_zone: bool | None = None,
+    near_flood_plume: bool | None = None,
+    skip: int = 0,
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db),
+) -> List[dict]:
+    """
+    List vessel detections from Sentinel-1 SAR processing.
+    
+    - **scene_id**: Filter by Sentinel-1 scene ID (optional)
+    - **min_confidence**: Minimum detection confidence (0-1, default: 0.0)
+    - **in_river_mouth**: Filter vessels in river mouths (optional)
+    - **in_port_zone**: Filter vessels in port zones (optional)
+    - **near_flood_plume**: Filter vessels near flood plumes (optional)
+    - **skip**: Number of records to skip (pagination)
+    - **limit**: Maximum number of records to return
+    
+    Returns vessel detections with lon/lat extracted from PostGIS geometry.
+    """
+    from sqlalchemy import func, cast, String
+    
+    query = select(
+        VesselDetection,
+        func.ST_X(VesselDetection.geom).label('lon'),
+        func.ST_Y(VesselDetection.geom).label('lat')
+    ).order_by(VesselDetection.detection_time.desc())
+    
+    if scene_id:
+        query = query.where(VesselDetection.scene_id == scene_id)
+    
+    if min_confidence > 0:
+        query = query.where(VesselDetection.confidence >= min_confidence)
+    
+    if in_river_mouth is not None:
+        query = query.where(VesselDetection.in_river_mouth == in_river_mouth)
+    
+    if in_port_zone is not None:
+        query = query.where(VesselDetection.in_port_zone == in_port_zone)
+    
+    if near_flood_plume is not None:
+        query = query.where(VesselDetection.near_flood_plume == near_flood_plume)
+    
+    query = query.offset(skip).limit(limit)
+    result = await db.execute(query)
+    rows = result.all()
+    
+    # Convert to response format
+    detections = []
+    for vessel, lon, lat in rows:
+        detection_dict = {
+            "id": vessel.id,
+            "scene_id": vessel.scene_id,
+            "detection_time": vessel.detection_time,
+            "intensity_db": vessel.intensity_db,
+            "confidence": vessel.confidence,
+            "vessel_length_m": vessel.vessel_length_m,
+            "vessel_heading_deg": vessel.vessel_heading_deg,
+            "in_river_mouth": vessel.in_river_mouth,
+            "in_port_zone": vessel.in_port_zone,
+            "near_flood_plume": vessel.near_flood_plume,
+            "detector_type": vessel.detector_type,
+            "lon": lon,
+            "lat": lat,
+            "created_at": vessel.created_at,
+        }
+        detections.append(detection_dict)
+    
+    return detections
+
+
+@router.get("/vessels/geojson", response_model=dict, tags=["Vessels"])
+async def list_vessel_detections_geojson(
+    scene_id: str | None = None,
+    min_confidence: float = 0.0,
+    limit: int = 1000,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    List vessel detections as GeoJSON FeatureCollection.
+    
+    Optimized for map rendering in frontend dashboards.
+    
+    - **scene_id**: Filter by Sentinel-1 scene ID (optional)
+    - **min_confidence**: Minimum detection confidence (0-1, default: 0.0)
+    - **limit**: Maximum number of features to return (default: 1000)
+    
+    Returns GeoJSON FeatureCollection compatible with Mapbox/Leaflet.
+    """
+    from sqlalchemy import func
+    
+    query = select(
+        VesselDetection,
+        func.ST_X(VesselDetection.geom).label('lon'),
+        func.ST_Y(VesselDetection.geom).label('lat')
+    ).order_by(VesselDetection.detection_time.desc())
+    
+    if scene_id:
+        query = query.where(VesselDetection.scene_id == scene_id)
+    
+    if min_confidence > 0:
+        query = query.where(VesselDetection.confidence >= min_confidence)
+    
+    query = query.limit(limit)
+    result = await db.execute(query)
+    rows = result.all()
+    
+    # Build GeoJSON FeatureCollection
+    features = []
+    for vessel, lon, lat in rows:
+        feature = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [lon, lat]
+            },
+            "properties": {
+                "id": vessel.id,
+                "scene_id": vessel.scene_id,
+                "detection_time": vessel.detection_time.isoformat(),
+                "intensity_db": vessel.intensity_db,
+                "confidence": vessel.confidence,
+                "vessel_length_m": vessel.vessel_length_m,
+                "vessel_heading_deg": vessel.vessel_heading_deg,
+                "in_river_mouth": vessel.in_river_mouth,
+                "in_port_zone": vessel.in_port_zone,
+                "near_flood_plume": vessel.near_flood_plume,
+                "detector_type": vessel.detector_type,
+            }
+        }
+        features.append(feature)
+    
+    return {
+        "type": "FeatureCollection",
+        "features": features,
+        "metadata": {
+            "count": len(features),
+            "scene_id": scene_id,
+            "min_confidence": min_confidence,
+        }
+    }
+
+
+@router.post(
+    "/vessels/ingest",
+    status_code=status.HTTP_201_CREATED,
+    tags=["Vessels"],
+)
+async def ingest_vessels_api(
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Trigger Sentinel-1 vessel detection ingestion.
+    
+    This endpoint:
+    - Processes latest Sentinel-1 scene(s)
+    - Runs CFAR vessel detection on speckle-filtered SAR data
+    - Stores vessel detections as PostGIS points
+    - Returns count of vessels detected
+    
+    In production, this runs automatically via scheduled Prefect flows.
+    Use this endpoint for manual testing or on-demand processing.
+    """
+    logger.info("Manual Sentinel-1 vessel detection triggered")
+    
+    try:
+        vessel_count = await ingest_sentinel1_with_vessels(db)
+        
+        return {
+            "status": "success",
+            "message": f"Detected {vessel_count} vessels",
+            "vessels_detected": vessel_count,
+        }
+    except Exception as e:
+        logger.error(f"Sentinel-1 vessel detection failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Sentinel-1 vessel detection failed: {str(e)}",
         )
 

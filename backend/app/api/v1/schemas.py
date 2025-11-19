@@ -318,3 +318,41 @@ class NotificationAnalytics(BaseModel):
     failed_count: int
     by_provider: Dict[str, Dict[str, int]]
 
+
+# Vessel Detection schemas (Maritime Extension)
+class VesselDetectionBase(BaseModel):
+    """Base vessel detection schema."""
+    scene_id: str = Field(..., min_length=1, max_length=255)
+    detection_time: datetime
+    intensity_db: float
+    confidence: float = Field(..., ge=0, le=1)
+    vessel_length_m: Optional[float] = Field(None, ge=0)
+    vessel_heading_deg: Optional[float] = Field(None, ge=0, le=360)
+    in_river_mouth: bool = False
+    in_port_zone: bool = False
+    near_flood_plume: bool = False
+    detector_type: str = Field(default="cfar", max_length=50)
+
+
+class VesselDetectionCreate(VesselDetectionBase):
+    """Schema for creating a vessel detection (requires lon/lat)."""
+    lon: float = Field(..., ge=-180, le=180)
+    lat: float = Field(..., ge=-90, le=90)
+
+
+class VesselDetectionResponse(VesselDetectionBase):
+    """Schema for vessel detection response."""
+    id: int
+    lon: float
+    lat: float
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class VesselDetectionGeoJSON(BaseModel):
+    """GeoJSON Feature response for vessel detection."""
+    type: str = "Feature"
+    geometry: Dict[str, Any]
+    properties: Dict[str, Any]
+
