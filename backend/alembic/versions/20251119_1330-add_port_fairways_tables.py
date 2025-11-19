@@ -11,8 +11,8 @@ from geoalchemy2 import Geometry
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '20251119_1330'
-down_revision = '20251119_1200'
+revision = 'add_port_fairways'
+down_revision = 'add_vessel_detections'
 branch_labels = None
 depends_on = None
 

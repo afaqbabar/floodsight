@@ -13,8 +13,8 @@ from geoalchemy2 import Geometry
 
 
 # revision identifiers, used by Alembic.
-revision: str = '20251119_1400'
-down_revision: Union[str, None] = '20251119_1330'
+revision: str = 'add_flood_plumes'
+down_revision: Union[str, None] = 'add_port_fairways'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
