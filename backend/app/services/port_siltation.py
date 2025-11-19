@@ -289,7 +289,7 @@ async def get_port_risk_summary(db: AsyncSession) -> list:
         # Get latest draught log
         latest_log_query = (
             select(PortSafeDraughtLog)
-            .where(PortSafeDraughtLog.port_id == port.id)
+            .where(PortSafeDraughtLog.port_fairway_id == port.id)
             .order_by(desc(PortSafeDraughtLog.calculation_time))
             .limit(1)
         )
@@ -304,7 +304,7 @@ async def get_port_risk_summary(db: AsyncSession) -> list:
         previous_log_query = (
             select(PortSafeDraughtLog)
             .where(
-                PortSafeDraughtLog.port_id == port.id,
+                PortSafeDraughtLog.port_fairway_id == port.id,
                 PortSafeDraughtLog.calculation_time <= twenty_four_hours_ago
             )
             .order_by(desc(PortSafeDraughtLog.calculation_time))
