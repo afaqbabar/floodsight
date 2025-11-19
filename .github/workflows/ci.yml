@@ -10,7 +10,7 @@ on:
 env:
   NODE_VERSION: '20.x'
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository_owner }}/floodsight-frontend
 
 jobs:
   # Code Quality Checks
