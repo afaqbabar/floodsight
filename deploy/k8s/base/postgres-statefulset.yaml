@@ -18,8 +18,8 @@ spec:
     spec:
       containers:
       - name: postgres
-        # Use PostGIS-enabled image from GHCR (built via CI/CD)
-        image: ghcr.io/afaqbabar/floodsight-postgres-postgis:latest
+        # Use pre-built PostGIS image with ARM64 support
+        image: nickblah/postgis:16-postgis-3.4
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5432
