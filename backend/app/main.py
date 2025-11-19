@@ -125,9 +125,10 @@ async def metrics_middleware(request, call_next):
 
 # Include API routers
 app.include_router(v1_router, prefix=settings.API_V1_PREFIX)
-app.include_router(users_router, prefix=settings.API_V1_PREFIX)
-app.include_router(webhooks_rules_router, prefix=settings.API_V1_PREFIX)
-app.include_router(analytics_router, prefix=settings.API_V1_PREFIX)
+# Temporarily commented out - will be added in future commits
+# app.include_router(users_router, prefix=settings.API_V1_PREFIX)
+# app.include_router(webhooks_rules_router, prefix=settings.API_V1_PREFIX)
+# app.include_router(analytics_router, prefix=settings.API_V1_PREFIX)
 
 
 # Root endpoint
