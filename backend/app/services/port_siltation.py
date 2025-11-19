@@ -265,3 +265,76 @@ async def calculate_all_ports(db: AsyncSession) -> List[dict]:
     
     return calculations
 
+
+
+async def get_port_risk_summary(db: AsyncSession) -> list:
+    """
+    Get port risk summary for all active ports.
+    
+    Returns:
+        List of port risk data with safe draught and 24h changes
+    """
+    from sqlalchemy import select, desc
+    from datetime import datetime, timezone, timedelta
+    from geoalchemy2.shape import to_shape
+    from shapely.geometry import mapping
+    
+    # Get all active ports
+    ports_query = select(PortFairway).where(PortFairway.is_active == True)
+    ports_result = await db.execute(ports_query)
+    ports = ports_result.scalars().all()
+    
+    summary = []
+    for port in ports:
+        # Get latest draught log
+        latest_log_query = (
+            select(PortSafeDraughtLog)
+            .where(PortSafeDraughtLog.port_id == port.id)
+            .order_by(desc(PortSafeDraughtLog.calculation_time))
+            .limit(1)
+        )
+        latest_log_result = await db.execute(latest_log_query)
+        latest_log = latest_log_result.scalar_one_or_none()
+        
+        if not latest_log:
+            continue
+        
+        # Get 24h ago log for comparison
+        twenty_four_hours_ago = datetime.now(timezone.utc) - timedelta(hours=24)
+        previous_log_query = (
+            select(PortSafeDraughtLog)
+            .where(
+                PortSafeDraughtLog.port_id == port.id,
+                PortSafeDraughtLog.calculation_time <= twenty_four_hours_ago
+            )
+            .order_by(desc(PortSafeDraughtLog.calculation_time))
+            .limit(1)
+        )
+        previous_log_result = await db.execute(previous_log_query)
+        previous_log = previous_log_result.scalar_one_or_none()
+        
+        change_24h = None
+        if previous_log:
+            change_24h = latest_log.safe_draught_m - previous_log.safe_draught_m
+        
+        port_data = {
+            "id": port.id,
+            "name": port.name,
+            "safe_draught_m": latest_log.safe_draught_m,
+            "siltation_depth_m": latest_log.siltation_depth_m,
+            "reference_draught_m": port.reference_draught_m,
+            "change_24h": change_24h,
+            "last_updated": latest_log.calculation_time.isoformat(),
+        }
+        
+        # Add geometry if available
+        if port.geom:
+            try:
+                geom = to_shape(port.geom)
+                port_data["geometry"] = mapping(geom)
+            except Exception as e:
+                logger.error(f"Failed to convert port {port.id} geometry: {e}")
+        
+        summary.append(port_data)
+    
+    return summary
