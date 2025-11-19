@@ -14,7 +14,7 @@ RUN apk add --no-cache \
     build-base \
     git \
     && cd /tmp \
-    && git clone --branch 3.4 --depth 1 https://github.com/postgis/postgis.git \
+    && git clone --branch 3.4.3 --depth 1 https://github.com/postgis/postgis.git \
     && cd postgis \
     && ./configure --with-pgconfig=/usr/bin/pg_config \
     && make -j$(nproc) \
