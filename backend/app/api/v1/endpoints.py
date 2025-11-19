@@ -1,5 +1,5 @@
 """API v1 endpoints."""
-from typing import List
+from typing import List, Optional, Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
