@@ -1,0 +1,30 @@
+FROM postgres:16-alpine
+
+# Install PostGIS from Alpine packages
+# Note: Alpine's postgis package is built for PostgreSQL 17, but we'll compile for 16
+RUN apk add --no-cache \
+    postgresql16-dev \
+    gdal-dev \
+    geos-dev \
+    proj-dev \
+    protobuf-c-dev \
+    json-c-dev \
+    libxml2-dev \
+    pcre-dev \
+    build-base \
+    git \
+    && cd /tmp \
+    && git clone --branch 3.4 --depth 1 https://github.com/postgis/postgis.git \
+    && cd postgis \
+    && ./configure --with-pgconfig=/usr/bin/pg_config \
+    && make -j$(nproc) \
+    && make install \
+    && cd / \
+    && rm -rf /tmp/postgis \
+    && apk del build-base git postgresql16-dev
+
+# Copy initialization script
+COPY init-postgis.sql /docker-entrypoint-initdb.d/
+
+EXPOSE 5432
+

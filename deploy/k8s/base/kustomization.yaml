@@ -21,16 +21,30 @@ commonAnnotations:
   maintainer: "FloodSight Team"
 
 resources:
+# Frontend resources
 - serviceaccount.yaml
 - configmap.yaml
 - deployment.yaml
 - service.yaml
 - ingress.yaml
 - hpa.yaml
+# Backend resources
+- backend-configmap.yaml
+- backend-deployment.yaml
+- backend-service.yaml
+- backend-ingress.yaml
+# Database resources
+- postgres-statefulset.yaml
+# Note: backend-secrets.yaml must be created from backend-secrets.yaml.example
+# and applied separately for security reasons
 
 # Image configuration
 images:
 - name: ghcr.io/yourusername/floodsight
+  newTag: latest
+- name: ghcr.io/afaqbabar/floodsight-backend
+  newTag: latest
+- name: ghcr.io/afaqbabar/floodsight-postgres-postgis
   newTag: latest
 
 # ConfigMap generator (optional)
