@@ -770,3 +770,181 @@ async def trigger_port_calculations(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to calculate port safe draughts: {str(e)}"
         )
+
+
+# ==================== Maritime: Flood Plumes & Nutrient Monitoring ====================
+
+from app.services.plume_detection import detect_all_river_plumes, get_recent_plumes
+from app.api.v1.schemas import FloodPlumeResponse, FloodPlumeGeoJSON, PlumeSummary
+from app.db.models import FloodPlume
+from geoalchemy2.shape import to_shape
+
+
+@router.get("/maritime/plumes", response_model=List[FloodPlumeResponse], tags=["Maritime"])
+async def list_flood_plumes(
+    river: Optional[str] = None,
+    days: int = 7,
+    active_only: bool = True,
+    db: AsyncSession = Depends(get_db),
+) -> List[FloodPlumeResponse]:
+    """
+    List flood plumes for nutrient/sediment monitoring.
+    
+    **Example:** `/v1/maritime/plumes?river=elbe&days=7`
+    
+    Args:
+        river: Filter by river name (e.g., "elbe", "rhine", "danube")
+        days: Number of days to look back (default: 7)
+        active_only: Only return currently active plumes (default: true)
+    
+    Returns:
+        List of flood plumes with vessel activity
+    """
+    logger.info(f"Plume list request: river={river}, days={days}, active_only={active_only}")
+    
+    plumes = await get_recent_plumes(db, river, days, active_only)
+    
+    return [FloodPlumeResponse.model_validate(plume) for plume in plumes]
+
+
+@router.get("/maritime/plumes/geojson", response_model=dict, tags=["Maritime"])
+async def list_flood_plumes_geojson(
+    river: Optional[str] = None,
+    days: int = 7,
+    active_only: bool = True,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Get flood plumes as GeoJSON FeatureCollection for map visualization.
+    
+    Args:
+        river: Filter by river name
+        days: Number of days to look back
+        active_only: Only return active plumes
+    
+    Returns:
+        GeoJSON FeatureCollection with plume polygons
+    """
+    logger.info(f"Plume GeoJSON request: river={river}, days={days}")
+    
+    plumes = await get_recent_plumes(db, river, days, active_only)
+    
+    features = []
+    for plume in plumes:
+        geom = to_shape(plume.geom)
+        
+        feature = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [list(geom.exterior.coords)]
+            },
+            "properties": {
+                "id": plume.id,
+                "river_name": plume.river_name,
+                "peak_discharge_m3s": plume.peak_discharge_m3s,
+                "area_km2": plume.area_km2,
+                "vessel_count": plume.vessel_count,
+                "has_vessel_activity": plume.has_vessel_activity,
+                "detection_time": plume.detection_time.isoformat(),
+                "is_active": plume.is_active,
+                "detection_method": plume.detection_method,
+            }
+        }
+        
+        features.append(feature)
+    
+    geojson = {
+        "type": "FeatureCollection",
+        "features": features
+    }
+    
+    logger.info(f"Returning {len(features)} plume features as GeoJSON")
+    
+    return geojson
+
+
+@router.get("/maritime/plumes/summary", response_model=List[PlumeSummary], tags=["Maritime"])
+async def get_plumes_summary(
+    db: AsyncSession = Depends(get_db),
+    days: int = 7,
+) -> List[PlumeSummary]:
+    """
+    Get plume summary for dashboard widget (color-coded alerts).
+    
+    Args:
+        days: Number of days to look back
+    
+    Returns:
+        List of plume summaries with alert levels
+    """
+    logger.info(f"Plume summary request: days={days}")
+    
+    plumes = await get_recent_plumes(db, river_name=None, days=days, active_only=True)
+    
+    summaries = []
+    for plume in plumes:
+        # Determine alert level based on vessel count
+        if plume.vessel_count >= 10:
+            alert_level = "critical"
+            color = "red"
+        elif plume.vessel_count >= 5:
+            alert_level = "warning"
+            color = "orange"
+        else:
+            alert_level = "none"
+            color = "blue"
+        
+        summary = PlumeSummary(
+            river_name=plume.river_name,
+            peak_discharge_m3s=plume.peak_discharge_m3s,
+            area_km2=plume.area_km2,
+            vessel_count=plume.vessel_count,
+            detection_time=plume.detection_time,
+            is_active=plume.is_active,
+            alert_level=alert_level,
+            color=color
+        )
+        
+        summaries.append(summary)
+    
+    logger.info(f"Returning summary for {len(summaries)} plumes")
+    
+    return summaries
+
+
+@router.post("/maritime/detect-plumes", status_code=status.HTTP_200_OK, tags=["Maritime"])
+async def trigger_plume_detection(
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Manually trigger plume detection for all rivers.
+    
+    Returns:
+        Summary of plumes detected
+    """
+    logger.info("Manual trigger: detecting flood plumes for all rivers")
+    
+    try:
+        plumes = await detect_all_river_plumes(db)
+        
+        return {
+            "status": "success",
+            "message": f"Detected {len(plumes)} flood plumes",
+            "plumes_detected": len(plumes),
+            "plumes": [
+                {
+                    "river": p.river_name,
+                    "discharge": p.peak_discharge_m3s,
+                    "area_km2": p.area_km2,
+                    "vessels": p.vessel_count
+                }
+                for p in plumes
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Failed to detect plumes: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to detect plumes: {str(e)}"
+        )

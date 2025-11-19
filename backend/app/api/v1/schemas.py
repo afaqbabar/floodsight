@@ -406,3 +406,53 @@ class PortRiskSummary(BaseModel):
     color: str  # Color code for UI: "green", "yellow", "red"
     
     model_config = ConfigDict(from_attributes=True)
+
+
+# Flood Plume schemas
+class FloodPlumeBase(BaseModel):
+    """Base flood plume schema."""
+    river_name: str = Field(..., min_length=1, max_length=255)
+    river_basin: Optional[str] = Field(None, max_length=255)
+    peak_discharge_m3s: float = Field(..., gt=0)
+    current_discharge_m3s: Optional[float] = Field(None, gt=0)
+    detection_time: datetime
+    turbidity_index: Optional[float] = None
+    area_km2: Optional[float] = Field(None, gt=0)
+    buffer_radius_km: float = Field(..., gt=0)
+    detection_method: str = Field(default="turbidity", max_length=50)
+    is_active: bool = True
+    has_vessel_activity: bool = False
+    vessel_count: int = Field(default=0, ge=0)
+
+
+class FloodPlumeResponse(FloodPlumeBase):
+    """Schema for flood plume response."""
+    id: int
+    source_scene_id: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FloodPlumeGeoJSON(BaseModel):
+    """GeoJSON Feature response for flood plume."""
+    type: str = "Feature"
+    geometry: Dict[str, Any]
+    properties: Dict[str, Any]
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PlumeSummary(BaseModel):
+    """Schema for plume summary (for dashboard widget)."""
+    river_name: str
+    peak_discharge_m3s: float
+    area_km2: Optional[float]
+    vessel_count: int
+    detection_time: datetime
+    is_active: bool
+    alert_level: str  # "none", "warning", "critical"
+    color: str  # Color code for UI: "blue", "orange", "red"
+    
+    model_config = ConfigDict(from_attributes=True)

@@ -130,6 +130,112 @@ async def check_port_safe_draught_alerts(db: AsyncSession) -> List[Alert]:
     return alerts_created
 
 
+async def check_plume_vessel_alerts(db: AsyncSession) -> List[Alert]:
+    """
+    Check for high vessel activity in flood plumes.
+    
+    Creates alerts when plumes have >= 5 dark vessels inside.
+    
+    Args:
+        db: Database session
+    
+    Returns:
+        List of created alerts
+    """
+    from app.db.models import FloodPlume
+    from datetime import timedelta
+    
+    logger.info("Checking plume vessel alerts...")
+    
+    # Get recent active plumes (last 24 hours)
+    cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
+    
+    plumes_query = select(FloodPlume).where(
+        and_(
+            FloodPlume.is_active == True,
+            FloodPlume.detection_time >= cutoff_time,
+            FloodPlume.vessel_count >= 5  # Threshold from spec
+        )
+    )
+    
+    result = await db.execute(plumes_query)
+    plumes = result.scalars().all()
+    
+    alerts_created = []
+    
+    for plume in plumes:
+        # Determine severity based on vessel count
+        if plume.vessel_count >= 10:
+            severity = "EXTREME"
+            alert_type = "plume_vessel_influx_critical"
+            title = f"🚨 Critical: {plume.vessel_count} Dark Vessels in {plume.river_name} Flood Plume"
+            message = (
+                f"High nutrient plume detected at {plume.river_name} river mouth with "
+                f"{plume.vessel_count} dark vessels inside. Peak discharge: {plume.peak_discharge_m3s:.0f} m³/s, "
+                f"plume area: {plume.area_km2:.0f}km². Potential illegal dumping or fishing activity."
+            )
+        else:  # >= 5 vessels
+            severity = "SEVERE"
+            alert_type = "plume_vessel_influx"
+            title = f"⚠️ {plume.vessel_count} Dark Vessels in {plume.river_name} Flood Plume"
+            message = (
+                f"Nutrient plume detected at {plume.river_name} river mouth with "
+                f"{plume.vessel_count} dark vessels inside. Peak discharge: {plume.peak_discharge_m3s:.0f} m³/s, "
+                f"plume area: {plume.area_km2:.0f}km². Monitor for suspicious activity."
+            )
+        
+        # Check if similar alert already exists recently (avoid duplicates)
+        recent_alert_query = select(Alert).where(
+            and_(
+                Alert.alert_type == alert_type,
+                Alert.message.contains(plume.river_name),
+                Alert.created_at >= datetime.now(timezone.utc) - timedelta(hours=12)
+            )
+        )
+        
+        result = await db.execute(recent_alert_query)
+        existing_alert = result.scalar_one_or_none()
+        
+        if existing_alert:
+            logger.debug(f"Similar plume alert already exists for {plume.river_name}, skipping")
+            continue
+        
+        # Create alert
+        alert = Alert(
+            alert_type=alert_type,
+            severity=severity,
+            title=title,
+            message=message,
+            station_id=None,  # Plume alerts are not station-specific
+            forecast_id=None,
+            metadata={
+                "plume_id": plume.id,
+                "river_name": plume.river_name,
+                "peak_discharge_m3s": plume.peak_discharge_m3s,
+                "area_km2": plume.area_km2,
+                "vessel_count": plume.vessel_count,
+                "detection_method": plume.detection_method,
+                "buffer_radius_km": plume.buffer_radius_km,
+            }
+        )
+        
+        db.add(alert)
+        alerts_created.append(alert)
+        
+        logger.info(
+            f"Created {severity} alert for {plume.river_name}: "
+            f"{plume.vessel_count} vessels in plume"
+        )
+    
+    if alerts_created:
+        await db.commit()
+        logger.info(f"Created {len(alerts_created)} plume vessel alerts")
+    else:
+        logger.info("No plume vessel alerts needed")
+    
+    return alerts_created
+
+
 async def compute_all_maritime_alerts(db: AsyncSession) -> List[Alert]:
     """
     Compute all maritime-related alerts (port safe draught, vessel influx, etc.).
@@ -148,8 +254,9 @@ async def compute_all_maritime_alerts(db: AsyncSession) -> List[Alert]:
     port_alerts = await check_port_safe_draught_alerts(db)
     all_alerts.extend(port_alerts)
     
-    # Future: Add dark-vessel influx alerts here
-    # Future: Add port accessibility alerts here
+    # Plume vessel influx alerts (Phase 3)
+    plume_alerts = await check_plume_vessel_alerts(db)
+    all_alerts.extend(plume_alerts)
     
     logger.info(f"Total maritime alerts created: {len(all_alerts)}")
     

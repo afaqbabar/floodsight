@@ -571,3 +571,58 @@ class PortSafeDraughtLog(Base):
     def __repr__(self) -> str:
         return f"<PortSafeDraughtLog(port_id={self.port_fairway_id}, safe_draught={self.safe_draught_m}m, risk={self.risk_level})>"
 
+
+class FloodPlume(Base):
+    """Nutrient/sediment plumes from flood events for dark-vessel monitoring."""
+
+    __tablename__ = "flood_plumes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    
+    # Geospatial polygon (plume extent)
+    geom = mapped_column(Geometry('POLYGON', srid=4326), nullable=False, index=True)
+    
+    # River/basin identification
+    river_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    river_basin: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    
+    # Discharge metadata
+    peak_discharge_m3s: Mapped[float] = mapped_column(Float, nullable=False)  # From GloFAS
+    current_discharge_m3s: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    
+    # Detection metadata
+    detection_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), 
+        nullable=False, 
+        index=True
+    )
+    source_scene_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # Sentinel-2 or MODIS scene
+    
+    # Plume characteristics
+    turbidity_index: Mapped[Optional[float]] = mapped_column(Float, nullable=True)  # B4/B3 ratio or similar
+    area_km2: Mapped[Optional[float]] = mapped_column(Float, nullable=True)  # Plume area
+    buffer_radius_km: Mapped[float] = mapped_column(Float, nullable=False)  # 20-80km based on discharge
+    
+    # Detection method: "turbidity", "water_mask_expansion", "modis", "synthetic"
+    detection_method: Mapped[str] = mapped_column(String(50), default="turbidity", nullable=False)
+    
+    # Status flags
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)  # Current/historical
+    has_vessel_activity: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    vessel_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    def __repr__(self) -> str:
+        return f"<FloodPlume(river={self.river_name}, discharge={self.peak_discharge_m3s}m³/s, vessels={self.vessel_count})>"
+

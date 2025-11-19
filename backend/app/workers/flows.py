@@ -27,6 +27,7 @@ from app.services.glefas import ingest_forecasts
 from app.services.sentinel1 import ingest_sentinel1_with_vessels
 from app.services.port_siltation import calculate_all_ports
 from app.services.port_alerts import compute_all_maritime_alerts
+from app.services.plume_detection import detect_all_river_plumes
 
 # Setup logging
 setup_logging()
@@ -125,12 +126,35 @@ async def process_port_siltation() -> int:
         return 0
 
 
-async def run_complete_flow() -> tuple[int, int, int, int]:
+async def process_flood_plumes() -> int:
     """
-    Complete ingestion flow: Ingest forecasts + Compute alerts + Detect vessels + Port siltation.
+    Detect flood plumes and check for vessel activity.
     
     Returns:
-        Tuple of (forecast_count, alerts_count, vessel_count, port_alerts_count)
+        Number of plumes detected
+    """
+    logger.info("=" * 60)
+    logger.info(f"FLOOD PLUME DETECTION STARTED - {datetime.now(timezone.utc)}")
+    logger.info("=" * 60)
+    
+    try:
+        async with AsyncSessionLocal() as db:
+            # Detect plumes for all rivers
+            plumes = await detect_all_river_plumes(db)
+            logger.info(f"✅ Detected {len(plumes)} flood plumes")
+            
+            return len(plumes)
+    except Exception as e:
+        logger.error(f"❌ Plume detection failed: {e}", exc_info=True)
+        return 0
+
+
+async def run_complete_flow() -> tuple[int, int, int, int, int]:
+    """
+    Complete ingestion flow: Ingest forecasts + Compute alerts + Detect vessels + Port siltation + Plumes.
+    
+    Returns:
+        Tuple of (forecast_count, alerts_count, vessel_count, port_alerts_count, plume_count)
     """
     logger.info("🌊 FloodSight Complete Ingestion Flow Started")
     
@@ -151,20 +175,23 @@ async def run_complete_flow() -> tuple[int, int, int, int]:
         # Step 4: Calculate port safe draughts and check for alerts (maritime phase 2)
         port_alerts_count = await process_port_siltation()
         
+        # Step 5: Detect flood plumes and vessel activity (maritime phase 3)
+        plume_count = await process_flood_plumes()
+        
         logger.info(
             f"🎉 Flow completed: {forecast_count} forecasts, {alerts_count} alerts, "
-            f"{vessel_count} vessels, {port_alerts_count} port alerts"
+            f"{vessel_count} vessels, {port_alerts_count} port alerts, {plume_count} plumes"
         )
         
         logger.info("=" * 60)
         logger.info(f"FLOW COMPLETED - {datetime.now(timezone.utc)}")
         logger.info("=" * 60)
         
-        return forecast_count, alerts_count, vessel_count, port_alerts_count
+        return forecast_count, alerts_count, vessel_count, port_alerts_count, plume_count
         
     except Exception as e:
         logger.error(f"❌ Flow failed: {e}", exc_info=True)
-        return 0, 0, 0, 0
+        return 0, 0, 0, 0, 0
 
 
 def floodsight_ingest_flow() -> None:
