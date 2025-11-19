@@ -327,3 +327,50 @@ async def get_recent_plumes(
     
     return list(plumes)
 
+
+
+async def get_plumes_geojson(
+    db: AsyncSession,
+    days: int = 7,
+    river: Optional[str] = None
+) -> dict:
+    """
+    Get plumes as GeoJSON FeatureCollection.
+    
+    Args:
+        db: Database session
+        days: Number of days to look back (default: 7)
+        river: Optional river name filter
+    
+    Returns:
+        GeoJSON FeatureCollection with plume polygons
+    """
+    from geoalchemy2.shape import to_shape
+    from shapely.geometry import mapping
+    
+    plumes = await get_recent_plumes(db, river, days, active_only=False)
+    
+    features = []
+    for plume in plumes:
+        try:
+            geom = to_shape(plume.geom)
+            feature = {
+                "type": "Feature",
+                "geometry": mapping(geom),
+                "properties": {
+                    "id": plume.id,
+                    "river": plume.river_name,
+                    "peak_discharge": plume.peak_discharge_m3s,
+                    "vessel_count": plume.vessels_inside_count,
+                    "detection_time": plume.detection_time.isoformat(),
+                }
+            }
+            features.append(feature)
+        except Exception as e:
+            logger.error(f"Failed to convert plume {plume.id} to GeoJSON: {e}")
+            continue
+    
+    return {
+        "type": "FeatureCollection",
+        "features": features
+    }
