@@ -180,12 +180,15 @@ jobs:
       github.event_name == 'push' &&
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     permissions:
-      contents: read
+      contents: write  # Changed from 'read' to allow pushing kustomization updates
       packages: write
       security-events: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for git push
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -237,6 +240,43 @@ jobs:
         with:
           sarif_file: 'trivy-image-results.sarif'
         continue-on-error: true
+
+      - name: Update Kustomization with Image Digest
+        if: github.ref == 'refs/heads/main'
+        run: |
+          # Get the image digest from the build output
+          IMAGE_DIGEST="${{ steps.build-and-push.outputs.digest }}"
+          IMAGE_WITH_DIGEST="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest@${IMAGE_DIGEST}"
+          
+          echo "📦 Built image digest: ${IMAGE_DIGEST}"
+          echo "🎯 Full image reference: ${IMAGE_WITH_DIGEST}"
+          
+          # Update kustomization.yaml with the digest
+          cd deploy/k8s/base
+          
+          # Use kustomize edit to set the image
+          # Format: kustomize edit set image OLD_IMAGE=NEW_IMAGE
+          kustomize edit set image \
+            ghcr.io/afaqbabar/floodsight-backend=${IMAGE_WITH_DIGEST}
+          
+          echo "✅ Updated kustomization.yaml with new digest"
+          cat kustomization.yaml | grep -A2 "name: ghcr.io/afaqbabar/floodsight-backend"
+          
+      - name: Commit and Push Kustomization Changes
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add deploy/k8s/base/kustomization.yaml
+          
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore(k8s): update backend image digest to ${{ steps.build-and-push.outputs.digest }}"
+            git push
+            echo "✅ Pushed kustomization update to trigger ArgoCD sync"
+          fi
 
       - name: Print image tags
         run: |
