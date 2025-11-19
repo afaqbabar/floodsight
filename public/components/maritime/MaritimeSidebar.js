@@ -262,4 +262,3 @@ export function updateSidebarData(newData) {
 
   console.log('✅ Sidebar data updated');
 }
-

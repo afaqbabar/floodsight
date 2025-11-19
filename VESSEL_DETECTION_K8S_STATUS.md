@@ -3,6 +3,7 @@
 ## ✅ **Successfully Completed**
 
 ### **1. PostGIS Setup in Kubernetes** ✅
+
 - **Image**: `nickblah/postgis:16-postgis-3.4` (ARM64 + AMD64 support)
 - **Status**: Running and verified
 - **PostGIS Version**: 3.4 with GEOS, PROJ, STATS support
@@ -10,12 +11,13 @@
 
 ```bash
 $ kubectl exec -n floodsight postgres-0 -- psql -U postgres -d floodsight -c "SELECT PostGIS_Version();"
-            postgis_version            
+            postgis_version
 ---------------------------------------
  3.4 USE_GEOS=1 USE_PROJ=1 USE_STATS=1
 ```
 
 ### **2. Database Migration** ✅
+
 - **Table**: `vessel_detections` created with all columns
 - **Indexes**: Spatial index (GIST) + btree indexes on id, scene_id, detection_time
 - **Geometry Column**: `geom` (POINT, SRID 4326)
@@ -26,6 +28,7 @@ $ kubectl exec -n floodsight postgres-0 -- psql -U postgres -d floodsight -c "\d
 ```
 
 ### **3. Local Testing** ✅
+
 - **Environment**: Docker Compose (local backend + PostGIS)
 - **Test Result**: 118 vessels detected successfully
 - **API Endpoints**: All working (`/v1/vessels`, `/v1/vessels/geojson`, `/v1/vessels/ingest`)
@@ -40,13 +43,16 @@ $ curl -X POST http://localhost:8080/v1/vessels/ingest
 ## ⏳ **Remaining: Backend Image Rebuild**
 
 ### **What's Missing**
+
 The Kubernetes backend pods are running an **old Docker image** that doesn't include:
+
 - Vessel detection code (`app/services/sentinel1.py`)
 - Vessel detection API endpoints (`/v1/vessels/*`)
 - Updated models and schemas
 - Alembic migration files
 
 ### **Current K8s Backend Status**
+
 ```bash
 $ curl http://localhost:8081/v1/vessels/ingest  # (via port-forward to K8s)
 {"detail":"Not Found"}  # ❌ Endpoint doesn't exist in old image
@@ -69,6 +75,7 @@ git push origin main
 ```
 
 **What happens:**
+
 1. `.github/workflows/backend-ci.yml` triggers
 2. Builds multi-arch image (ARM64 + AMD64)
 3. Pushes to `ghcr.io/afaqbabar/floodsight-backend:latest`
@@ -76,6 +83,7 @@ git push origin main
 5. Backend pods restart with new image
 
 **Monitor:**
+
 - https://github.com/afaqbabar/floodsight/actions
 
 ### **Option 2: Manual Build and Push**
@@ -98,6 +106,7 @@ kubectl rollout restart deployment floodsight-scheduler -n floodsight
 ## 🧪 **Testing After Backend Deployment**
 
 ### **1. Verify Backend Pods**
+
 ```bash
 # Check new pods are running
 kubectl get pods -n floodsight -l component=backend
@@ -107,6 +116,7 @@ kubectl get pods -n floodsight floodsight-backend-<pod-name> -o jsonpath='{.stat
 ```
 
 ### **2. Test Vessel Detection**
+
 ```bash
 # Port-forward backend
 kubectl port-forward -n floodsight svc/floodsight-backend 8081:8080 &
@@ -122,6 +132,7 @@ curl http://localhost:8081/v1/vessels/geojson | jq '.features | length'
 ```
 
 ### **3. Verify Database**
+
 ```bash
 # Check vessels in K8s database
 kubectl exec -n floodsight postgres-0 -- psql -U postgres -d floodsight -c \
@@ -132,14 +143,14 @@ kubectl exec -n floodsight postgres-0 -- psql -U postgres -d floodsight -c \
 
 ## 📊 **Current Status Summary**
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| **PostGIS in K8s** | ✅ Working | nickblah/postgis:16-postgis-3.4 |
-| **Database Migration** | ✅ Applied | vessel_detections table created |
-| **Backend Code** | ✅ Complete | All files ready in repo |
-| **Local Testing** | ✅ Passed | 118 vessels detected |
-| **K8s Backend Image** | ⏳ Needs Rebuild | Old image without vessel code |
-| **K8s API Endpoints** | ⏳ Pending | Will work after image rebuild |
+| Component              | Status           | Notes                           |
+| ---------------------- | ---------------- | ------------------------------- |
+| **PostGIS in K8s**     | ✅ Working       | nickblah/postgis:16-postgis-3.4 |
+| **Database Migration** | ✅ Applied       | vessel_detections table created |
+| **Backend Code**       | ✅ Complete      | All files ready in repo         |
+| **Local Testing**      | ✅ Passed        | 118 vessels detected            |
+| **K8s Backend Image**  | ⏳ Needs Rebuild | Old image without vessel code   |
+| **K8s API Endpoints**  | ⏳ Pending       | Will work after image rebuild   |
 
 ---
 
@@ -214,4 +225,3 @@ git push origin main
 ```
 
 Then watch it deploy automatically via GitHub Actions + GitOps! 🚀
-

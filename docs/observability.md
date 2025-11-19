@@ -50,6 +50,7 @@ Frontend (Vite/JS)               Backend (FastAPI/Python)
 **Location:** `backend/app/core/logging.py`
 
 **Features:**
+
 - **Development mode:** Colored console logs for easy reading
 - **Production mode:** JSON-structured logs for log aggregators (e.g., ELK, Splunk, CloudWatch)
 - Configurable log levels
@@ -74,6 +75,7 @@ logger.error("Failed to fetch data", exc_info=True)
 **Endpoint:** `/metrics`
 
 **Metrics Exposed:**
+
 - `floodsight_requests_total` - Total HTTP requests (Counter)
 - `floodsight_request_duration_seconds` - Request duration histogram
 - `floodsight_process_memory_bytes` - Process memory usage (Gauge)
@@ -121,6 +123,7 @@ floodsight_process_cpu_percent 2.5
 ```
 
 **Usage:**
+
 - **Kubernetes:** Liveness and readiness probes
 - **Monitoring:** Uptime checks (e.g., UptimeRobot, Pingdom)
 - **Load balancer:** Health checks
@@ -188,6 +191,7 @@ set_user_context(user_id="user_123", email="user@example.com")
 **Location:** `public/assets/js/errorReporter.js`
 
 **Features:**
+
 - Global error handler (window.onerror)
 - Unhandled promise rejection handler
 - Page load performance tracking
@@ -219,6 +223,7 @@ trackAction('station_selected', { station_id: 3, station_name: 'Cologne Rhine' }
 **Automatic Tracking:**
 
 The error reporter automatically tracks:
+
 - JavaScript errors (syntax, runtime)
 - Unhandled promise rejections
 - Page load performance
@@ -232,15 +237,15 @@ The error reporter automatically tracks:
 
 #### Backend (FastAPI)
 
-| Variable | Type | Default | Description |
-|----------|------|---------|-------------|
-| `LOG_LEVEL` | string | `INFO` | Logging level: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
-| `DEBUG` | boolean | `false` | Enable debug mode (colored logs, auto-reload) |
-| `ENVIRONMENT` | string | `development` | Environment name: `development`, `staging`, `production` |
-| `METRICS_ENABLED` | boolean | `false` | Enable Prometheus metrics endpoint |
-| `SENTRY_DSN` | string | ` ` | Sentry Data Source Name (optional, for error tracking) |
-| `SENTRY_TRACES_SAMPLE_RATE` | float | `0.1` | Percentage of transactions to trace (0.0-1.0) |
-| `SENTRY_PROFILES_SAMPLE_RATE` | float | `0.1` | Percentage of traces to profile (0.0-1.0) |
+| Variable                      | Type    | Default       | Description                                                    |
+| ----------------------------- | ------- | ------------- | -------------------------------------------------------------- |
+| `LOG_LEVEL`                   | string  | `INFO`        | Logging level: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
+| `DEBUG`                       | boolean | `false`       | Enable debug mode (colored logs, auto-reload)                  |
+| `ENVIRONMENT`                 | string  | `development` | Environment name: `development`, `staging`, `production`       |
+| `METRICS_ENABLED`             | boolean | `false`       | Enable Prometheus metrics endpoint                             |
+| `SENTRY_DSN`                  | string  | ` `           | Sentry Data Source Name (optional, for error tracking)         |
+| `SENTRY_TRACES_SAMPLE_RATE`   | float   | `0.1`         | Percentage of transactions to trace (0.0-1.0)                  |
+| `SENTRY_PROFILES_SAMPLE_RATE` | float   | `0.1`         | Percentage of traces to profile (0.0-1.0)                      |
 
 #### Frontend (Vite)
 
@@ -319,9 +324,9 @@ npm run dev
 ```yaml
 # deploy/k8s/base/backend-configmap.yaml
 data:
-  LOG_LEVEL: "INFO"
-  ENVIRONMENT: "production"
-  METRICS_ENABLED: "true"
+  LOG_LEVEL: 'INFO'
+  ENVIRONMENT: 'production'
+  METRICS_ENABLED: 'true'
 ```
 
 2. **Set secrets:**
@@ -329,7 +334,7 @@ data:
 ```yaml
 # deploy/k8s/base/backend-secrets.yaml
 stringData:
-  sentry-dsn: "https://your-sentry-dsn@sentry.io/project-id"
+  sentry-dsn: 'https://your-sentry-dsn@sentry.io/project-id'
 ```
 
 3. **Update deployment to inject secrets:**
@@ -519,6 +524,7 @@ curl -X POST http://localhost:8080/v1/telemetry \
 **Problem:** Logs are still text-based in production
 
 **Solution:** Ensure both conditions are met:
+
 - `ENVIRONMENT=production`
 - `DEBUG=false`
 
@@ -552,6 +558,7 @@ curl http://localhost:8080/metrics
 **Problem:** Errors not appearing in Sentry dashboard
 
 **Checklist:**
+
 1. ✅ `SENTRY_DSN` is set correctly
 2. ✅ Backend logs show: `Sentry initialized successfully`
 3. ✅ `sentry-sdk` is installed: `pip install sentry-sdk`
@@ -571,6 +578,7 @@ report_error(Exception("Test Sentry integration"))
 **Problem:** Browser shows errors but backend doesn't log them
 
 **Checklist:**
+
 1. ✅ `errorReporter.js` is imported in the page
 2. ✅ `BASE_URL` in `api-service.js` points to the correct backend
 3. ✅ CORS is configured correctly in backend
@@ -580,7 +588,7 @@ report_error(Exception("Test Sentry integration"))
 
 ```javascript
 import { reportError } from './errorReporter.js';
-reportError(new Error("Test frontend error"));
+reportError(new Error('Test frontend error'));
 ```
 
 ---
@@ -590,6 +598,7 @@ reportError(new Error("Test frontend error"));
 **Problem:** Backend memory usage increasing over time
 
 **Solution:**
+
 1. Check metrics: `curl http://localhost:8080/metrics | grep memory`
 2. Check health: `curl http://localhost:8080/v1/health | jq .memory_mb`
 3. Investigate:
@@ -604,6 +613,7 @@ reportError(new Error("Test frontend error"));
 ### Logging
 
 ✅ **Do:**
+
 - Use structured logging with context:
   ```python
   logger.info("User logged in", extra={"user_id": user_id, "ip": request.client.host})
@@ -616,6 +626,7 @@ reportError(new Error("Test frontend error"));
   - `CRITICAL`: Critical issues (system failure)
 
 ❌ **Don't:**
+
 - Log sensitive information (passwords, tokens, credit cards)
 - Use `print()` statements (use `logger` instead)
 - Log in tight loops (high volume)
@@ -625,12 +636,14 @@ reportError(new Error("Test frontend error"));
 ### Metrics
 
 ✅ **Do:**
+
 - Use counters for totals (requests, errors)
 - Use histograms for durations (request time, query time)
 - Use gauges for current values (memory, connections)
 - Add labels for dimensions (method, endpoint, status)
 
 ❌ **Don't:**
+
 - Add high-cardinality labels (user_id, session_id)
 - Create too many metrics (start small, add as needed)
 - Use metrics for logging (use logger instead)
@@ -640,6 +653,7 @@ reportError(new Error("Test frontend error"));
 ### Error Reporting
 
 ✅ **Do:**
+
 - Add context to errors:
   ```python
   report_error(e, context={"user_id": user_id, "action": "checkout"})
@@ -651,6 +665,7 @@ reportError(new Error("Test frontend error"));
 - Report critical errors and warnings
 
 ❌ **Don't:**
+
 - Report every minor error (use logging for debug issues)
 - Include PII (Personally Identifiable Information) in context
 - Swallow exceptions without logging
@@ -702,31 +717,30 @@ reportError(new Error("Test frontend error"));
 
 ### Backend Endpoints
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/v1/health` | GET | Health check with metrics |
-| `/metrics` | GET | Prometheus metrics (if enabled) |
-| `/v1/telemetry` | POST | Receive frontend events |
-| `/docs` | GET | API documentation (Swagger UI) |
+| Endpoint        | Method | Purpose                         |
+| --------------- | ------ | ------------------------------- |
+| `/v1/health`    | GET    | Health check with metrics       |
+| `/metrics`      | GET    | Prometheus metrics (if enabled) |
+| `/v1/telemetry` | POST   | Receive frontend events         |
+| `/docs`         | GET    | API documentation (Swagger UI)  |
 
 ### Backend Files
 
-| File | Purpose |
-|------|---------|
-| `app/core/logging.py` | Logging configuration |
-| `app/core/errors.py` | Error reporting (Sentry) |
-| `app/main.py` | App initialization, metrics |
+| File                      | Purpose                           |
+| ------------------------- | --------------------------------- |
+| `app/core/logging.py`     | Logging configuration             |
+| `app/core/errors.py`      | Error reporting (Sentry)          |
+| `app/main.py`             | App initialization, metrics       |
 | `app/api/v1/endpoints.py` | API endpoints (health, telemetry) |
 
 ### Frontend Files
 
-| File | Purpose |
-|------|---------|
+| File                                | Purpose                    |
+| ----------------------------------- | -------------------------- |
 | `public/assets/js/errorReporter.js` | Error tracking & telemetry |
-| `public/assets/js/api-service.js` | API client (BASE_URL) |
+| `public/assets/js/api-service.js`   | API client (BASE_URL)      |
 
 ---
 
 **Last Updated:** January 15, 2025  
 **Version:** 1.0.0
-

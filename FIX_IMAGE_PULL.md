@@ -133,12 +133,14 @@ curl -X POST http://localhost:8081/v1/vessels/ingest | jq
 ## 🎯 Recommendation
 
 **Use Option 1 (Make Public)** because:
+
 - ✅ Simpler setup
 - ✅ No secrets to manage
 - ✅ Works immediately
 - ✅ Standard for open-source projects
 
 **Use Option 2 (imagePullSecret)** if:
+
 - 🔒 Repository must stay private
 - 🔒 Contains proprietary code
 - 🔒 Enterprise/compliance requirements
@@ -163,4 +165,3 @@ Once authentication is resolved:
 2. Vessel detection endpoints will work
 3. You can test with `curl -X POST .../v1/vessels/ingest`
 4. Maritime monitoring is live! 🛰️🚢
-

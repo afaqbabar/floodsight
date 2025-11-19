@@ -7,7 +7,7 @@
 ```
                     North Sea
                        |
-                   Hamburg? 
+                   Hamburg?
                        |
     Netherlands   [Rhine 4★]    Poland
          |            |            |
@@ -42,6 +42,7 @@
 ```
 
 **Problems:**
+
 - ❌ Rhine: Only 4 stations (need 15) - Missing ports, bottlenecks
 - ❌ Danube: Only 2 stations (need 15) - Missing 8 countries!
 - ❌ Elbe: Only 4 stations (need 10) - Missing Hamburg port
@@ -119,6 +120,7 @@
 ```
 
 **Coverage Achievements:**
+
 - ✅ Rhine: 15 stations (Basel → Rotterdam) - Full corridor
 - ✅ Danube: 15 stations (Passau → Black Sea) - 10 countries
 - ✅ Elbe: 10 stations (Prague → Hamburg) - Complete basin
@@ -163,6 +165,7 @@
 ## Major Economic Zones
 
 ### Rhine Corridor (€300B/year cargo)
+
 ```
 Basel (Switzerland)
   ↓ Chemical industry
@@ -181,6 +184,7 @@ Rotterdam (largest port in Europe)
 ```
 
 **Customer Value:**
+
 - Ports: €300-600/month each (10+ ports)
 - Chemical companies: €400-800/month
 - Shipping companies: €500-1000/month
@@ -189,6 +193,7 @@ Rotterdam (largest port in Europe)
 ---
 
 ### Danube Basin (10 Countries)
+
 ```
 Germany (Passau) → Austria (Vienna) → Slovakia (Bratislava)
      ↓                    ↓                    ↓
@@ -198,6 +203,7 @@ Black Sea            Croatia              Bulgaria
 ```
 
 **Customer Value:**
+
 - Capital cities: €400-800/month each (6 capitals)
 - Farmers (Hungary/Romania): €30-50/month × 100s
 - Shipping: €400-800/month
@@ -206,6 +212,7 @@ Black Sea            Croatia              Bulgaria
 ---
 
 ### Po Valley (Italy's Economic Heart)
+
 ```
 Turin (Alps) → Piacenza → Cremona → Mantova → Ferrara → Adriatic
     ↓             ↓          ↓          ↓         ↓
@@ -213,12 +220,14 @@ Turin (Alps) → Piacenza → Cremona → Mantova → Ferrara → Adriatic
 ```
 
 **Products at Risk:**
+
 - Parmigiano-Reggiano (€1.5B/year)
 - Prosciutto di Parma (€800M/year)
 - Wine (Lambrusco, Barbera)
 - Industrial: Automotive, machinery
 
 **Customer Value:**
+
 - Agricultural coops: €50-100/month × 100s
 - Food companies: €300-600/month
 - Italian insurance: €1,000-2,000/month (Po is #1 risk)
@@ -229,16 +238,16 @@ Turin (Alps) → Piacenza → Cremona → Mantova → Ferrara → Adriatic
 
 ### Recent Major Floods
 
-| Year | River | Damage | Deaths | Economic Impact |
-|------|-------|--------|--------|-----------------|
-| 2021 | Ahr (Rhine tributary) | €40B | 220 | Worst German disaster since WWII |
-| 2013 | Danube, Elbe | €12B | 25 | Multi-country crisis |
-| 2002 | Elbe | €15B | 17 | Dresden underwater |
-| 2023 | Po | €10B | 17 | Emilia-Romagna devastated |
-| 2024 | Po | - | 15 | Bologna region (again!) |
-| 2010 | Oder, Vistula | €3.5B | 20 | Poland-Germany border |
-| 1997 | Oder | - | 114 | "Flood of the Century" |
-| 2016 | Seine | €1B | 0 | Louvre basement flooded |
+| Year | River                 | Damage | Deaths | Economic Impact                  |
+| ---- | --------------------- | ------ | ------ | -------------------------------- |
+| 2021 | Ahr (Rhine tributary) | €40B   | 220    | Worst German disaster since WWII |
+| 2013 | Danube, Elbe          | €12B   | 25     | Multi-country crisis             |
+| 2002 | Elbe                  | €15B   | 17     | Dresden underwater               |
+| 2023 | Po                    | €10B   | 17     | Emilia-Romagna devastated        |
+| 2024 | Po                    | -      | 15     | Bologna region (again!)          |
+| 2010 | Oder, Vistula         | €3.5B  | 20     | Poland-Germany border            |
+| 1997 | Oder                  | -      | 114    | "Flood of the Century"           |
+| 2016 | Seine                 | €1B    | 0      | Louvre basement flooded          |
 
 **Insight:** These aren't rare events - **major floods happen every 2-3 years in Europe!**
 
@@ -247,7 +256,9 @@ Turin (Alps) → Piacenza → Cremona → Mantova → Ferrara → Adriatic
 ## Market Coverage Analysis
 
 ### After Quick Win (27 Stations)
+
 **Geographic Coverage:**
+
 - 🟢 Germany: Good (Rhine + Elbe covered)
 - 🟡 France: Partial (Seine + Rhône)
 - 🟡 Netherlands: Partial (Rhine delta)
@@ -259,6 +270,7 @@ Turin (Alps) → Piacenza → Cremona → Mantova → Ferrara → Adriatic
 - 🔴 UK: Missing
 
 **Customer Segments Unlocked:**
+
 - ✅ German municipalities
 - ✅ Port operators (Rotterdam, Hamburg, Duisburg)
 - ✅ Small insurance companies (regional)
@@ -267,7 +279,9 @@ Turin (Alps) → Piacenza → Cremona → Mantova → Ferrara → Adriatic
 ---
 
 ### After Priority 1 (59 Stations)
+
 **Geographic Coverage:**
+
 - 🟢 Germany: Complete
 - 🟢 France: Good
 - 🟢 Netherlands: Complete
@@ -283,6 +297,7 @@ Turin (Alps) → Piacenza → Cremona → Mantova → Ferrara → Adriatic
 - 🔴 UK: Missing
 
 **Customer Segments Unlocked:**
+
 - ✅ All Central European governments
 - ✅ Pan-European insurance companies
 - ✅ Railway operators (DB, ÖBB)
@@ -292,7 +307,9 @@ Turin (Alps) → Piacenza → Cremona → Mantova → Ferrara → Adriatic
 ---
 
 ### After Priority 2 (80+ Stations)
+
 **Geographic Coverage:**
+
 - 🟢 Complete Central Europe
 - 🟢 Complete Western Europe
 - 🟢 Complete Eastern Europe (Poland, Hungary, Romania)
@@ -301,6 +318,7 @@ Turin (Alps) → Piacenza → Cremona → Mantova → Ferrara → Adriatic
 - 🔴 Scandinavia: Missing (less flood-prone)
 
 **Customer Segments Unlocked:**
+
 - ✅ ALL European customers
 - ✅ EU agencies (European Environment Agency, Copernicus)
 - ✅ Reinsurance companies (Munich Re, Swiss Re)
@@ -311,6 +329,7 @@ Turin (Alps) → Piacenza → Cremona → Mantova → Ferrara → Adriatic
 ## Geographic Distribution Summary
 
 ### Current (17 stations)
+
 ```
 Distribution:
   Western Europe: 8 stations (47%)
@@ -330,6 +349,7 @@ Country Distribution:
 ```
 
 ### After Quick Win (27 stations)
+
 ```
 Distribution:
   Western Europe: 11 stations (41%)
@@ -344,6 +364,7 @@ NEW countries covered:
 ```
 
 ### After Priority 1 (59 stations)
+
 ```
 Distribution:
   Western Europe: 20 stations (34%)
@@ -365,23 +386,27 @@ ALL major rivers covered:
 ## Next Steps: Visual Verification
 
 ### 1. Check Current Coverage
+
 ```bash
 # List all current stations
 curl http://localhost:8080/v1/stations | jq '.[] | {code, name, river_basin, lat, lon}'
 ```
 
 ### 2. Add Quick Win Stations
+
 ```bash
 cd /home/lenovo/scrimba/floodsight/backend
 python add_priority_stations.py --quick-win
 ```
 
 ### 3. Verify on Dashboard
+
 - Open: http://localhost:8080/dashboard-figma.html
 - Check: New stations appear on map
 - Zoom: To Rhine (Kaub), Danube (Budapest), Elbe (Hamburg)
 
 ### 4. Update Marketing
+
 - Landing page: "Covering 27 critical European flood points"
 - Add map showing station coverage
 - Highlight: Rhine corridor (Basel to Rotterdam)
@@ -391,6 +416,7 @@ python add_priority_stations.py --quick-win
 ## Geographic Keywords for SEO
 
 ### River-Specific Keywords
+
 - "Rhine flood monitoring" (10K searches/month)
 - "Danube flood forecast" (5K searches/month)
 - "Hamburg Elbe flood warning" (8K searches/month)
@@ -398,6 +424,7 @@ python add_priority_stations.py --quick-win
 - "Budapest Danube flood" (3K searches/month)
 
 ### Location-Based Keywords
+
 - "Flood warning [city name]" (high intent)
 - "[river name] water level live" (monitoring intent)
 - "Flood forecast [region]" (planning intent)
@@ -424,7 +451,7 @@ python add_priority_stations.py --quick-win
 ---
 
 **Files:**
+
 - Technical details: `PRIORITY_STATIONS.md`
 - Quick reference: `STATION_EXPANSION_SUMMARY.md`
 - This file: `COVERAGE_MAP.md`
-

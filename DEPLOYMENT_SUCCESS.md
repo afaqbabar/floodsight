@@ -10,25 +10,26 @@
 
 ### Backend Components
 
-| Component | Status | Replicas | Age |
-|-----------|--------|----------|-----|
-| **Backend API** | ✅ Running | 2 | 90 min |
-| **Scheduler** | ✅ Running | 1 | 90 min |
-| **PostgreSQL** | ✅ Running | 1 (StatefulSet) | 98 min |
+| Component       | Status     | Replicas        | Age    |
+| --------------- | ---------- | --------------- | ------ |
+| **Backend API** | ✅ Running | 2               | 90 min |
+| **Scheduler**   | ✅ Running | 1               | 90 min |
+| **PostgreSQL**  | ✅ Running | 1 (StatefulSet) | 98 min |
 
 ### Network Services
 
-| Service | Type | Internal IP | External Access |
-|---------|------|-------------|-----------------|
-| **floodsight-backend** | ClusterIP | 10.43.68.71:8080 | Internal only |
-| **floodsight-backend-external** | LoadBalancer | 10.43.229.84 | NodePort 30636 |
-| **postgres** | ClusterIP | 10.43.185.107:5432 | Internal only |
+| Service                         | Type         | Internal IP        | External Access |
+| ------------------------------- | ------------ | ------------------ | --------------- |
+| **floodsight-backend**          | ClusterIP    | 10.43.68.71:8080   | Internal only   |
+| **floodsight-backend-external** | LoadBalancer | 10.43.229.84       | NodePort 30636  |
+| **postgres**                    | ClusterIP    | 10.43.185.107:5432 | Internal only   |
 
 ---
 
 ## 🌐 Access Points
 
 ### Primary Access (NodePort)
+
 ```
 http://192.168.178.50:30636
 ```
@@ -43,6 +44,7 @@ http://192.168.178.50:30636
 - **Metrics (Prometheus)**: http://192.168.178.50:30636/metrics
 
 ### Port-Forward Access (Alternative)
+
 ```bash
 kubectl port-forward -n floodsight svc/floodsight-backend 8080:8080
 # Then access: http://localhost:8080/docs
@@ -53,6 +55,7 @@ kubectl port-forward -n floodsight svc/floodsight-backend 8080:8080
 ## 🗄️ Database Configuration
 
 ### Connection Details
+
 ```
 Host: postgres.floodsight.svc.cluster.local
 Port: 5432
@@ -62,6 +65,7 @@ Password: postgres
 ```
 
 ### Seeded Data
+
 - **Stations**: 5 European river monitoring stations
   - Berlin Spree (52.52°N, 13.41°E)
   - Cologne Rhine (50.94°N, 6.96°E)
@@ -91,7 +95,7 @@ APP_VERSION: 0.1.0
 DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres.floodsight.svc.cluster.local:5432/floodsight
 
 # GloFAS Ingestion
-GLOFAS_INGEST_MODE: auto  # Tries real, falls back to fake
+GLOFAS_INGEST_MODE: auto # Tries real, falls back to fake
 CDS_API_URL: https://cds.climate.copernicus.eu/api
 CDS_API_KEY: ff5874bb-e24c-495f-878c-e206f74e0c36
 
@@ -103,15 +107,17 @@ ALERT_THRESHOLD_EXTREME: 2000
 
 # Scheduler
 SCHEDULER_ENABLED: true
-SCHEDULER_CRON: "0 * * * *"  # Hourly
+SCHEDULER_CRON: '0 * * * *' # Hourly
 ```
 
 ### Docker Image
+
 ```
 ghcr.io/afaqbabar/floodsight-backend:latest
 ```
 
 **Includes:**
+
 - Python 3.11
 - FastAPI 0.109.2
 - cdsapi 0.7.7 (new CDS API)
@@ -123,12 +129,14 @@ ghcr.io/afaqbabar/floodsight-backend:latest
 ## 📈 Current Metrics
 
 ### API Performance
+
 - **Health Status**: ✅ OK
 - **Database**: ✅ Connected
 - **Available Forecasts**: 520+
 - **Active Stations**: 5
 
 ### Resource Usage
+
 ```yaml
 Requests:
   CPU: 200m per pod
@@ -144,6 +152,7 @@ Limits:
 ## 🔄 Data Ingestion
 
 ### Current Mode: AUTO
+
 - **Tries**: Real GloFAS data from ECMWF CDS
 - **Falls back to**: Synthetic data if real fails
 - **Frequency**: Hourly (via APScheduler)
@@ -152,6 +161,7 @@ Limits:
 ### Why Synthetic Data?
 
 The `cems-glofas-forecast` dataset is not available on the regular Climate Data Store (CDS). It likely requires:
+
 - Access to **CEMS Early Warning Data Store**
 - Special permissions or license
 - Different API endpoint
@@ -159,6 +169,7 @@ The `cems-glofas-forecast` dataset is not available on the regular Climate Data 
 **See `GLOFAS_DATA_ACCESS_ISSUE.md` for details on accessing real data.**
 
 ### Synthetic Data Quality
+
 - ✅ Realistic discharge values
 - ✅ Proper time series structure
 - ✅ Covers all stations
@@ -169,26 +180,31 @@ The `cems-glofas-forecast` dataset is not available on the regular Climate Data 
 ## 🔧 Troubleshooting
 
 ### Check Pod Status
+
 ```bash
 kubectl get pods -n floodsight
 ```
 
 ### View Backend Logs
+
 ```bash
 kubectl logs -n floodsight -l component=backend --tail=50
 ```
 
 ### View Scheduler Logs
+
 ```bash
 kubectl logs -f -l component=scheduler -n floodsight
 ```
 
 ### Restart Backend
+
 ```bash
 kubectl rollout restart deployment/floodsight-backend -n floodsight
 ```
 
 ### Manual Ingestion Test
+
 ```bash
 curl -X POST http://192.168.178.50:30636/v1/forecasts/ingest \
   -H "Content-Type: application/json" \
@@ -200,12 +216,14 @@ curl -X POST http://192.168.178.50:30636/v1/forecasts/ingest \
 ## 🚀 Next Steps
 
 ### For Development
+
 1. ✅ Backend is ready for frontend integration
 2. ✅ API documentation available at `/docs`
 3. ✅ All CRUD endpoints operational
 4. ✅ Real-time data updates via scheduler
 
 ### For Production
+
 1. **Set up LoadBalancer (MetalLB)**
    - Configure IP address pool
    - Get external IP instead of NodePort
@@ -233,6 +251,7 @@ curl -X POST http://192.168.178.50:30636/v1/forecasts/ingest \
 ## 📂 Key Files
 
 ### Kubernetes Manifests
+
 ```
 deploy/k8s/base/
 ├── backend-deployment.yaml      # Backend & Scheduler
@@ -244,6 +263,7 @@ deploy/k8s/base/
 ```
 
 ### Backend Code
+
 ```
 backend/
 ├── app/
@@ -257,6 +277,7 @@ backend/
 ```
 
 ### Documentation
+
 ```
 docs/
 ├── DEVELOPMENT_PROMPT.md           # Full project spec
@@ -294,10 +315,10 @@ docs/
 ✅ **520+ forecasts** available for 5 European stations  
 ✅ **RESTful API** with Swagger documentation  
 ✅ **Auto-scaling** configured  
-✅ **Production-ready** architecture  
+✅ **Production-ready** architecture
 
 **Current Mode**: Synthetic data (realistic flood forecasts)  
-**Next Goal**: Access real ECMWF GloFAS data  
+**Next Goal**: Access real ECMWF GloFAS data
 
 ---
 
@@ -309,4 +330,3 @@ docs/
 - **GloFAS**: https://www.globalfloods.eu/
 
 **Congratulations on your successful deployment!** 🎉🌊
-

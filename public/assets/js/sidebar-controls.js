@@ -11,14 +11,14 @@ class SidebarControls {
       basin: '',
       country: '',
       leadtime: '48',
-      alert: ''
+      alert: '',
     };
-    
+
     this.layers = {
       forecast: true,
       observations: false,
       'risk-zones': false,
-      alerts: true
+      alerts: true,
     };
 
     this.stations = [];
@@ -79,8 +79,8 @@ class SidebarControls {
    */
   initLayerListeners() {
     const layerInputs = document.querySelectorAll('.toggle-switch-input');
-    
-    layerInputs.forEach(input => {
+
+    layerInputs.forEach((input) => {
       input.addEventListener('change', (e) => {
         const layer = e.target.dataset.layer;
         this.layers[layer] = e.target.checked;
@@ -94,7 +94,7 @@ class SidebarControls {
    */
   initResetButton() {
     const resetBtn = document.getElementById('reset-filters');
-    
+
     resetBtn?.addEventListener('click', () => {
       this.resetFilters();
     });
@@ -110,13 +110,13 @@ class SidebarControls {
       this.stations = stations;
 
       // Extract unique basins and countries
-      const basins = [...new Set(stations.map(s => s.basin).filter(Boolean))].sort();
-      const countries = [...new Set(stations.map(s => s.country).filter(Boolean))].sort();
+      const basins = [...new Set(stations.map((s) => s.basin).filter(Boolean))].sort();
+      const countries = [...new Set(stations.map((s) => s.country).filter(Boolean))].sort();
 
       // Populate basin dropdown
       const basinFilter = document.getElementById('basin-filter');
       if (basinFilter) {
-        basins.forEach(basin => {
+        basins.forEach((basin) => {
           const option = document.createElement('option');
           option.value = basin;
           option.textContent = basin;
@@ -127,7 +127,7 @@ class SidebarControls {
       // Populate country dropdown
       const countryFilter = document.getElementById('country-filter');
       if (countryFilter) {
-        countries.forEach(country => {
+        countries.forEach((country) => {
           const option = document.createElement('option');
           option.value = country;
           option.textContent = country;
@@ -135,7 +135,9 @@ class SidebarControls {
         });
       }
 
-      console.log(`📊 Loaded ${stations.length} stations, ${basins.length} basins, ${countries.length} countries`);
+      console.log(
+        `📊 Loaded ${stations.length} stations, ${basins.length} basins, ${countries.length} countries`
+      );
     } catch (error) {
       console.error('❌ Error populating filters:', error);
     }
@@ -230,7 +232,7 @@ class SidebarControls {
       basin: '',
       country: '',
       leadtime: '48',
-      alert: ''
+      alert: '',
     };
 
     // Reset UI
@@ -251,7 +253,7 @@ class SidebarControls {
   updateActiveFiltersDisplay() {
     const container = document.getElementById('active-filters');
     const list = document.getElementById('active-filters-list');
-    
+
     if (!container || !list) return;
 
     // Clear current list
@@ -259,7 +261,7 @@ class SidebarControls {
 
     // Check if any filters are active
     const activeFilters = [];
-    
+
     if (this.filters.basin) {
       activeFilters.push({ key: 'Basin', value: this.filters.basin, id: 'basin' });
     }
@@ -274,29 +276,33 @@ class SidebarControls {
         extreme: '🔴 Extreme',
         severe: '🟠 Severe',
         warning: '🟡 Warning',
-        info: '🔵 Info'
+        info: '🔵 Info',
       };
-      activeFilters.push({ key: 'Alert', value: alertLabels[this.filters.alert] || this.filters.alert, id: 'alert' });
+      activeFilters.push({
+        key: 'Alert',
+        value: alertLabels[this.filters.alert] || this.filters.alert,
+        id: 'alert',
+      });
     }
 
     // Show/hide container
     if (activeFilters.length > 0) {
       container.style.display = 'block';
-      
+
       // Add filter tags
-      activeFilters.forEach(filter => {
+      activeFilters.forEach((filter) => {
         const tag = document.createElement('div');
         tag.className = 'active-filter-tag';
         tag.innerHTML = `
           <span><strong>${filter.key}:</strong> ${filter.value}</span>
           <button class="active-filter-remove" data-filter="${filter.id}" title="Remove filter">×</button>
         `;
-        
+
         // Add remove listener
         tag.querySelector('.active-filter-remove').addEventListener('click', () => {
           this.removeFilter(filter.id);
         });
-        
+
         list.appendChild(tag);
       });
     } else {
@@ -333,7 +339,7 @@ class SidebarControls {
   getFilteredStations() {
     if (!this.stations || this.stations.length === 0) return [];
 
-    return this.stations.filter(station => {
+    return this.stations.filter((station) => {
       let matches = true;
 
       if (this.filters.basin && station.basin !== this.filters.basin) {
@@ -355,6 +361,3 @@ class SidebarControls {
 
 // Export singleton instance
 export const sidebarControls = new SidebarControls();
-
-
-

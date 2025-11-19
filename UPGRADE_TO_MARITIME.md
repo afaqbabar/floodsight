@@ -15,13 +15,16 @@ FloodSight Maritime is a powerful extension to your existing flood monitoring pl
 ## ✨ Three Maritime Capabilities
 
 ### Phase 1: Dark Vessel Detection & Monitoring
+
 **What you get:**
+
 - CFAR-based vessel detection from your existing Sentinel-1 SAR scenes
 - Automatic identification of vessels without AIS (dark vessels)
 - GeoJSON API for map integration: `/v1/vessels/geojson`
 - Real-time alerts for suspicious vessel activity
 
 **Use cases:**
+
 - Illegal fishing enforcement
 - Maritime traffic monitoring
 - Border control & smuggling prevention
@@ -30,13 +33,16 @@ FloodSight Maritime is a powerful extension to your existing flood monitoring pl
 ---
 
 ### Phase 2: Port Safe Draught & Siltation Monitoring
+
 **What you get:**
+
 - Real-time safe draught calculations for navigable channels
 - Siltation depth estimation based on GloFAS discharge + SAR water masks
 - Port accessibility alerts when safe draught drops >0.5m
 - API endpoint: `/v1/maritime/port-risk?port=duisburg`
 
 **Use cases:**
+
 - Port authority operations
 - Shipping company route planning
 - Supply chain risk management
@@ -45,13 +51,16 @@ FloodSight Maritime is a powerful extension to your existing flood monitoring pl
 ---
 
 ### Phase 3: Flood Plume & Nutrient Tracking
+
 **What you get:**
+
 - Automatic detection of nutrient/sediment plumes from flood events
 - 20-80km buffer zones based on peak discharge
 - Alerts when ≥5 dark vessels detected in plume zones
 - GeoJSON layers for dashboard: `/v1/maritime/plumes/geojson`
 
 **Use cases:**
+
 - Environmental monitoring
 - Fisheries management
 - Illegal dumping detection
@@ -60,7 +69,9 @@ FloodSight Maritime is a powerful extension to your existing flood monitoring pl
 ---
 
 ## 🎯 Grounding Risk Heatmap (New!)
+
 **Interactive tile-based visualization:**
+
 - Vector tiles: `/v1/maritime/grounding-risk/tiles/{z}/{x}/{y}.pbf`
 - Color-coded risk levels:
   - 🟢 **Green**: Safe (clearance > 2m)
@@ -74,15 +85,15 @@ FloodSight Maritime is a powerful extension to your existing flood monitoring pl
 
 ### Maritime Edition Plans
 
-| Feature | Basic Flood | **Maritime Add-On** |
-|---------|-------------|---------------------|
-| Flood forecasting | ✅ | ✅ |
-| Sentinel-1 water masks | ✅ | ✅ |
-| GloFAS integration | ✅ | ✅ |
-| **Vessel detection** | ❌ | ✅ |
-| **Port monitoring** | ❌ | ✅ |
-| **Plume tracking** | ❌ | ✅ |
-| **Grounding risk tiles** | ❌ | ✅ |
+| Feature                  | Basic Flood | **Maritime Add-On** |
+| ------------------------ | ----------- | ------------------- |
+| Flood forecasting        | ✅          | ✅                  |
+| Sentinel-1 water masks   | ✅          | ✅                  |
+| GloFAS integration       | ✅          | ✅                  |
+| **Vessel detection**     | ❌          | ✅                  |
+| **Port monitoring**      | ❌          | ✅                  |
+| **Plume tracking**       | ❌          | ✅                  |
+| **Grounding risk tiles** | ❌          | ✅                  |
 
 **Upgrade Price:** Contact sales@floodsight.com
 
@@ -91,7 +102,9 @@ FloodSight Maritime is a powerful extension to your existing flood monitoring pl
 ## 🚀 How to Upgrade (2 Steps)
 
 ### Step 1: Request Maritime Activation
+
 Contact your account manager or email `sales@floodsight.com` with:
+
 ```
 Subject: Maritime Edition Upgrade Request
 
@@ -112,12 +125,13 @@ Expected vessel count: [e.g., "50-100 vessels/day"]
 ---
 
 ### Step 2: Feature Activation (Done by FloodSight Team)
+
 Once approved, our team will update your account with feature flags:
 
 ```sql
 -- Example (done by FloodSight admin)
-UPDATE users 
-SET 
+UPDATE users
+SET
   pricing_tier = 'maritime',
   has_maritime_vessel_detection = true,
   has_maritime_port_monitoring = true,
@@ -133,7 +147,9 @@ WHERE email = 'your-account@company.com';
 ## 📊 What Happens After Activation
 
 ### Immediate Access (< 1 hour):
+
 1. **New API endpoints** become available:
+
    ```
    GET  /v1/vessels
    GET  /v1/vessels/geojson
@@ -156,9 +172,11 @@ WHERE email = 'your-account@company.com';
 ---
 
 ### Dashboard Updates (Frontend):
+
 Add these widgets to your existing dashboard:
 
 **1. Vessel Detections Layer** (Mapbox GL JS)
+
 ```javascript
 // Fetch GeoJSON and add to map
 const vessels = await fetch('/v1/vessels/geojson?hours=24');
@@ -168,22 +186,24 @@ map.addLayer({
   source: { type: 'geojson', data: vessels },
   paint: {
     'circle-radius': 6,
-    'circle-color': '#ef4444'  // red for dark vessels
-  }
+    'circle-color': '#ef4444', // red for dark vessels
+  },
 });
 ```
 
 **2. Port Risk Cards**
+
 ```javascript
 const summary = await fetch('/v1/maritime/port-risk/summary');
 // Display as color-coded cards (green/yellow/red)
 ```
 
 **3. Grounding Risk Heatmap**
+
 ```javascript
 map.addSource('grounding-risk', {
   type: 'vector',
-  tiles: ['/v1/maritime/grounding-risk/tiles/{z}/{x}/{y}.pbf?vessel_type=large']
+  tiles: ['/v1/maritime/grounding-risk/tiles/{z}/{x}/{y}.pbf?vessel_type=large'],
 });
 ```
 
@@ -191,12 +211,12 @@ map.addSource('grounding-risk', {
 
 ## 📈 Expected Data Volume
 
-| Metric | Typical Value | Your Infrastructure Impact |
-|--------|---------------|---------------------------|
-| Vessel detections/day | 50-200 | +1-5 MB database storage |
-| Port calculations/day | 3-10 ports × 24 hours | +100 KB |
-| Plume detections/month | 2-5 events | +500 KB |
-| API calls/day | +500-1000 | Negligible (cached) |
+| Metric                 | Typical Value         | Your Infrastructure Impact |
+| ---------------------- | --------------------- | -------------------------- |
+| Vessel detections/day  | 50-200                | +1-5 MB database storage   |
+| Port calculations/day  | 3-10 ports × 24 hours | +100 KB                    |
+| Plume detections/month | 2-5 events            | +500 KB                    |
+| API calls/day          | +500-1000             | Negligible (cached)        |
 
 **No additional compute needed** – Maritime processing runs in your existing Prefect/APScheduler flow.
 
@@ -214,12 +234,14 @@ map.addSource('grounding-risk', {
 ## 🛠️ Technical Requirements
 
 ### Already Have (No Changes):
+
 ✅ Sentinel-1 SAR ingestion  
 ✅ GloFAS discharge data  
 ✅ PostGIS database  
 ✅ Prefect/APScheduler orchestration
 
 ### New Dependencies (Auto-installed):
+
 - `scipy` (CFAR vessel detection)
 - `shapely` (geometry operations)
 - `numpy` (array operations)
@@ -231,6 +253,7 @@ map.addSource('grounding-risk', {
 ## 📞 Support & Onboarding
 
 **Included with Maritime Edition:**
+
 - 1-hour onboarding call (Zoom)
 - Integration examples (Python, JavaScript, cURL)
 - Dashboard widget templates (React/Next.js)
@@ -238,6 +261,7 @@ map.addSource('grounding-risk', {
 - Slack channel access (optional)
 
 **Documentation:**
+
 - API Reference: `/docs#/Maritime`
 - Integration Guide: `VESSEL_DETECTION_INTEGRATION.md`
 - Phase 2 Docs: `MARITIME_PHASE2_COMPLETE.md`
@@ -248,6 +272,7 @@ map.addSource('grounding-risk', {
 ## 🎁 Early Adopter Benefits
 
 **Upgrade by Dec 31, 2025 and receive:**
+
 - 🎉 **3 months free** Maritime Edition trial
 - 📚 **Priority support** (4-hour response time)
 - 🗺️ **Custom area of interest** configuration
@@ -291,6 +316,7 @@ A: Yes – 30-day full-featured trial for existing customers. Contact sales.
 ## 🌊 Join the Maritime Intelligence Revolution
 
 FloodSight Maritime is already trusted by:
+
 - 🇩🇪 German Federal Waterways (WSV)
 - 🇳🇱 Port of Rotterdam Authority
 - 🏴󠁧󠁢󠁥󠁮󠁧󠁿 UK Environment Agency
@@ -300,11 +326,10 @@ FloodSight Maritime is already trusted by:
 
 ---
 
-*FloodSight Maritime Edition – Because floods don't stop at the shore.* 🚢
+_FloodSight Maritime Edition – Because floods don't stop at the shore._ 🚢
 
 ---
 
 **Version:** 1.0  
 **Last Updated:** November 19, 2025  
 **Contact:** maritime@floodsight.com
-

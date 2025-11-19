@@ -203,9 +203,7 @@
             </select>
           </label>
 
-          <button class="filter-reset-btn" id="reset-filters">
-            Reset Filters
-          </button>
+          <button class="filter-reset-btn" id="reset-filters">Reset Filters</button>
         </div>
 
         <!-- Layers Section -->
@@ -218,7 +216,13 @@
               <span class="layer-toggle__desc">GloFAS flood forecasts</span>
             </div>
             <label class="toggle-switch-wrapper">
-              <input type="checkbox" class="toggle-switch-input" id="layer-forecast" checked data-layer="forecast">
+              <input
+                type="checkbox"
+                class="toggle-switch-input"
+                id="layer-forecast"
+                checked
+                data-layer="forecast"
+              />
               <span class="toggle-switch-slider"></span>
             </label>
           </div>
@@ -229,7 +233,12 @@
               <span class="layer-toggle__desc">Real-time gauge data</span>
             </div>
             <label class="toggle-switch-wrapper">
-              <input type="checkbox" class="toggle-switch-input" id="layer-observations" data-layer="observations">
+              <input
+                type="checkbox"
+                class="toggle-switch-input"
+                id="layer-observations"
+                data-layer="observations"
+              />
               <span class="toggle-switch-slider"></span>
             </label>
           </div>
@@ -240,7 +249,12 @@
               <span class="layer-toggle__desc">Flood risk areas</span>
             </div>
             <label class="toggle-switch-wrapper">
-              <input type="checkbox" class="toggle-switch-input" id="layer-risk-zones" data-layer="risk-zones">
+              <input
+                type="checkbox"
+                class="toggle-switch-input"
+                id="layer-risk-zones"
+                data-layer="risk-zones"
+              />
               <span class="toggle-switch-slider"></span>
             </label>
           </div>
@@ -251,7 +265,13 @@
               <span class="layer-toggle__desc">Current flood alerts</span>
             </div>
             <label class="toggle-switch-wrapper">
-              <input type="checkbox" class="toggle-switch-input" id="layer-alerts" checked data-layer="alerts">
+              <input
+                type="checkbox"
+                class="toggle-switch-input"
+                id="layer-alerts"
+                checked
+                data-layer="alerts"
+              />
               <span class="toggle-switch-slider"></span>
             </label>
           </div>
@@ -261,32 +281,41 @@
         <div class="legend">
           <h3 class="legend__title">Alert Levels</h3>
           <div class="legend-item">
-            <div class="legend-item__color" style="background: #dc2626;"></div>
+            <div class="legend-item__color" style="background: #dc2626"></div>
             <span class="legend-item__label">Extreme</span>
             <span class="legend-item__value">Catastrophic flooding</span>
           </div>
           <div class="legend-item">
-            <div class="legend-item__color" style="background: #f97316;"></div>
+            <div class="legend-item__color" style="background: #f97316"></div>
             <span class="legend-item__label">Severe</span>
             <span class="legend-item__value">Major flooding</span>
           </div>
           <div class="legend-item">
-            <div class="legend-item__color" style="background: #f59e0b;"></div>
+            <div class="legend-item__color" style="background: #f59e0b"></div>
             <span class="legend-item__label">Warning</span>
             <span class="legend-item__value">Flooding likely</span>
           </div>
           <div class="legend-item">
-            <div class="legend-item__color" style="background: #3b82f6;"></div>
+            <div class="legend-item__color" style="background: #3b82f6"></div>
             <span class="legend-item__label">Info</span>
             <span class="legend-item__value">Elevated levels</span>
           </div>
-          <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 11px; color: #6b7280;">
-            <strong>Note:</strong> Thresholds vary by river size. Rhine/Danube: 3000-9000 m³/s, Main/Elbe: 400-2500 m³/s
+          <div
+            style="
+              margin-top: 8px;
+              padding-top: 8px;
+              border-top: 1px solid #e5e7eb;
+              font-size: 11px;
+              color: #6b7280;
+            "
+          >
+            <strong>Note:</strong> Thresholds vary by river size. Rhine/Danube: 3000-9000 m³/s,
+            Main/Elbe: 400-2500 m³/s
           </div>
         </div>
 
         <!-- Active Filters Display -->
-        <div class="active-filters" id="active-filters" style="display: none;">
+        <div class="active-filters" id="active-filters" style="display: none">
           <h3 class="sidebar-section__title">Active Filters</h3>
           <div id="active-filters-list"></div>
         </div>
@@ -446,7 +475,7 @@
       let allForecasts = [];
       let forecastLineChart = null;
       let forecastBarChart = null;
-      
+
       // Create marker layer group for sidebar controls
       const markerLayerGroup = L.layerGroup().addTo(map);
 
@@ -454,7 +483,7 @@
       import('/assets/js/api-service.js')
         .then(async (API) => {
           console.log('🌐 Connecting to API:', API.getAPIConfig().baseUrl);
-          
+
           let stations = [];
           let alerts = [];
           let forecasts = [];
@@ -462,23 +491,23 @@
           try {
             // Try to fetch data from API with individual error handling
             const results = await Promise.allSettled([
-              API.getStations().catch(err => {
+              API.getStations().catch((err) => {
                 console.warn('⚠️ Failed to load stations:', err.message);
                 return [];
               }),
-              API.getActiveAlerts().catch(err => {
+              API.getActiveAlerts().catch((err) => {
                 console.warn('⚠️ Failed to load alerts:', err.message);
                 return [];
               }),
-              API.getForecasts({ limit: 100 }).catch(err => {
+              API.getForecasts({ limit: 100 }).catch((err) => {
                 console.warn('⚠️ Failed to load forecasts:', err.message);
                 return [];
               }),
             ]);
 
-            stations = results[0].status === 'fulfilled' ? (results[0].value || []) : [];
-            alerts = results[1].status === 'fulfilled' ? (results[1].value || []) : [];
-            forecasts = results[2].status === 'fulfilled' ? (results[2].value || []) : [];
+            stations = results[0].status === 'fulfilled' ? results[0].value || [] : [];
+            alerts = results[1].status === 'fulfilled' ? results[1].value || [] : [];
+            forecasts = results[2].status === 'fulfilled' ? results[2].value || [] : [];
 
             allStations = stations;
             allAlerts = alerts;
@@ -488,28 +517,41 @@
             if (stations.length === 0 && alerts.length === 0 && allForecasts.length === 0) {
               showAPIError('API is not available. Showing demo data.');
             } else {
-              const latestForecast = allForecasts.length > 0 ? allForecasts[allForecasts.length - 1] : null;
-              const latestRun = latestForecast?.model_run ? new Date(latestForecast.model_run) : null;
+              const latestForecast =
+                allForecasts.length > 0 ? allForecasts[allForecasts.length - 1] : null;
+              const latestRun = latestForecast?.model_run
+                ? new Date(latestForecast.model_run)
+                : null;
               const updatedStamp = latestRun
                 ? `${latestRun.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} ${latestRun.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
                 : new Date().toLocaleTimeString();
-              document.getElementById('updateTime').textContent = `Updated: ${updatedStamp} • Live Data`;
+              document.getElementById('updateTime').textContent =
+                `Updated: ${updatedStamp} • Live Data`;
             }
 
             // Display stations
             if (stations && stations.length > 0) {
               // Remove hardcoded zones when we have real data
               map.eachLayer((layer) => {
-                if (layer instanceof L.Circle && layer !== highRiskZone && layer !== mediumRiskZone && layer !== lowRiskZone) {
+                if (
+                  layer instanceof L.Circle &&
+                  layer !== highRiskZone &&
+                  layer !== mediumRiskZone &&
+                  layer !== lowRiskZone
+                ) {
                   // Keep API-generated circles
-                } else if (layer === highRiskZone || layer === mediumRiskZone || layer === lowRiskZone) {
+                } else if (
+                  layer === highRiskZone ||
+                  layer === mediumRiskZone ||
+                  layer === lowRiskZone
+                ) {
                   map.removeLayer(layer);
                 }
               });
 
               // Center map on first station
               map.setView([stations[0].lat, stations[0].lon], 6);
-              
+
               // Create markers with station metadata
               stations.forEach((station) => {
                 const marker = L.marker([station.lat, station.lon]);
@@ -580,7 +622,8 @@
             } else {
               // Show demo message
               document.getElementById('mainStationTitle').textContent = 'Demo Mode';
-              document.getElementById('mainStationSubtitle').textContent = 'API not available - showing sample data';
+              document.getElementById('mainStationSubtitle').textContent =
+                'API not available - showing sample data';
             }
           } catch (error) {
             console.error('❌ API Error:', error);
@@ -598,7 +641,7 @@
         if (updateTimeEl) {
           updateTimeEl.innerHTML = `<span style="color: #EF4444;">⚠️ ${message}</span>`;
         }
-        
+
         const mainTitle = document.getElementById('mainStationTitle');
         if (mainTitle && mainTitle.textContent === 'Loading Station Data...') {
           mainTitle.textContent = 'API Unavailable';
@@ -621,7 +664,8 @@
         const stationCountryEl = document.getElementById('stationCountry');
 
         if (mainTitle) {
-          mainTitle.textContent = station.river_name || station.river_basin || station.name || 'Unknown Station';
+          mainTitle.textContent =
+            station.river_name || station.river_basin || station.name || 'Unknown Station';
         }
         if (mainSubtitle) {
           mainSubtitle.textContent = `${station.name || 'Station'} Forecast Area`;
@@ -651,7 +695,8 @@
           console.info('No forecasts available for station:', stationId);
           const updateTimeEl = document.getElementById('updateTime');
           if (updateTimeEl) {
-            updateTimeEl.innerHTML = '<span style="color: #EF4444;">No live forecasts available for this station</span>';
+            updateTimeEl.innerHTML =
+              '<span style="color: #EF4444;">No live forecasts available for this station</span>';
           }
         }
 
@@ -687,7 +732,9 @@
         }
 
         // Populate basins (river names)
-        const basins = [...new Set(stations.map((s) => s.river_name || s.river_basin).filter(Boolean))].sort();
+        const basins = [
+          ...new Set(stations.map((s) => s.river_name || s.river_basin).filter(Boolean)),
+        ].sort();
         const basinFilter = document.getElementById('basin-filter');
         if (basinFilter && basins.length > 0) {
           // Clear existing options except "Basin" placeholder
@@ -783,7 +830,8 @@
                   label: (context) => {
                     const forecast = forecasts[context.dataIndex];
                     const discharge = Number(forecast.discharge_cumecs || 0).toFixed(1);
-                    const lead = forecast.lead_time_hours != null ? `• +${forecast.lead_time_hours}h` : '';
+                    const lead =
+                      forecast.lead_time_hours != null ? `• +${forecast.lead_time_hours}h` : '';
                     const ts = forecast.ts ? new Date(forecast.ts).toLocaleString() : '';
                     return `Discharge: ${discharge} m³/s ${lead}${ts ? ` • ${ts}` : ''}`;
                   },
@@ -826,48 +874,48 @@
           return dateObj.toLocaleDateString(undefined, { weekday: 'short' });
         });
         const values = sortedKeys.map((key) => dailyPeakMap[key]);
-        
+
         // Get station-specific thresholds based on passed station
         const stationName = station?.name || '';
-        
+
         console.log('🔍 Bar Chart Debug:', {
           stationId: station?.id,
           stationName: stationName,
-          stationCode: station?.code
+          stationCode: station?.code,
         });
-        
+
         // Define river-specific thresholds for bar chart colors
-        let severeThreshold = 1500;  // default
-        let warningThreshold = 800;  // default
-        
+        let severeThreshold = 1500; // default
+        let warningThreshold = 800; // default
+
         if (stationName.includes('Rhine') || stationName.includes('Cologne')) {
-          severeThreshold = 6000;  // Rhine severe flooding
+          severeThreshold = 6000; // Rhine severe flooding
           warningThreshold = 3500; // Rhine high water
         } else if (stationName.includes('Danube') || stationName.includes('Vienna')) {
-          severeThreshold = 5500;  // Danube severe flooding
+          severeThreshold = 5500; // Danube severe flooding
           warningThreshold = 3000; // Danube high water
         } else if (stationName.includes('Elbe') || stationName.includes('Dresden')) {
-          severeThreshold = 2000;  // Elbe severe flooding
-          warningThreshold = 800;  // Elbe high water
+          severeThreshold = 2000; // Elbe severe flooding
+          warningThreshold = 800; // Elbe high water
         } else if (stationName.includes('Main') || stationName.includes('Frankfurt')) {
-          severeThreshold = 800;   // Main severe flooding
-          warningThreshold = 400;  // Main high water
+          severeThreshold = 800; // Main severe flooding
+          warningThreshold = 400; // Main high water
         } else if (stationName.includes('Spree') || stationName.includes('Berlin')) {
-          severeThreshold = 80;    // Spree severe flooding
-          warningThreshold = 40;   // Spree high water
+          severeThreshold = 80; // Spree severe flooding
+          warningThreshold = 40; // Spree high water
         }
-        
+
         console.log('🎨 Thresholds applied:', {
           station: stationName,
           warningThreshold,
           severeThreshold,
-          maxValue: Math.max(...values)
+          maxValue: Math.max(...values),
         });
-        
+
         const colors = values.map((value) => {
-          if (value >= severeThreshold) return '#EF4444';  // Red - severe/extreme
+          if (value >= severeThreshold) return '#EF4444'; // Red - severe/extreme
           if (value >= warningThreshold) return '#F59E0B'; // Orange - warning
-          return '#3B82F6';  // Blue - normal/info
+          return '#3B82F6'; // Blue - normal/info
         });
 
         if (forecastBarChart) {
@@ -943,8 +991,8 @@
         const targetLabel = targetDate
           ? targetDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
           : leadHorizon > 0
-          ? `+${leadHorizon}h`
-          : 'N/A';
+            ? `+${leadHorizon}h`
+            : 'N/A';
 
         updateTimeEl.innerHTML = `
           <strong>Updated:</strong> ${runLabel}
@@ -961,9 +1009,16 @@
         const normalized = {
           ...forecast,
           // Map API field names to frontend expectations
-          lead_time_hours: forecast.lead_hours ?? forecast.lead_time_hours ?? forecast.lead_time ?? null,
-          discharge_cumecs: forecast.discharge_m3s ?? forecast.discharge_cumecs ?? forecast.discharge ?? null,
-          forecast_timestamp: forecast.ts ?? forecast.forecast_timestamp ?? forecast.timestamp ?? forecast.forecast_time ?? null,
+          lead_time_hours:
+            forecast.lead_hours ?? forecast.lead_time_hours ?? forecast.lead_time ?? null,
+          discharge_cumecs:
+            forecast.discharge_m3s ?? forecast.discharge_cumecs ?? forecast.discharge ?? null,
+          forecast_timestamp:
+            forecast.ts ??
+            forecast.forecast_timestamp ??
+            forecast.timestamp ??
+            forecast.forecast_time ??
+            null,
           station_name: forecast.station?.name ?? forecast.station_name ?? null,
           // Keep original fields too
           lead_hours: forecast.lead_hours ?? forecast.lead_time_hours ?? null,
@@ -1046,7 +1101,7 @@
         select.addEventListener('change', (e) => {
           const filterId = e.target.id;
           const filterValue = e.target.value.toLowerCase();
-          
+
           console.log(`Filter ${filterId}:`, filterValue);
 
           // Filter station markers on map
@@ -1056,7 +1111,9 @@
             if (filterId === 'country-filter' && filterValue) {
               show = station.country && station.country.toLowerCase() === filterValue;
             } else if (filterId === 'basin-filter' && filterValue) {
-              const basin = (station.river_name || station.river_basin || '').toLowerCase().replace(/\s+/g, '-');
+              const basin = (station.river_name || station.river_basin || '')
+                .toLowerCase()
+                .replace(/\s+/g, '-');
               show = basin === filterValue;
             } else if (filterId === 'leadtime-filter' && filterValue) {
               // Filter by lead time - check if station has forecasts with this lead time

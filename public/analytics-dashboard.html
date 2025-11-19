@@ -1,487 +1,517 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FloodSight - Alert Analytics</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
 
-        header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
+      header {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+      }
 
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
 
-        .subtitle {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
+      .subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
 
-        .nav-links {
-            margin-top: 15px;
-        }
+      .nav-links {
+        margin-top: 15px;
+      }
 
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            margin: 0 15px;
-            padding: 8px 16px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 20px;
-            transition: all 0.3s;
-        }
+      .nav-links a {
+        color: white;
+        text-decoration: none;
+        margin: 0 15px;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        transition: all 0.3s;
+      }
 
-        .nav-links a:hover {
-            background: rgba(255,255,255,0.3);
-        }
+      .nav-links a:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
 
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            text-align: center;
-            transition: transform 0.3s;
-        }
+      .stat-card {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        transition: transform 0.3s;
+      }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
 
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin: 10px 0;
-        }
+      .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 10px 0;
+      }
 
-        .stat-label {
-            color: #666;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+      .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
 
-        .level-info { color: #2196F3; }
-        .level-warning { color: #FF9800; }
-        .level-severe { color: #F44336; }
-        .level-extreme { color: #9C27B0; }
+      .level-info {
+        color: #2196f3;
+      }
+      .level-warning {
+        color: #ff9800;
+      }
+      .level-severe {
+        color: #f44336;
+      }
+      .level-extreme {
+        color: #9c27b0;
+      }
 
+      .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .chart-card {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .chart-card h2 {
+        margin-bottom: 20px;
+        color: #333;
+        font-size: 1.3rem;
+      }
+
+      .chart-container {
+        position: relative;
+        height: 300px;
+      }
+
+      .station-list {
+        background: white;
+        padding: 25px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        margin-bottom: 30px;
+      }
+
+      .station-list h2 {
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+
+      th {
+        background: #f5f5f5;
+        font-weight: 600;
+        color: #333;
+      }
+
+      tr:hover {
+        background: #f9f9f9;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .badge-high {
+        background: #ffebee;
+        color: #c62828;
+      }
+      .badge-medium {
+        background: #fff3e0;
+        color: #ef6c00;
+      }
+      .badge-low {
+        background: #e3f2fd;
+        color: #1565c0;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 50px;
+        color: white;
+        font-size: 1.2rem;
+      }
+
+      .filter-bar {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .filter-bar label {
+        font-weight: 600;
+        color: #333;
+      }
+
+      .filter-bar select {
+        padding: 8px 16px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+
+      .refresh-btn {
+        margin-left: auto;
+        padding: 10px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: transform 0.2s;
+      }
+
+      .refresh-btn:hover {
+        transform: scale(1.05);
+      }
+
+      @media (max-width: 768px) {
         .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+          grid-template-columns: 1fr;
         }
-
-        .chart-card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        .chart-card h2 {
-            margin-bottom: 20px;
-            color: #333;
-            font-size: 1.3rem;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 300px;
-        }
-
-        .station-list {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
-        }
-
-        .station-list h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        th {
-            background: #f5f5f5;
-            font-weight: 600;
-            color: #333;
-        }
-
-        tr:hover {
-            background: #f9f9f9;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .badge-high { background: #ffebee; color: #c62828; }
-        .badge-medium { background: #fff3e0; color: #ef6c00; }
-        .badge-low { background: #e3f2fd; color: #1565c0; }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            color: white;
-            font-size: 1.2rem;
-        }
-
         .filter-bar {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
+          flex-direction: column;
+          align-items: stretch;
         }
-
-        .filter-bar label {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .filter-bar select {
-            padding: 8px 16px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-
         .refresh-btn {
-            margin-left: auto;
-            padding: 10px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.2s;
+          margin-left: 0;
         }
-
-        .refresh-btn:hover {
-            transform: scale(1.05);
-        }
-
-        @media (max-width: 768px) {
-            .charts-grid {
-                grid-template-columns: 1fr;
-            }
-            .filter-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .refresh-btn {
-                margin-left: 0;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <h1>🌊 FloodSight Analytics</h1>
-            <p class="subtitle">Real-time Alert Intelligence & Insights</p>
-            <div class="nav-links">
-                <a href="/dashboard-figma.html">Live Dashboard</a>
-                <a href="/analytics-dashboard.html">Analytics</a>
-                <a href="/admin-dashboard.html">Admin Panel</a>
-            </div>
-        </header>
+      <header>
+        <h1>🌊 FloodSight Analytics</h1>
+        <p class="subtitle">Real-time Alert Intelligence & Insights</p>
+        <div class="nav-links">
+          <a href="/dashboard-figma.html">Live Dashboard</a>
+          <a href="/analytics-dashboard.html">Analytics</a>
+          <a href="/admin-dashboard.html">Admin Panel</a>
+        </div>
+      </header>
 
-        <div class="filter-bar">
-            <label for="timeRange">Time Period:</label>
-            <select id="timeRange" onchange="loadAnalytics()">
-                <option value="7">Last 7 Days</option>
-                <option value="30" selected>Last 30 Days</option>
-                <option value="90">Last 90 Days</option>
-                <option value="365">Last Year</option>
-            </select>
-            <button class="refresh-btn" onclick="loadAnalytics()">🔄 Refresh Data</button>
+      <div class="filter-bar">
+        <label for="timeRange">Time Period:</label>
+        <select id="timeRange" onchange="loadAnalytics()">
+          <option value="7">Last 7 Days</option>
+          <option value="30" selected>Last 30 Days</option>
+          <option value="90">Last 90 Days</option>
+          <option value="365">Last Year</option>
+        </select>
+        <button class="refresh-btn" onclick="loadAnalytics()">🔄 Refresh Data</button>
+      </div>
+
+      <div id="loading" class="loading">Loading analytics data...</div>
+
+      <div id="content" style="display: none">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Alerts</div>
+            <div class="stat-value" id="totalAlerts">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Active Alerts</div>
+            <div class="stat-value level-severe" id="activeAlerts">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Acknowledgment Rate</div>
+            <div class="stat-value level-info" id="ackRate">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg Response Time</div>
+            <div class="stat-value" id="avgResponse">-</div>
+          </div>
         </div>
 
-        <div id="loading" class="loading">Loading analytics data...</div>
-
-        <div id="content" style="display: none;">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Total Alerts</div>
-                    <div class="stat-value" id="totalAlerts">-</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Active Alerts</div>
-                    <div class="stat-value level-severe" id="activeAlerts">-</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Acknowledgment Rate</div>
-                    <div class="stat-value level-info" id="ackRate">-</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Avg Response Time</div>
-                    <div class="stat-value" id="avgResponse">-</div>
-                </div>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h2>Alerts by Level</h2>
+            <div class="chart-container">
+              <canvas id="levelChart"></canvas>
             </div>
-
-            <div class="charts-grid">
-                <div class="chart-card">
-                    <h2>Alerts by Level</h2>
-                    <div class="chart-container">
-                        <canvas id="levelChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <h2>Notifications Performance</h2>
-                    <div class="chart-container">
-                        <canvas id="notificationChart"></canvas>
-                    </div>
-                </div>
+          </div>
+          <div class="chart-card">
+            <h2>Notifications Performance</h2>
+            <div class="chart-container">
+              <canvas id="notificationChart"></canvas>
             </div>
-
-            <div class="chart-card" style="margin-bottom: 30px;">
-                <h2>Alert Timeline (Last 30 Days)</h2>
-                <div class="chart-container" style="height: 400px;">
-                    <canvas id="timelineChart"></canvas>
-                </div>
-            </div>
-
-            <div class="station-list">
-                <h2>🎯 Station Risk Ranking</h2>
-                <table id="riskTable">
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Station</th>
-                            <th>River Basin</th>
-                            <th>Total Alerts</th>
-                            <th>Risk Score</th>
-                            <th>Risk Level</th>
-                        </tr>
-                    </thead>
-                    <tbody id="riskTableBody">
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="station-list">
-                <h2>📊 Top Stations by Alert Frequency</h2>
-                <table id="stationTable">
-                    <thead>
-                        <tr>
-                            <th>Station Code</th>
-                            <th>Station Name</th>
-                            <th>Alert Count</th>
-                        </tr>
-                    </thead>
-                    <tbody id="stationTableBody">
-                    </tbody>
-                </table>
-            </div>
+          </div>
         </div>
+
+        <div class="chart-card" style="margin-bottom: 30px">
+          <h2>Alert Timeline (Last 30 Days)</h2>
+          <div class="chart-container" style="height: 400px">
+            <canvas id="timelineChart"></canvas>
+          </div>
+        </div>
+
+        <div class="station-list">
+          <h2>🎯 Station Risk Ranking</h2>
+          <table id="riskTable">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Station</th>
+                <th>River Basin</th>
+                <th>Total Alerts</th>
+                <th>Risk Score</th>
+                <th>Risk Level</th>
+              </tr>
+            </thead>
+            <tbody id="riskTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="station-list">
+          <h2>📊 Top Stations by Alert Frequency</h2>
+          <table id="stationTable">
+            <thead>
+              <tr>
+                <th>Station Code</th>
+                <th>Station Name</th>
+                <th>Alert Count</th>
+              </tr>
+            </thead>
+            <tbody id="stationTableBody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <script src="./assets/js/api-service.js"></script>
     <script>
-        let charts = {};
+      let charts = {};
 
-        async function loadAnalytics() {
-            const days = parseInt(document.getElementById('timeRange').value);
-            
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('content').style.display = 'none';
+      async function loadAnalytics() {
+        const days = parseInt(document.getElementById('timeRange').value);
 
-            try {
-                const [alertAnalytics, notificationAnalytics, timeline, riskRanking] = await Promise.all([
-                    fetch(`${BASE_URL}/v1/analytics/alerts?days=${days}`).then(r => r.json()),
-                    fetch(`${BASE_URL}/v1/analytics/notifications?days=${days}`).then(r => r.json()),
-                    fetch(`${BASE_URL}/v1/analytics/alerts/timeline?days=${days}`).then(r => r.json()),
-                    fetch(`${BASE_URL}/v1/analytics/stations/risk-ranking?days=${days}`).then(r => r.json())
-                ]);
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('content').style.display = 'none';
 
-                displayStats(alertAnalytics, notificationAnalytics);
-                displayCharts(alertAnalytics, notificationAnalytics, timeline);
-                displayRiskRanking(riskRanking);
-                displayStationTable(alertAnalytics.by_station);
+        try {
+          const [alertAnalytics, notificationAnalytics, timeline, riskRanking] = await Promise.all([
+            fetch(`${BASE_URL}/v1/analytics/alerts?days=${days}`).then((r) => r.json()),
+            fetch(`${BASE_URL}/v1/analytics/notifications?days=${days}`).then((r) => r.json()),
+            fetch(`${BASE_URL}/v1/analytics/alerts/timeline?days=${days}`).then((r) => r.json()),
+            fetch(`${BASE_URL}/v1/analytics/stations/risk-ranking?days=${days}`).then((r) =>
+              r.json()
+            ),
+          ]);
 
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-            } catch (error) {
-                console.error('Error loading analytics:', error);
-                document.getElementById('loading').textContent = 'Error loading analytics data. Please try again.';
-            }
+          displayStats(alertAnalytics, notificationAnalytics);
+          displayCharts(alertAnalytics, notificationAnalytics, timeline);
+          displayRiskRanking(riskRanking);
+          displayStationTable(alertAnalytics.by_station);
+
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('content').style.display = 'block';
+        } catch (error) {
+          console.error('Error loading analytics:', error);
+          document.getElementById('loading').textContent =
+            'Error loading analytics data. Please try again.';
         }
+      }
 
-        function displayStats(alertAnalytics, notificationAnalytics) {
-            document.getElementById('totalAlerts').textContent = alertAnalytics.total_alerts;
-            document.getElementById('activeAlerts').textContent = alertAnalytics.active_alerts;
-            document.getElementById('ackRate').textContent = alertAnalytics.acknowledgment_rate + '%';
-            document.getElementById('avgResponse').textContent = 
-                alertAnalytics.avg_response_time_minutes 
-                    ? alertAnalytics.avg_response_time_minutes.toFixed(1) + ' min'
-                    : 'N/A';
-        }
+      function displayStats(alertAnalytics, notificationAnalytics) {
+        document.getElementById('totalAlerts').textContent = alertAnalytics.total_alerts;
+        document.getElementById('activeAlerts').textContent = alertAnalytics.active_alerts;
+        document.getElementById('ackRate').textContent = alertAnalytics.acknowledgment_rate + '%';
+        document.getElementById('avgResponse').textContent =
+          alertAnalytics.avg_response_time_minutes
+            ? alertAnalytics.avg_response_time_minutes.toFixed(1) + ' min'
+            : 'N/A';
+      }
 
-        function displayCharts(alertAnalytics, notificationAnalytics, timeline) {
-            // Alert Levels Chart
-            if (charts.level) charts.level.destroy();
-            const levelCtx = document.getElementById('levelChart').getContext('2d');
-            charts.level = new Chart(levelCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Info', 'Warning', 'Severe', 'Extreme'],
-                    datasets: [{
-                        data: [
-                            alertAnalytics.by_level.info || 0,
-                            alertAnalytics.by_level.warning || 0,
-                            alertAnalytics.by_level.severe || 0,
-                            alertAnalytics.by_level.extreme || 0
-                        ],
-                        backgroundColor: ['#2196F3', '#FF9800', '#F44336', '#9C27B0']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
+      function displayCharts(alertAnalytics, notificationAnalytics, timeline) {
+        // Alert Levels Chart
+        if (charts.level) charts.level.destroy();
+        const levelCtx = document.getElementById('levelChart').getContext('2d');
+        charts.level = new Chart(levelCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Info', 'Warning', 'Severe', 'Extreme'],
+            datasets: [
+              {
+                data: [
+                  alertAnalytics.by_level.info || 0,
+                  alertAnalytics.by_level.warning || 0,
+                  alertAnalytics.by_level.severe || 0,
+                  alertAnalytics.by_level.extreme || 0,
+                ],
+                backgroundColor: ['#2196F3', '#FF9800', '#F44336', '#9C27B0'],
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+          },
+        });
 
-            // Notification Performance Chart
-            if (charts.notification) charts.notification.destroy();
-            const notifCtx = document.getElementById('notificationChart').getContext('2d');
-            charts.notification = new Chart(notifCtx, {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(notificationAnalytics.by_type),
-                    datasets: [{
-                        label: 'Notifications Sent',
-                        data: Object.values(notificationAnalytics.by_type),
-                        backgroundColor: ['#4CAF50', '#2196F3', '#FF9800']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
+        // Notification Performance Chart
+        if (charts.notification) charts.notification.destroy();
+        const notifCtx = document.getElementById('notificationChart').getContext('2d');
+        charts.notification = new Chart(notifCtx, {
+          type: 'bar',
+          data: {
+            labels: Object.keys(notificationAnalytics.by_type),
+            datasets: [
+              {
+                label: 'Notifications Sent',
+                data: Object.values(notificationAnalytics.by_type),
+                backgroundColor: ['#4CAF50', '#2196F3', '#FF9800'],
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+          },
+        });
 
-            // Timeline Chart
-            if (charts.timeline) charts.timeline.destroy();
-            const timelineCtx = document.getElementById('timelineChart').getContext('2d');
-            
-            // Group timeline data by date
-            const dateMap = {};
-            timeline.forEach(item => {
-                if (!dateMap[item.date]) {
-                    dateMap[item.date] = {info: 0, warning: 0, severe: 0, extreme: 0};
-                }
-                dateMap[item.date][item.level] = item.count;
-            });
+        // Timeline Chart
+        if (charts.timeline) charts.timeline.destroy();
+        const timelineCtx = document.getElementById('timelineChart').getContext('2d');
 
-            const dates = Object.keys(dateMap).sort();
-            
-            charts.timeline = new Chart(timelineCtx, {
-                type: 'line',
-                data: {
-                    labels: dates,
-                    datasets: [
-                        {
-                            label: 'Info',
-                            data: dates.map(d => dateMap[d].info),
-                            borderColor: '#2196F3',
-                            backgroundColor: 'rgba(33, 150, 243, 0.1)'
-                        },
-                        {
-                            label: 'Warning',
-                            data: dates.map(d => dateMap[d].warning),
-                            borderColor: '#FF9800',
-                            backgroundColor: 'rgba(255, 152, 0, 0.1)'
-                        },
-                        {
-                            label: 'Severe',
-                            data: dates.map(d => dateMap[d].severe),
-                            borderColor: '#F44336',
-                            backgroundColor: 'rgba(244, 67, 54, 0.1)'
-                        },
-                        {
-                            label: 'Extreme',
-                            data: dates.map(d => dateMap[d].extreme),
-                            borderColor: '#9C27B0',
-                            backgroundColor: 'rgba(156, 39, 176, 0.1)'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
+        // Group timeline data by date
+        const dateMap = {};
+        timeline.forEach((item) => {
+          if (!dateMap[item.date]) {
+            dateMap[item.date] = { info: 0, warning: 0, severe: 0, extreme: 0 };
+          }
+          dateMap[item.date][item.level] = item.count;
+        });
 
-        function displayRiskRanking(ranking) {
-            const tbody = document.getElementById('riskTableBody');
-            tbody.innerHTML = ranking.map(station => {
-                const riskLevel = station.risk_score > 20 ? 'high' : station.risk_score > 10 ? 'medium' : 'low';
-                const riskLabel = riskLevel === 'high' ? 'High Risk' : riskLevel === 'medium' ? 'Medium Risk' : 'Low Risk';
-                
-                return `
+        const dates = Object.keys(dateMap).sort();
+
+        charts.timeline = new Chart(timelineCtx, {
+          type: 'line',
+          data: {
+            labels: dates,
+            datasets: [
+              {
+                label: 'Info',
+                data: dates.map((d) => dateMap[d].info),
+                borderColor: '#2196F3',
+                backgroundColor: 'rgba(33, 150, 243, 0.1)',
+              },
+              {
+                label: 'Warning',
+                data: dates.map((d) => dateMap[d].warning),
+                borderColor: '#FF9800',
+                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+              },
+              {
+                label: 'Severe',
+                data: dates.map((d) => dateMap[d].severe),
+                borderColor: '#F44336',
+                backgroundColor: 'rgba(244, 67, 54, 0.1)',
+              },
+              {
+                label: 'Extreme',
+                data: dates.map((d) => dateMap[d].extreme),
+                borderColor: '#9C27B0',
+                backgroundColor: 'rgba(156, 39, 176, 0.1)',
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+      }
+
+      function displayRiskRanking(ranking) {
+        const tbody = document.getElementById('riskTableBody');
+        tbody.innerHTML = ranking
+          .map((station) => {
+            const riskLevel =
+              station.risk_score > 20 ? 'high' : station.risk_score > 10 ? 'medium' : 'low';
+            const riskLabel =
+              riskLevel === 'high'
+                ? 'High Risk'
+                : riskLevel === 'medium'
+                  ? 'Medium Risk'
+                  : 'Low Risk';
+
+            return `
                     <tr>
                         <td><strong>#${station.rank}</strong></td>
                         <td><strong>${station.station_code}</strong><br><small>${station.station_name}</small></td>
@@ -491,25 +521,27 @@
                         <td><span class="badge badge-${riskLevel}">${riskLabel}</span></td>
                     </tr>
                 `;
-            }).join('');
-        }
+          })
+          .join('');
+      }
 
-        function displayStationTable(stations) {
-            const tbody = document.getElementById('stationTableBody');
-            tbody.innerHTML = stations.map(station => `
+      function displayStationTable(stations) {
+        const tbody = document.getElementById('stationTableBody');
+        tbody.innerHTML = stations
+          .map(
+            (station) => `
                 <tr>
                     <td><strong>${station.station_code}</strong></td>
                     <td>${station.station_name}</td>
                     <td><strong>${station.alert_count}</strong></td>
                 </tr>
-            `).join('');
-        }
+            `
+          )
+          .join('');
+      }
 
-        // Load on page load
-        loadAnalytics();
+      // Load on page load
+      loadAnalytics();
     </script>
-</body>
+  </body>
 </html>
-
-
-

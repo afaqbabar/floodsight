@@ -15,6 +15,7 @@
 ### Option 1: Early Warning Data Store (EWDS) - API Access ⭐ Recommended
 
 **What you need:**
+
 1. Register for **EWDS** (different from CDS)
 2. Get EWDS API credentials
 3. Update backend configuration
@@ -33,7 +34,7 @@
    - Specify you need `cems-glofas-forecast` dataset
 
 3. **Check the Forecast Wiki**:
-   - Visit: https://global-flood.emergency.copernicus.eu/ 
+   - Visit: https://global-flood.emergency.copernicus.eu/
    - Look for "Forecast Wiki" (mentioned on data page)
    - Should have detailed API access instructions
 
@@ -78,6 +79,7 @@ EOF
 ### Option 2: FTP Service - Direct Access
 
 **What you need:**
+
 1. Email request to GloFAS team
 2. Custom FTP credentials
 3. Modify backend to use FTP instead of API
@@ -105,6 +107,7 @@ EOF
 ### Option 3: ECMWF MARS - Advanced Users
 
 **What you need:**
+
 1. ECMWF account (may require institutional affiliation)
 2. MARS API access
 3. Different authentication system
@@ -132,13 +135,15 @@ nano base/backend-configmap.yaml
 ```
 
 Change:
+
 ```yaml
-CDS_API_URL: "https://cds.climate.copernicus.eu/api"
+CDS_API_URL: 'https://cds.climate.copernicus.eu/api'
 ```
 
 To (check with EWDS documentation):
+
 ```yaml
-CDS_API_URL: "https://ewds.copernicus.eu/api"  # or the correct EWDS endpoint
+CDS_API_URL: 'https://ewds.copernicus.eu/api' # or the correct EWDS endpoint
 ```
 
 **2. Update Secrets**:
@@ -207,7 +212,7 @@ try:
     )
     print("✅ SUCCESS! GloFAS data accessible!")
     print(f"Downloaded: {result}")
-    
+
 except Exception as e:
     print(f"❌ ERROR: {e}")
     print("\nPossible solutions:")
@@ -217,6 +222,7 @@ except Exception as e:
 ```
 
 Save as `test_ewds_access.py` and run:
+
 ```bash
 cd /home/lenovo/scrimba/floodsight
 python3 test_ewds_access.py
@@ -232,10 +238,10 @@ Subject: Request for GloFAS FTP Data Access
 
 Dear GloFAS Team,
 
-I am developing FloodSight, a flood forecasting and early warning system 
+I am developing FloodSight, a flood forecasting and early warning system
 for European river basins (initially focused on Poland/Germany).
 
-I would like to request FTP access to GloFAS medium-range forecast data 
+I would like to request FTP access to GloFAS medium-range forecast data
 for automated hourly data ingestion.
 
 Project Details:
@@ -246,7 +252,7 @@ Project Details:
 - Data Required: GloFAS v4.0 river discharge forecasts (control_forecast)
 - Technical Stack: Python, NetCDF, PostgreSQL/PostGIS
 
-I have registered on the CDS (key: ff5874bb-e24c-495f-878c-e206f74e0c36) 
+I have registered on the CDS (key: ff5874bb-e24c-495f-878c-e206f74e0c36)
 but understand that GloFAS data is now only available through EWDS or FTP.
 
 Could you please provide:
@@ -296,6 +302,7 @@ Do you need real GloFAS data NOW?
 - ✅ Database operations
 
 **Synthetic data is sufficient for:**
+
 - ✅ Frontend development
 - ✅ UI/UX testing
 - ✅ Algorithm development
@@ -304,6 +311,7 @@ Do you need real GloFAS data NOW?
 - ✅ Beta testing
 
 **Real data is needed for:**
+
 - ❌ Production deployment
 - ❌ Actual flood warnings
 - ❌ Validation against real events
@@ -340,4 +348,3 @@ Do you need real GloFAS data NOW?
 ---
 
 **Your FloodSight backend is ready! Real data integration is just a configuration change away.** 🌊
-

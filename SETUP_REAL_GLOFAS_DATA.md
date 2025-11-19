@@ -3,6 +3,7 @@
 ## Your CDS API Key Format
 
 Your CDS API key should look like:
+
 ```
 UID:API_KEY
 ```
@@ -10,6 +11,7 @@ UID:API_KEY
 Example: `12345:abcd1234-ef56-7890-ghij-klmnopqrstuv`
 
 **Where to find it:**
+
 1. Go to: https://cds.climate.copernicus.eu/user
 2. Scroll down to "API key" section
 3. Copy both the UID and API key
@@ -37,7 +39,7 @@ type: Opaque
 stringData:
   # Database - PostgreSQL in K8s
   database-url: "postgresql+asyncpg://postgres:postgres@postgres.floodsight.svc.cluster.local:5432/floodsight"
-  
+
   # ECMWF CDS API - REPLACE WITH YOUR ACTUAL VALUES
   cds-api-key: "YOUR_UID:YOUR_API_KEY"
   cds-api-url: "https://cds.climate.copernicus.eu/api/v2"
@@ -53,6 +55,7 @@ echo "✅ Secrets file created with real CDS credentials!"
 ## 📝 Example with Real Credentials
 
 If your CDS credentials are:
+
 - UID: `123456`
 - API Key: `abcd1234-5678-90ef-ghij-klmnopqrstuv`
 
@@ -95,17 +98,19 @@ nano base/backend-secrets.yaml
 ```
 
 **Find these lines (around line 22 and 33):**
+
 ```yaml
-  database-url: "postgresql+asyncpg://postgres:password@postgres-service:5432/floodsight"
-  
-  cds-api-key: "<your-cds-api-key>"
+database-url: 'postgresql+asyncpg://postgres:password@postgres-service:5432/floodsight'
+
+cds-api-key: '<your-cds-api-key>'
 ```
 
 **Change to:**
+
 ```yaml
-  database-url: "postgresql+asyncpg://postgres:postgres@postgres.floodsight.svc.cluster.local:5432/floodsight"
-  
-  cds-api-key: "YOUR_UID:YOUR_API_KEY"
+database-url: 'postgresql+asyncpg://postgres:postgres@postgres.floodsight.svc.cluster.local:5432/floodsight'
+
+cds-api-key: 'YOUR_UID:YOUR_API_KEY'
 ```
 
 Save: `Ctrl+X`, then `Y`, then `Enter`
@@ -196,22 +201,26 @@ Before deploying with real data, make sure:
 ## 🔍 Troubleshooting Real Data
 
 ### Error: "Invalid API key"
+
 - Check format is `UID:API_KEY` with colon
 - No spaces before or after
 - No quotes inside the credentials
 
 ### Error: "You have not accepted the license"
+
 - Visit: https://cds.climate.copernicus.eu/cdsapp#!/dataset/cems-glofas-forecast
 - Scroll down and click "Accept terms"
 - Wait a few minutes
 - Try again
 
 ### Timeout errors
+
 - CDS API can be slow (5-15 minutes)
 - Check queue: https://cds.climate.copernicus.eu/live/queue
 - Try during off-peak hours (nighttime in Europe)
 
 ### Still getting fake data
+
 - Check scheduler logs: `kubectl logs -l component=scheduler -n floodsight`
 - Verify secrets were applied: `kubectl get secret -n floodsight`
 - Check CDS API key is set: `kubectl describe secret floodsight-backend-secrets -n floodsight`
@@ -220,14 +229,14 @@ Before deploying with real data, make sure:
 
 ## 📈 Real vs Fake Data Comparison
 
-| Feature | Fake Data | Real Data |
-|---------|-----------|-----------|
-| **Setup Time** | Instant | 5-15 min first run |
-| **Data Quality** | Random | ECMWF NWP |
-| **Updates** | Each run | Hourly from CDS |
-| **Requirements** | None | CDS account + license |
-| **Cost** | Free | Free (non-commercial) |
-| **Accuracy** | Testing only | Production-ready |
+| Feature          | Fake Data    | Real Data             |
+| ---------------- | ------------ | --------------------- |
+| **Setup Time**   | Instant      | 5-15 min first run    |
+| **Data Quality** | Random       | ECMWF NWP             |
+| **Updates**      | Each run     | Hourly from CDS       |
+| **Requirements** | None         | CDS account + license |
+| **Cost**         | Free         | Free (non-commercial) |
+| **Accuracy**     | Testing only | Production-ready      |
 
 ---
 
@@ -247,6 +256,7 @@ Your FloodSight backend will now ingest real global flood forecasts from ECMWF! 
 ## 🆘 Need Your Credentials?
 
 **Get your CDS API key:**
+
 ```bash
 # Open your browser to:
 https://cds.climate.copernicus.eu/user
@@ -263,4 +273,3 @@ https://cds.climate.copernicus.eu/user
 ---
 
 **You're all set to use real flood forecast data!** 🌊📊
-

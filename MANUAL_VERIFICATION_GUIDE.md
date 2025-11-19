@@ -7,6 +7,7 @@ Quick reference for checking your forecast accuracy without automated tools.
 ## 🚀 Quick Start
 
 Run the verification script:
+
 ```bash
 cd /home/lenovo/scrimba/floodsight/backend
 ./verify_simple.sh
@@ -17,6 +18,7 @@ cd /home/lenovo/scrimba/floodsight/backend
 ## 📊 Your Current Data
 
 From the verification script, you have:
+
 - **150 real GloFAS forecasts**
 - **5 stations** (Berlin, Vienna, Dresden, Frankfurt, Cologne)
 - **Lead times**: 6h to 240h (10 days)
@@ -27,39 +29,43 @@ From the verification script, you have:
 ## ✅ Method 1: Convergence Analysis (Easiest)
 
 ### Concept
+
 Compare multiple forecasts for the same future time. As you get closer to the event, forecasts should converge (become more similar).
 
 ### How To Do It
 
 **Step 1: Find overlapping forecasts**
+
 ```bash
 cd /home/lenovo/scrimba/floodsight/backend
 
 # Find times with multiple forecasts
 docker compose exec db psql -U postgres -d floodsight -c \
-  "SELECT ts, COUNT(*) FROM forecasts 
-   WHERE source = 'GloFAS' 
-   GROUP BY ts HAVING COUNT(*) > 1 
+  "SELECT ts, COUNT(*) FROM forecasts
+   WHERE source = 'GloFAS'
+   GROUP BY ts HAVING COUNT(*) > 1
    ORDER BY ts LIMIT 5;"
 ```
 
 **Step 2: Compare forecasts for same target**
+
 ```bash
 # Example: Get all forecasts for Nov 13, 2025
 docker compose exec db psql -U postgres -d floodsight -c \
-  "SELECT 
+  "SELECT
      s.code as station,
      f.lead_hours,
      ROUND(f.discharge_m3s::numeric, 2) as discharge,
      f.model_run
    FROM forecasts f
    JOIN stations s ON f.station_id = s.id
-   WHERE f.ts = '2025-11-13 00:00:00+00' 
+   WHERE f.ts = '2025-11-13 00:00:00+00'
    AND f.source = 'GloFAS'
    ORDER BY s.code, f.lead_hours;"
 ```
 
 **Step 3: Calculate error**
+
 ```
 Berlin Spree, Target: 2025-11-13 00:00
 ├─ 72h lead: 1200 m³/s (forecast made on Nov 10)
@@ -71,6 +77,7 @@ Percentage error: 50/1150 × 100 = 4.3%
 ```
 
 **Interpretation:**
+
 - ✅ **Good**: Error < 10% → Forecasts are stable
 - ⚠️ **Fair**: Error 10-20% → Some uncertainty
 - ❌ **Poor**: Error > 20% → High uncertainty
@@ -80,15 +87,17 @@ Percentage error: 50/1150 × 100 = 4.3%
 ## 🔬 Method 2: GloFAS Reanalysis Comparison (Most Accurate)
 
 ### Concept
+
 Compare your forecast with GloFAS Reanalysis (hindcast) for the same time/location. This is the "ground truth" from the same model.
 
 ### How To Do It
 
 **Step 1: Export your forecast**
+
 ```bash
 # Pick a forecast that's now in the past
 docker compose exec db psql -U postgres -d floodsight -c \
-  "SELECT 
+  "SELECT
      s.code,
      s.lat,
      s.lon,
@@ -97,7 +106,7 @@ docker compose exec db psql -U postgres -d floodsight -c \
      f.model_run
    FROM forecasts f
    JOIN stations s ON f.station_id = s.id
-   WHERE f.ts < NOW() 
+   WHERE f.ts < NOW()
    AND f.source = 'GloFAS'
    ORDER BY f.ts DESC
    LIMIT 10;" > my_forecasts.txt
@@ -120,6 +129,7 @@ docker compose exec db psql -U postgres -d floodsight -c \
 Once downloaded, open the NetCDF file and extract discharge at your station coordinates.
 
 **Step 4: Compare**
+
 ```
 Berlin Spree (52.52°N, 13.40°E)
 Target: 2025-11-11 00:00
@@ -138,29 +148,32 @@ Accuracy: 100 - (50/1150 × 100) = 95.7% ✅
 ### How To Do It
 
 **Step 1: Get forecast time series**
+
 ```bash
 # Via API
 curl -s http://localhost:8080/v1/forecasts?station_id=1 | jq '.[] | {lead: .lead_hours, discharge: .discharge_m3s}' | less
 
 # Via Database
 docker compose exec db psql -U postgres -d floodsight -c \
-  "SELECT 
+  "SELECT
      lead_hours,
      discharge_m3s,
      ts
-   FROM forecasts 
-   WHERE station_id = 1 
+   FROM forecasts
+   WHERE station_id = 1
    AND source = 'GloFAS'
    ORDER BY ts, lead_hours;"
 ```
 
 **Step 2: Look for red flags**
+
 - ❌ **Negative values**: Impossible for discharge
 - ❌ **Sudden jumps**: e.g., 500 → 2000 → 400 m³/s
 - ❌ **Out of range**: Rivers have typical ranges (e.g., Rhine: 500-3000 m³/s)
 - ❌ **Flat lines**: Same value repeated (data issue)
 
 **Step 3: Check reasonableness**
+
 ```
 Typical discharge ranges (m³/s):
 - Small rivers: 10-100
@@ -175,12 +188,14 @@ Typical discharge ranges (m³/s):
 ### Common Metrics
 
 **Mean Absolute Error (MAE)**
+
 ```
 MAE = (|forecast1 - actual1| + |forecast2 - actual2| + ...) / n
 Lower is better
 ```
 
 **Bias**
+
 ```
 Bias = (forecast - actual)
 Positive = Over-prediction
@@ -189,12 +204,14 @@ Close to 0 is best
 ```
 
 **Root Mean Square Error (RMSE)**
+
 ```
 RMSE = sqrt((error1² + error2² + ...) / n)
 Penalizes large errors more
 ```
 
 **Accuracy Percentage**
+
 ```
 Accuracy = 100 - (|error| / actual × 100)
 95%+ is excellent
@@ -208,15 +225,16 @@ Accuracy = 100 - (|error| / actual × 100)
 
 ### By Lead Time (Typical GloFAS Performance)
 
-| Lead Time | Expected MAE | Expected Accuracy |
-|-----------|--------------|-------------------|
-| 6-24 hours | <50 m³/s | >95% |
-| 24-48 hours | <100 m³/s | >90% |
-| 48-72 hours | <150 m³/s | >85% |
-| 3-5 days | <200 m³/s | >80% |
-| 5-10 days | <300 m³/s | >70% |
+| Lead Time   | Expected MAE | Expected Accuracy |
+| ----------- | ------------ | ----------------- |
+| 6-24 hours  | <50 m³/s     | >95%              |
+| 24-48 hours | <100 m³/s    | >90%              |
+| 48-72 hours | <150 m³/s    | >85%              |
+| 3-5 days    | <200 m³/s    | >80%              |
+| 5-10 days   | <300 m³/s    | >70%              |
 
 ### Red Flags
+
 - ⚠️ Accuracy < 70% at any lead time
 - ⚠️ Bias > 20% (consistent over/under prediction)
 - ⚠️ No convergence (72h forecast same as 6h)
@@ -227,6 +245,7 @@ Accuracy = 100 - (|error| / actual × 100)
 ## 🔄 Workflow for Regular Verification
 
 ### Daily Routine
+
 ```bash
 # 1. Run verification script
 cd /home/lenovo/scrimba/floodsight/backend
@@ -238,6 +257,7 @@ cd /home/lenovo/scrimba/floodsight/backend
 ```
 
 ### Weekly Routine
+
 ```bash
 # 1. Download reanalysis for past week
 # 2. Compare with your forecasts
@@ -311,16 +331,19 @@ Recommendation: Continue monitoring
 ### To Get Better Verification:
 
 **Option 1: Wait and Accumulate**
+
 - Run forecast ingestion hourly
 - Wait 1-2 weeks
 - More data = better verification
 
 **Option 2: Implement Automation**
+
 - Auto-download reanalysis
 - Auto-calculate metrics
 - Generate reports automatically
 
 **Option 3: Add Real Gauges**
+
 - Compare with actual measurements
 - Best possible verification
 - Only available in some regions
@@ -339,7 +362,7 @@ docker compose exec db psql -U postgres -d floodsight -c \
 
 # Export forecasts to CSV
 docker compose exec db psql -U postgres -d floodsight -c \
-  "COPY (SELECT * FROM forecasts WHERE source = 'GloFAS') 
+  "COPY (SELECT * FROM forecasts WHERE source = 'GloFAS')
    TO STDOUT WITH CSV HEADER;" > forecasts.csv
 
 # Get API data
@@ -349,10 +372,7 @@ curl http://localhost:8080/v1/forecasts | jq . > forecasts.json
 ---
 
 **Questions?** Check the logs:
+
 ```bash
 docker compose logs api | grep -i forecast
 ```
-
-
-
-

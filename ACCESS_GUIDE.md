@@ -3,26 +3,32 @@
 ## 🌐 Public URLs (Accessible from Anywhere)
 
 ### Frontend Dashboard (Your Main App)
+
 ```
 https://lab-grounds-super-behavioral.trycloudflare.com
 ```
+
 **What you'll see:**
+
 - Interactive map with 5 European flood monitoring stations
 - Real-time river discharge forecasts
 - Active flood alerts
 - Station details and charts
 
 ### Backend API (For Development/Integration)
+
 ```
 https://shoe-mere-livestock-mild.trycloudflare.com
 ```
 
 **API Documentation:**
+
 ```
 https://shoe-mere-livestock-mild.trycloudflare.com/docs
 ```
 
 **Example Endpoints:**
+
 - Health: `/v1/health`
 - Stations: `/v1/stations`
 - Forecasts: `/v1/forecasts`
@@ -33,11 +39,13 @@ https://shoe-mere-livestock-mild.trycloudflare.com/docs
 ## 🏠 Local Access (Within Your Network)
 
 ### Frontend Dashboard
+
 ```
 http://192.168.178.50:8080
 ```
 
 ### Backend API
+
 ```
 http://192.168.178.50:30636
 ```
@@ -47,13 +55,17 @@ http://192.168.178.50:30636
 ## 📱 Quick Access Links
 
 ### For End Users (Dashboard)
+
 Share this with anyone who wants to see flood forecasts:
+
 ```
 https://lab-grounds-super-behavioral.trycloudflare.com
 ```
 
 ### For Developers (API)
+
 Use this in your frontend code or Vercel:
+
 ```
 https://shoe-mere-livestock-mild.trycloudflare.com
 ```
@@ -63,6 +75,7 @@ https://shoe-mere-livestock-mild.trycloudflare.com
 ## 🔧 Service Management
 
 ### Check What's Running
+
 ```bash
 # Frontend dev server
 ps aux | grep "vite"
@@ -75,6 +88,7 @@ ps aux | grep cloudflared
 ```
 
 ### View Logs
+
 ```bash
 # Frontend logs
 tail -f /tmp/frontend-dev.log
@@ -93,6 +107,7 @@ tail -f /tmp/cloudflare-frontend.log
 ### Restart Services
 
 #### Restart Frontend
+
 ```bash
 # Stop frontend
 pkill -f "vite"
@@ -103,6 +118,7 @@ nohup npm run dev -- --host 0.0.0.0 --port 8080 > /tmp/frontend-dev.log 2>&1 &
 ```
 
 #### Restart Backend
+
 ```bash
 # Restart backend pods
 kubectl rollout restart deployment floodsight-backend -n floodsight
@@ -110,6 +126,7 @@ kubectl rollout restart deployment floodsight-scheduler -n floodsight
 ```
 
 #### Restart Cloudflare Tunnels
+
 ```bash
 # Stop all tunnels
 pkill cloudflared
@@ -127,6 +144,7 @@ cat /tmp/cloudflare-tunnel.log | grep "Your quick Tunnel"
 ```
 
 #### Quick Restart Script
+
 ```bash
 ./restart-cloudflare-tunnel.sh
 ```
@@ -136,6 +154,7 @@ cat /tmp/cloudflare-tunnel.log | grep "Your quick Tunnel"
 ## 🧪 Testing
 
 ### Test Frontend
+
 ```bash
 # From command line
 curl -I http://localhost:8080
@@ -145,6 +164,7 @@ console.log('Frontend loaded!');
 ```
 
 ### Test Backend
+
 ```bash
 # Health check
 curl https://shoe-mere-livestock-mild.trycloudflare.com/v1/health
@@ -160,6 +180,7 @@ curl https://shoe-mere-livestock-mild.trycloudflare.com/v1/alerts | jq
 ```
 
 ### Test Data Updates
+
 ```bash
 # Trigger manual data ingestion
 kubectl exec -n floodsight deploy/floodsight-scheduler -- \
@@ -175,6 +196,7 @@ curl -s https://shoe-mere-livestock-mild.trycloudflare.com/v1/forecasts | \
 ## 🚀 Vercel Integration
 
 ### Environment Variable Setup
+
 1. Go to: https://vercel.com/YOUR_PROJECT/settings/environment-variables
 2. Add variable:
    ```
@@ -187,6 +209,7 @@ curl -s https://shoe-mere-livestock-mild.trycloudflare.com/v1/forecasts | \
 5. Wait for "Ready" status
 
 ### Frontend Code
+
 ```javascript
 // In your frontend code (e.g., src/config.js or similar)
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -203,6 +226,7 @@ async function fetchStations() {
 ## 🔒 Security Notes
 
 ### Cloudflare Tunnel URLs
+
 - These URLs are **temporary** and will change if you restart the tunnel
 - For production, consider:
   - Cloudflare Argo Tunnel with custom domain
@@ -210,11 +234,13 @@ async function fetchStations() {
   - Proper SSL/TLS certificates with Let's Encrypt
 
 ### API Access
+
 - Currently no authentication (suitable for public dashboard)
 - Backend has CORS enabled for specific origins
 - For production with user accounts, enable Supabase JWT auth
 
 ### Database
+
 - Currently using default `postgres:postgres` credentials
 - For production, change these in `deploy/k8s/base/backend-secrets.yaml`
 
@@ -223,14 +249,16 @@ async function fetchStations() {
 ## 📊 What's Running on Your Pi
 
 ### Port Mapping
-| Service | Internal Port | External Port | Cloudflare Tunnel |
-|---------|--------------|---------------|-------------------|
-| Frontend | 8080 | - | lab-grounds-super-behavioral.trycloudflare.com |
-| Backend | 8080 (container) | 30636 (NodePort) | shoe-mere-livestock-mild.trycloudflare.com |
-| Database | 5432 | - | (internal only) |
-| Prometheus | 9090 | - | (internal only) |
+
+| Service    | Internal Port    | External Port    | Cloudflare Tunnel                              |
+| ---------- | ---------------- | ---------------- | ---------------------------------------------- |
+| Frontend   | 8080             | -                | lab-grounds-super-behavioral.trycloudflare.com |
+| Backend    | 8080 (container) | 30636 (NodePort) | shoe-mere-livestock-mild.trycloudflare.com     |
+| Database   | 5432             | -                | (internal only)                                |
+| Prometheus | 9090             | -                | (internal only)                                |
 
 ### Kubernetes Namespaces
+
 ```bash
 # View all resources
 kubectl get all -n floodsight
@@ -250,6 +278,7 @@ kubectl get pods -n floodsight -l app=postgres
 ## 💡 Common Tasks
 
 ### Check If Forecasts Are Updating
+
 ```bash
 # Get latest forecast timestamp
 curl -s https://shoe-mere-livestock-mild.trycloudflare.com/v1/forecasts | \
@@ -260,6 +289,7 @@ kubectl logs -f -l component=scheduler -n floodsight --tail=50
 ```
 
 ### Check Active Alerts
+
 ```bash
 # In browser
 https://lab-grounds-super-behavioral.trycloudflare.com
@@ -269,6 +299,7 @@ curl https://shoe-mere-livestock-mild.trycloudflare.com/v1/alerts | jq
 ```
 
 ### Monitor Backend Health
+
 ```bash
 # Quick health check
 curl https://shoe-mere-livestock-mild.trycloudflare.com/v1/health | jq
@@ -282,6 +313,7 @@ curl http://192.168.178.50:30636/metrics
 ## 🆘 Troubleshooting
 
 ### Frontend Not Loading
+
 1. Check if dev server is running:
    ```bash
    ps aux | grep vite
@@ -298,6 +330,7 @@ curl http://192.168.178.50:30636/metrics
    ```
 
 ### Backend Not Responding
+
 1. Check pods:
    ```bash
    kubectl get pods -n floodsight
@@ -312,6 +345,7 @@ curl http://192.168.178.50:30636/metrics
    ```
 
 ### Cloudflare Tunnel Not Working
+
 1. Check if running:
    ```bash
    ps aux | grep cloudflared
@@ -328,6 +362,7 @@ curl http://192.168.178.50:30636/metrics
    ```
 
 ### No Data / Empty Forecasts
+
 1. Check if scheduler is running:
    ```bash
    kubectl get pods -n floodsight -l component=scheduler
@@ -358,24 +393,27 @@ curl http://192.168.178.50:30636/metrics
 **Your FloodSight system is fully operational!**
 
 ✅ **Frontend Dashboard:**
-   - Public: https://lab-grounds-super-behavioral.trycloudflare.com
-   - Local: http://192.168.178.50:8080
+
+- Public: https://lab-grounds-super-behavioral.trycloudflare.com
+- Local: http://192.168.178.50:8080
 
 ✅ **Backend API:**
-   - Public: https://shoe-mere-livestock-mild.trycloudflare.com
-   - Local: http://192.168.178.50:30636
+
+- Public: https://shoe-mere-livestock-mild.trycloudflare.com
+- Local: http://192.168.178.50:30636
 
 ✅ **Data Source:**
-   - Real ECMWF GloFAS forecasts
-   - Updated every hour
-   - 5 European monitoring stations
-   - Up to 10 days ahead
+
+- Real ECMWF GloFAS forecasts
+- Updated every hour
+- 5 European monitoring stations
+- Up to 10 days ahead
 
 ✅ **Infrastructure:**
-   - Running on Raspberry Pi 5
-   - Kubernetes (K3s) cluster
-   - PostgreSQL + PostGIS database
-   - Cloudflare tunnels for public access
+
+- Running on Raspberry Pi 5
+- Kubernetes (K3s) cluster
+- PostgreSQL + PostGIS database
+- Cloudflare tunnels for public access
 
 **Everything is running and accessible! 🌊🎉**
-

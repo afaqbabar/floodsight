@@ -7,12 +7,14 @@ Quick reference for deploying FloodSight frontend and backend.
 ## 📦 What You Have
 
 ### Frontend (Already Deployed ✅)
+
 - **Platform:** Vercel
 - **URL:** https://floodsight.vercel.app
 - **Status:** ✅ Live
 - **Tech:** Next.js + Vite + Leaflet maps
 
 ### Backend (Ready to Deploy 🎯)
+
 - **Platform:** K8s/K3s (Raspberry Pi)
 - **URL:** https://api.floodsight.com (to be configured)
 - **Status:** 🟡 Ready for deployment
@@ -100,11 +102,13 @@ open https://api.floodsight.com/docs
 ### Required Configuration
 
 - [ ] **Database URL** - PostgreSQL connection string
+
   ```
   postgresql+asyncpg://user:pass@host:5432/floodsight
   ```
 
 - [ ] **CORS Origins** - Frontend URLs
+
   ```json
   ["https://floodsight.vercel.app", "https://floodsight.com"]
   ```
@@ -135,18 +139,21 @@ open https://api.floodsight.com/docs
 ## 🧪 Testing the Full Stack
 
 ### 1. Test Backend Health
+
 ```bash
 curl https://api.floodsight.com/v1/health
 # Should return: {"status": "ok", "database": "connected"}
 ```
 
 ### 2. Test Frontend
+
 ```bash
 open https://floodsight.vercel.app
 # Should show map with stations
 ```
 
 ### 3. Test Integration
+
 ```bash
 # Ingest fake data
 curl -X POST https://api.floodsight.com/v1/forecasts/ingest-dev
@@ -162,6 +169,7 @@ open https://floodsight.vercel.app/dashboard
 ```
 
 ### 4. Test Real Data (if CDS API configured)
+
 ```bash
 # Trigger real GloFAS ingestion
 curl -X POST https://api.floodsight.com/v1/forecasts/ingest
@@ -219,6 +227,7 @@ kubectl top pods
 ## 🆘 Troubleshooting
 
 ### Backend won't start
+
 ```bash
 kubectl describe pod -l component=backend
 kubectl logs -l component=backend
@@ -226,6 +235,7 @@ kubectl logs -l component=backend
 ```
 
 ### Database connection failed
+
 ```bash
 # Test from pod
 kubectl exec -it deployment/floodsight-backend -- \
@@ -233,6 +243,7 @@ kubectl exec -it deployment/floodsight-backend -- \
 ```
 
 ### Ingestion not working
+
 ```bash
 # Check scheduler logs
 kubectl logs -l component=scheduler -f
@@ -242,6 +253,7 @@ curl -X POST https://api.floodsight.com/v1/forecasts/ingest-dev
 ```
 
 ### Frontend can't reach API
+
 - Check CORS configuration in `backend-configmap.yaml`
 - Verify `vercel.json` has API rewrites
 - Check DNS: `api.floodsight.com` resolves correctly
@@ -272,4 +284,3 @@ curl -X POST https://api.floodsight.com/v1/forecasts/ingest-dev
 ---
 
 **🌊 Happy Deploying! May your servers stay dry and your alerts be timely! 🔔**
-

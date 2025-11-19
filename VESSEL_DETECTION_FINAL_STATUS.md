@@ -3,6 +3,7 @@
 ## ✅ What Was Completed
 
 ### **1. Code Implementation** ✅
+
 - CFAR vessel detector (`app/services/sentinel1.py`)
 - API endpoints (`/v1/vessels/*`)
 - VesselDetection model with PostGIS geometry
@@ -10,12 +11,14 @@
 - Scheduler integration
 
 ### **2. Infrastructure Setup** ✅
+
 - PostGIS in Kubernetes (`nickblah/postgis:16-postgis-3.4`)
 - Database migration applied successfully
 - imagePullSecret created (`ghcr-creds`)
 - CI/CD workflow fixed to proceed even with lint warnings
 
 ### **3. Local Testing** ✅
+
 - 118 vessels detected successfully
 - All API endpoints working
 - PostGIS storage verified
@@ -25,18 +28,22 @@
 ## 🔧 Issues Encountered & Fixed
 
 ### **Issue 1: CI/CD Workflow Blocking**
+
 **Problem:** Docker build wouldn't trigger if linting had warnings  
 **Fix:** Changed workflow dependency to `always()` condition  
 **Status:** ✅ Fixed (commit 6d2ca64)
 
 ### **Issue 2: Private Docker Registry**
+
 **Problem:** K8s couldn't pull image (401 Unauthorized)  
 **Fix:** Created imagePullSecret with GitHub token  
 **Status:** ✅ Fixed (secret `ghcr-creds` created)
 
 ### **Issue 3: Application CrashLoopBackOff**
+
 **Problem:** `ModuleNotFoundError: No module named 'app.api.v1.users'`  
 **Root Cause:** main.py imported 3 untracked modules:
+
 - `app/api/v1/users.py`
 - `app/api/v1/webhooks_rules.py`
 - `app/api/v1/analytics.py`
@@ -48,21 +55,22 @@
 
 ## ⏳ Current Status
 
-| Component | Status | Details |
-|-----------|--------|---------|
-| **Code** | ✅ Complete | Vessel detection implemented |
-| **Local Test** | ✅ Passed | 118 vessels detected |
-| **PostGIS K8s** | ✅ Running | nickblah/postgis:16-postgis-3.4 |
-| **DB Migration** | ✅ Applied | vessel_detections table created |
-| **imagePullSecret** | ✅ Created | ghcr-creds configured |
-| **Docker Image** | ⏳ **Building** | CI/CD triggered ~5 min ago |
-| **K8s Deployment** | ⏳ **Pending** | Waiting for new image |
+| Component           | Status          | Details                         |
+| ------------------- | --------------- | ------------------------------- |
+| **Code**            | ✅ Complete     | Vessel detection implemented    |
+| **Local Test**      | ✅ Passed       | 118 vessels detected            |
+| **PostGIS K8s**     | ✅ Running      | nickblah/postgis:16-postgis-3.4 |
+| **DB Migration**    | ✅ Applied      | vessel_detections table created |
+| **imagePullSecret** | ✅ Created      | ghcr-creds configured           |
+| **Docker Image**    | ⏳ **Building** | CI/CD triggered ~5 min ago      |
+| **K8s Deployment**  | ⏳ **Pending**  | Waiting for new image           |
 
 ---
 
 ## 🚀 Next Steps (After Build Completes)
 
 ### **Monitor Build** (~8-13 minutes)
+
 🔗 https://github.com/afaqbabar/floodsight/actions
 
 Look for: **"Backend CI/CD"** workflow (commit adffb63)
@@ -181,21 +189,22 @@ threshold_db=14.0, window_size=40, guard_size=12
 
 ## 📊 Timeline
 
-| Time | Event | Status |
-|------|-------|--------|
-| **Initial** | Vessel detection code committed | ✅ |
-| **+17m** | First Docker build succeeded | ✅ |
-| **+20m** | Image pull auth issue found | ✅ Fixed |
-| **+25m** | CrashLoopBackOff issue found | ✅ Fixed |
-| **+30m** | Fixed build triggered (commit adffb63) | ⏳ Building |
-| **+40-45m** | New image ready | ⏳ Pending |
-| **+50m** | Vessel detection working in K8s | ⏳ Pending |
+| Time        | Event                                  | Status      |
+| ----------- | -------------------------------------- | ----------- |
+| **Initial** | Vessel detection code committed        | ✅          |
+| **+17m**    | First Docker build succeeded           | ✅          |
+| **+20m**    | Image pull auth issue found            | ✅ Fixed    |
+| **+25m**    | CrashLoopBackOff issue found           | ✅ Fixed    |
+| **+30m**    | Fixed build triggered (commit adffb63) | ⏳ Building |
+| **+40-45m** | New image ready                        | ⏳ Pending  |
+| **+50m**    | Vessel detection working in K8s        | ⏳ Pending  |
 
 ---
 
 ## 🎉 What's Left
 
 **Just wait ~8-13 minutes** for the new Docker image to build, then:
+
 1. Delete the crashing pod
 2. Test the vessel detection API
 3. Verify data in PostGIS
@@ -229,4 +238,3 @@ Maritime monitoring with dark vessel detection, port accessibility, and flood-pl
 - **Integration Guide**: `docs/VESSEL_DETECTION_INTEGRATION.md`
 - **Code Snippet**: `INTEGRATION_CODE_SNIPPET.md`
 - **Troubleshooting**: `FIX_IMAGE_PULL.md`
-

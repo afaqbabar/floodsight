@@ -14,11 +14,11 @@ Complete guide to verifying your GloFAS forecasts against real German gauge meas
 
 ### Matched Stations:
 
-| Your Station | PEGELONLINE Gauge | Current Discharge |
-|--------------|-------------------|-------------------|
-| Dresden Elbe | Dresden (Elbe) | ~210 m³/s ✅ |
-| Cologne Rhine | Köln (Rhine) | ~1710 m³/s ✅ |
-| Frankfurt Main | Frankfurt Osthafen | ~76 m³/s ✅ |
+| Your Station   | PEGELONLINE Gauge  | Current Discharge |
+| -------------- | ------------------ | ----------------- |
+| Dresden Elbe   | Dresden (Elbe)     | ~210 m³/s ✅      |
+| Cologne Rhine  | Köln (Rhine)       | ~1710 m³/s ✅     |
+| Frankfurt Main | Frankfurt Osthafen | ~76 m³/s ✅       |
 
 **Note:** Berlin (Spree) and Vienna (Danube) are not in PEGELONLINE.
 
@@ -62,7 +62,7 @@ cd /home/lenovo/scrimba/floodsight/backend
 
 # Find forecasts for times that have already passed
 docker compose exec db psql -U postgres -d floodsight -c \
-  "SELECT 
+  "SELECT
      s.code,
      f.ts as predicted_for,
      f.discharge_m3s as forecast,
@@ -98,6 +98,7 @@ cd /home/lenovo/scrimba/floodsight/backend
 ```
 
 **Shows:**
+
 - Current gauge measurements (actual)
 - Your forecast averages
 - Rough comparison (not time-matched)
@@ -114,6 +115,7 @@ cd /home/lenovo/scrimba/floodsight/backend
 ```
 
 **Shows:**
+
 - How to match forecast times with actual measurements
 - PEGELONLINE historical data
 - Step-by-step verification process
@@ -157,6 +159,7 @@ docker compose --profile scheduler up -d scheduler
 ### Automated Approach (Future):
 
 I can implement a system that:
+
 1. ✅ Stores forecasts (you already do this)
 2. ⏰ Waits for forecast time to pass
 3. 📊 Auto-fetches PEGELONLINE data
@@ -211,8 +214,9 @@ curl "https://www.pegelonline.wsv.de/webservices/rest-api/v2/stations/STATION_UU
 You want to verify a 24-hour forecast made yesterday.
 
 **Step 1: Find the forecast**
+
 ```sql
-SELECT 
+SELECT
   s.code,
   f.model_run as made_at,
   f.ts as predicted_for,
@@ -226,6 +230,7 @@ WHERE s.code = 'ELBE-DRESDEN'
 ```
 
 **Result:**
+
 ```
 Made at: 2025-11-11 12:00
 Predicted for: 2025-11-12 12:00
@@ -233,6 +238,7 @@ Forecast: 850 m³/s
 ```
 
 **Step 2: Get actual measurement**
+
 ```bash
 curl "https://www.pegelonline.wsv.de/webservices/rest-api/v2/stations/70272185-b2b3-4178-96b8-43bea330dcae/Q/measurements.json?start=P2D" | \
   jq '.[] | select(.timestamp | contains("2025-11-12T12:")) | .value'
@@ -241,6 +247,7 @@ curl "https://www.pegelonline.wsv.de/webservices/rest-api/v2/stations/70272185-b
 **Result:** `820 m³/s`
 
 **Step 3: Calculate**
+
 ```
 Error: |850 - 820| = 30 m³/s
 Relative Error: 30/820 = 3.7%
@@ -253,20 +260,21 @@ Accuracy: 96.3% ✅ Excellent!
 
 Based on GloFAS literature and PEGELONLINE comparison:
 
-| Lead Time | Expected Accuracy | Typical Error |
-|-----------|-------------------|---------------|
-| 6-12 hours | 95-98% | < 50 m³/s |
-| 12-24 hours | 90-95% | < 100 m³/s |
-| 24-48 hours | 85-92% | < 150 m³/s |
-| 48-72 hours | 80-88% | < 200 m³/s |
-| 3-5 days | 75-85% | < 300 m³/s |
-| 5-10 days | 65-80% | < 400 m³/s |
+| Lead Time   | Expected Accuracy | Typical Error |
+| ----------- | ----------------- | ------------- |
+| 6-12 hours  | 95-98%            | < 50 m³/s     |
+| 12-24 hours | 90-95%            | < 100 m³/s    |
+| 24-48 hours | 85-92%            | < 150 m³/s    |
+| 48-72 hours | 80-88%            | < 200 m³/s    |
+| 3-5 days    | 75-85%            | < 300 m³/s    |
+| 5-10 days   | 65-80%            | < 400 m³/s    |
 
 ---
 
 ## 💡 Advantages of PEGELONLINE Verification
 
 ### vs GloFAS Reanalysis:
+
 - ✅ **Real measurements** (not model)
 - ✅ **High temporal resolution** (15 minutes vs daily)
 - ✅ **No delay** (real-time vs 5-day lag)
@@ -274,6 +282,7 @@ Based on GloFAS literature and PEGELONLINE comparison:
 - ❌ **Only Germany** (not global)
 
 ### vs Convergence Analysis:
+
 - ✅ **True ground truth** (not forecast vs forecast)
 - ✅ **Absolute accuracy** (not relative)
 - ✅ **Detects systematic bias**
@@ -284,6 +293,7 @@ Based on GloFAS literature and PEGELONLINE comparison:
 ## 🚀 Next Steps
 
 ### Option 1: Manual Verification (Now)
+
 ```bash
 # Run scripts
 ./verify_with_gauges.sh
@@ -294,12 +304,14 @@ Based on GloFAS literature and PEGELONLINE comparison:
 ```
 
 ### Option 2: Automated System (2-3 hours to implement)
+
 - Auto-fetch PEGELONLINE data daily
 - Match with forecasts automatically
 - Calculate accuracy metrics
 - Dashboard showing performance
 
 ### Option 3: Expand Coverage
+
 - Add more PEGELONLINE stations
 - Add other countries (UK, Netherlands, etc.)
 - Global verification network
@@ -330,18 +342,17 @@ docker compose exec db psql -U postgres -d floodsight -c \
 **You CAN verify with PEGELONLINE!** ✅
 
 **Current Status:**
+
 - ✅ 3 stations matched with real gauges
 - ✅ Real-time data access working
 - ✅ Historical data available (30 days)
 - ✅ Verification scripts created
 
 **To Get Accurate Results:**
+
 1. ⏰ Wait 24-48 hours (let forecasts "mature")
 2. 🔄 Run scheduler for continuous forecasts
 3. 📊 Compare forecasts with actual measurements
 4. 📈 Calculate true accuracy metrics
 
 **Want automated verification?** Let me know! 🚀
-
-
-

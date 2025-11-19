@@ -17,6 +17,7 @@
 ## ⏳ **In Progress**
 
 ### **GitHub Actions Build**
+
 - **Workflow**: `postgres-postgis-ci.yml`
 - **Status**: Building (takes ~5-10 minutes for PostGIS compilation)
 - **Image**: `ghcr.io/afaqbabar/floodsight-postgres-postgis:latest`
@@ -53,6 +54,7 @@ kubectl patch statefulset postgres -n floodsight --type='json' \
 ```
 
 **Or make the repository public:**
+
 - Go to: https://github.com/users/afaqbabar/packages/container/floodsight-postgres-postgis/settings
 - Change visibility to **Public**
 
@@ -91,6 +93,7 @@ kubectl exec -n floodsight postgres-0 -- psql -U postgres -d floodsight -c \
 ```
 
 **Expected output:**
+
 ```
 CREATE EXTENSION
  postgis_version
@@ -139,20 +142,24 @@ curl http://localhost:8080/v1/vessels | jq
 ### **Image Pull Errors**
 
 **Error**: `403 Forbidden` or `ImagePullBackOff`
+
 - **Solution**: Make repository public OR create imagePullSecrets
 
 **Error**: `Image not found`
+
 - **Solution**: Wait for GitHub Actions build to complete
 
 ### **PostGIS Extension Errors**
 
 **Error**: `extension "postgis" is not available`
+
 - **Solution**: Verify PostGIS was compiled correctly in Docker image
 - **Check**: `kubectl exec -n floodsight postgres-0 -- ls /usr/local/share/postgresql/extension/ | grep postgis`
 
 ### **Migration Errors**
 
 **Error**: `relation "vessel_detections" already exists`
+
 - **Solution**: Migration already applied, this is normal
 
 ---
@@ -177,4 +184,3 @@ Everything is set up and aligned with your existing infrastructure! The GitHub A
 5. Test vessel detection
 
 **Check GitHub Actions**: https://github.com/afaqbabar/floodsight/actions
-

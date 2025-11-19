@@ -3,6 +3,7 @@
 ## ✅ **Why Option 1 is Best**
 
 Your existing infrastructure uses:
+
 - ✅ **GitHub Actions CI/CD** for building Docker images
 - ✅ **Multi-arch builds** (ARM64 + AMD64) via Docker Buildx
 - ✅ **GHCR registry** (`ghcr.io/afaqbabar/floodsight-*`)
@@ -18,11 +19,13 @@ Your existing infrastructure uses:
 ### **1. Build and Push PostGIS Image**
 
 The GitHub Actions workflow (`.github/workflows/postgres-postgis-ci.yml`) will automatically:
+
 - Build PostGIS-enabled PostgreSQL image
 - Push to `ghcr.io/afaqbabar/floodsight-postgres-postgis:latest`
 - Support ARM64 (Raspberry Pi) + AMD64
 
 **Trigger the build:**
+
 ```bash
 # Push changes or manually trigger workflow
 git add backend/Dockerfile.db .github/workflows/postgres-postgis-ci.yml
@@ -31,6 +34,7 @@ git push origin main
 ```
 
 **Or manually trigger:**
+
 - Go to GitHub Actions → "PostGIS Database Image CI/CD" → "Run workflow"
 
 ---
@@ -44,6 +48,7 @@ image: ghcr.io/afaqbabar/floodsight-postgres-postgis:latest
 ```
 
 **Apply to cluster:**
+
 ```bash
 kubectl apply -k deploy/k8s/base
 ```
@@ -64,6 +69,7 @@ kubectl exec -n floodsight postgres-0 -- psql -U postgres -d floodsight -c \
 ```
 
 **Expected output:**
+
 ```
 CREATE EXTENSION
  postgis_version
@@ -115,6 +121,7 @@ curl http://localhost:8080/v1/vessels | jq
 ## ⚠️ **Build Time Note**
 
 Compiling PostGIS from source takes **~5-10 minutes** per build. This is acceptable because:
+
 - ✅ Builds are cached via GitHub Actions cache
 - ✅ Only rebuilds when `Dockerfile.db` changes
 - ✅ Multi-arch builds run in parallel
@@ -127,11 +134,13 @@ Compiling PostGIS from source takes **~5-10 minutes** per build. This is accepta
 ## 🔄 **GitOps Integration**
 
 If FluxCD is configured, it will automatically:
+
 1. Detect new PostGIS image tags
 2. Update StatefulSet with new image
 3. Roll out changes to cluster
 
 **Check FluxCD status:**
+
 ```bash
 flux get images -n floodsight
 flux get kustomizations -n floodsight

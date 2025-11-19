@@ -1,6 +1,7 @@
 # Vercel Frontend Not Updating - Troubleshooting Guide
 
 ## 🎯 Your Backend URL
+
 ```
 https://shoe-mere-livestock-mild.trycloudflare.com
 ```
@@ -16,6 +17,7 @@ https://shoe-mere-livestock-mild.trycloudflare.com
 **Problem**: You added the environment variable but didn't redeploy.
 
 **Solution**:
+
 1. Go to: https://vercel.com/YOUR_PROJECT/deployments
 2. Find your latest deployment
 3. Click the **three dots (...)** on the right
@@ -32,6 +34,7 @@ https://shoe-mere-livestock-mild.trycloudflare.com
 **Problem**: Variable added to wrong environment (Preview/Development instead of Production).
 
 **Solution**:
+
 1. Go to: https://vercel.com/YOUR_PROJECT/settings/environment-variables
 2. Check which environment has the variable
 3. Make sure **"Production"** is checked ✓
@@ -45,7 +48,8 @@ https://shoe-mere-livestock-mild.trycloudflare.com
 **Problem**: Your browser is showing the old cached version.
 
 **Solution**:
-- **Hard Refresh**: 
+
+- **Hard Refresh**:
   - Windows/Linux: `Ctrl + Shift + R`
   - Mac: `Cmd + Shift + R`
 - **Or**: Open in Incognito/Private window
@@ -61,17 +65,18 @@ https://shoe-mere-livestock-mild.trycloudflare.com
 
 ```javascript
 // For Vite (React/Vue/Svelte)
-const API_URL = import.meta.env.VITE_API_URL;  // ✅ Correct for Vite
+const API_URL = import.meta.env.VITE_API_URL; // ✅ Correct for Vite
 console.log('API URL:', API_URL);
 
 // For Next.js
-const API_URL = process.env.NEXT_PUBLIC_API_URL;  // ✅ Correct for Next.js
+const API_URL = process.env.NEXT_PUBLIC_API_URL; // ✅ Correct for Next.js
 
 // For Create React App
-const API_URL = process.env.REACT_APP_API_URL;  // ✅ Correct for CRA
+const API_URL = process.env.REACT_APP_API_URL; // ✅ Correct for CRA
 ```
 
 **In Vercel**, the variable name must be:
+
 - `VITE_API_URL` for Vite projects
 - `NEXT_PUBLIC_API_URL` for Next.js projects
 - `REACT_APP_API_URL` for Create React App projects
@@ -93,7 +98,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 // Use it
 fetch(`${API_URL}/v1/stations`)
-  .then(r => r.json())
+  .then((r) => r.json())
   .then(console.log);
 ```
 
@@ -104,6 +109,7 @@ fetch(`${API_URL}/v1/stations`)
 **Problem**: Deployment failed but you didn't notice.
 
 **Solution**:
+
 1. Go to: https://vercel.com/YOUR_PROJECT/deployments
 2. Check if latest deployment shows:
    - ✅ "Ready" (good)
@@ -118,6 +124,7 @@ fetch(`${API_URL}/v1/stations`)
 **Problem**: You redeployed but it's still building.
 
 **Solution**:
+
 - Wait for "Building" → "Ready" status (usually 1-3 minutes)
 - Refresh Vercel deployments page to see current status
 - Don't check your app until it shows "Ready"
@@ -129,6 +136,7 @@ fetch(`${API_URL}/v1/stations`)
 **Problem**: Checking old deployment URL instead of new one.
 
 **Solution**:
+
 - Each deployment has its own URL
 - Check the URL of the LATEST deployment
 - Or use your production URL (e.g., `your-project.vercel.app`)
@@ -140,6 +148,7 @@ fetch(`${API_URL}/v1/stations`)
 ### Step 1: Verify Environment Variable
 
 In Vercel:
+
 1. Go to: **Settings** → **Environment Variables**
 2. Confirm you see:
    ```
@@ -176,12 +185,13 @@ console.log('API URL:', import.meta.env.VITE_API_URL);
 
 // Test backend directly
 fetch('https://shoe-mere-livestock-mild.trycloudflare.com/v1/health')
-  .then(r => r.json())
-  .then(data => console.log('✅ Backend:', data))
-  .catch(err => console.error('❌ Error:', err));
+  .then((r) => r.json())
+  .then((data) => console.log('✅ Backend:', data))
+  .catch((err) => console.error('❌ Error:', err));
 ```
 
 **Expected output**:
+
 ```
 API URL: https://shoe-mere-livestock-mild.trycloudflare.com
 ✅ Backend: {status: "ok", app: "FloodSight Backend API", ...}
@@ -205,9 +215,9 @@ console.log('All env vars:', import.meta.env);
 // Test API connection
 if (import.meta.env.VITE_API_URL) {
   fetch(`${import.meta.env.VITE_API_URL}/v1/health`)
-    .then(r => r.json())
-    .then(data => console.log('✅ Backend connected:', data))
-    .catch(err => console.error('❌ Backend error:', err));
+    .then((r) => r.json())
+    .then((data) => console.log('✅ Backend connected:', data))
+    .catch((err) => console.error('❌ Backend error:', err));
 } else {
   console.error('❌ VITE_API_URL not set!');
 }
@@ -233,11 +243,12 @@ Create `vercel.json` in your project root:
 ```
 
 Then in your code:
+
 ```javascript
 // Use relative path instead of env variable
 const API_URL = '/api/v1';
 
-fetch(`${API_URL}/stations`);  // Goes to /api/v1/stations → proxied to Cloudflare
+fetch(`${API_URL}/stations`); // Goes to /api/v1/stations → proxied to Cloudflare
 ```
 
 ### Fix 3: Disable Preview Deployments
@@ -300,11 +311,13 @@ If preview deployments are confusing:
 ## 🎯 Your Correct Configuration
 
 **Environment Variable**:
+
 ```
 VITE_API_URL=https://shoe-mere-livestock-mild.trycloudflare.com
 ```
 
 **Frontend Code**:
+
 ```javascript
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
@@ -321,4 +334,3 @@ async function loadData() {
 ---
 
 Your backend is working perfectly! The issue is just getting Vercel to use the new URL. Follow the steps above and it should work! 🚀
-

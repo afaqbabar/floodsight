@@ -13,24 +13,28 @@
 All requirements from `docs/DEVELOPMENT_PROMPT.md` fully implemented:
 
 ### ✅ Phase 1: Dark Vessel Detection (Lines 1856-1872)
+
 - CFAR vessel detection from Sentinel-1 SAR
 - Dark vessel monitoring without AIS
 - PostGIS vessel_detections table
 - API endpoints for vessel GeoJSON
 
 ### ✅ Phase 2: Port Safe Draught (Lines 1949-1965)
+
 - Port fairways with reference draught
 - Siltation depth estimation
 - Safe draught calculation
 - Port risk alerts (>0.5m reduction)
 
 ### ✅ Phase 3: Flood Plume Detection (Lines 1968-1979)
+
 - Nutrient/sediment plume tracking
 - Discharge-based buffer (20-80km)
 - Vessel-in-plume alerts (≥5 vessels)
 - Dashboard layer (GeoJSON)
 
 ### ✅ FINAL Phase: Product Completion (Lines 1982-1990)
+
 - Grounding risk vector tiles
 - Interactive heatmap widget
 - Pricing tier flags (3 feature flags)
@@ -87,6 +91,7 @@ ALTER TABLE users ADD COLUMN has_maritime_plume_tracking BOOLEAN DEFAULT FALSE;
 ```
 
 **Migrations:**
+
 - `add_vessel_detections`
 - `add_port_fairways`
 - `add_flood_plumes`
@@ -99,6 +104,7 @@ ALTER TABLE users ADD COLUMN has_maritime_plume_tracking BOOLEAN DEFAULT FALSE;
 **13 New Maritime Endpoints:**
 
 ### Vessel Detection (Phase 1)
+
 ```
 GET  /v1/vessels                    # List all detections
 GET  /v1/vessels/geojson            # Map layer
@@ -106,6 +112,7 @@ POST /v1/vessels/ingest             # Manual trigger
 ```
 
 ### Port Monitoring (Phase 2)
+
 ```
 GET  /v1/maritime/ports                      # List ports
 POST /v1/maritime/ports                      # Create port
@@ -115,6 +122,7 @@ POST /v1/maritime/calculate-all-ports        # Manual calc
 ```
 
 ### Plume Tracking (Phase 3)
+
 ```
 GET  /v1/maritime/plumes?river=elbe&days=7   # List plumes
 GET  /v1/maritime/plumes/geojson             # Map layer
@@ -123,6 +131,7 @@ POST /v1/maritime/detect-plumes              # Manual trigger
 ```
 
 ### Grounding Risk (FINAL)
+
 ```
 GET  /v1/maritime/grounding-risk/tiles/{z}/{x}/{y}.pbf  # Vector tiles
 GET  /v1/maritime/grounding-risk/heatmap                # Dashboard data
@@ -153,22 +162,22 @@ GET  /v1/maritime/grounding-risk/heatmap                # Dashboard data
 ```python
 async def run_complete_flow() -> tuple[int, int, int, int, int]:
     """Complete ingestion flow."""
-    
+
     # Step 1: Ingest GloFAS forecasts
     forecast_count = await fetch_and_store_forecasts()
-    
+
     # Step 2: Compute flood alerts
     alerts_count = await compute_and_store_alerts()
-    
+
     # Step 3: Process Sentinel-1 for vessel detection (Phase 1)
     vessel_count = await process_sentinel1_vessels()
-    
+
     # Step 4: Calculate port safe draughts (Phase 2)
     port_alerts_count = await process_port_siltation()
-    
+
     # Step 5: Detect flood plumes (Phase 3)
     plume_count = await process_flood_plumes()
-    
+
     return (forecast_count, alerts_count, vessel_count, port_alerts_count, plume_count)
 ```
 
@@ -200,8 +209,9 @@ async def run_complete_flow() -> tuple[int, int, int, int, int]:
 ## 📐 Technical Highlights
 
 ### CFAR Vessel Detection
+
 ```python
-def cfar_detector(sar_image: np.ndarray, guard_cells: int = 3, 
+def cfar_detector(sar_image: np.ndarray, guard_cells: int = 3,
                   background_cells: int = 10, false_alarm_rate: float = 1e-3):
     """Constant False Alarm Rate detector for SAR vessel detection."""
     # Sliding window approach
@@ -210,6 +220,7 @@ def cfar_detector(sar_image: np.ndarray, guard_cells: int = 3,
 ```
 
 ### Safe Draught Calculation
+
 ```python
 # Siltation model
 siltation_depth_m = max(0, (current_discharge - baseline_discharge) × 0.00012)
@@ -225,6 +236,7 @@ else:
 ```
 
 ### Plume Detection
+
 ```python
 # Buffer radius scaling (20-80km range)
 radius_km = 20.0 + min(60.0, (discharge / baseline - 1.0) × 15.0)
@@ -238,6 +250,7 @@ plume_polygon = create_ellipse(river_mouth, radius_km, bias="downstream")
 ```
 
 ### Grounding Risk
+
 ```python
 # Clearance calculation
 clearance_m = safe_draught_m - vessel_draught_m
@@ -258,6 +271,7 @@ else:
 **Deployment Platform:** Kubernetes (k3s on Raspberry Pi 5)
 
 **Components:**
+
 - Backend: 2 replicas (FastAPI + Python 3.11)
 - Database: PostgreSQL 16 + PostGIS 3.4 (StatefulSet)
 - Scheduler: 1 replica (APScheduler)
@@ -266,6 +280,7 @@ else:
 **Image Registry:** GitHub Container Registry (GHCR)
 
 **CI/CD:** GitHub Actions
+
 - Backend: `backend-ci.yml` ✅
 - Frontend: `ci.yml` (⚠️ lint warnings, non-blocking)
 - Database: `postgres-postgis-ci.yml` ✅
@@ -277,6 +292,7 @@ else:
 ## 📦 Dependencies Added
 
 **Python (Backend):**
+
 ```txt
 scipy>=1.11.0           # CFAR detection
 shapely>=2.0.0          # Geometry operations
@@ -290,20 +306,21 @@ geoalchemy2>=0.14.0     # PostGIS (already present)
 
 ## 📈 Performance Metrics
 
-| Metric | Value | Impact |
-|--------|-------|--------|
-| Vessel detections/hour | 5-50 | +1-5 MB DB |
-| Port calculations/hour | 3 ports | +100 KB DB |
-| Plume detections/day | 0-2 | +500 KB DB |
-| API response time | <200ms | Cached |
-| Tile generation | <500ms | PostGIS indexed |
-| Memory overhead | +50 MB | Minimal |
+| Metric                 | Value   | Impact          |
+| ---------------------- | ------- | --------------- |
+| Vessel detections/hour | 5-50    | +1-5 MB DB      |
+| Port calculations/hour | 3 ports | +100 KB DB      |
+| Plume detections/day   | 0-2     | +500 KB DB      |
+| API response time      | <200ms  | Cached          |
+| Tile generation        | <500ms  | PostGIS indexed |
+| Memory overhead        | +50 MB  | Minimal         |
 
 ---
 
 ## 🎓 Documentation
 
 **Complete Technical Docs:**
+
 1. `MARITIME_EXTENSION_IMPLEMENTATION.md` - Phase 1
 2. `MARITIME_PHASE2_COMPLETE.md` - Phase 2
 3. `MARITIME_PHASE3_COMPLETE.md` - Phase 3
@@ -311,7 +328,8 @@ geoalchemy2>=0.14.0     # PostGIS (already present)
 5. `UPGRADE_TO_MARITIME.md` - Customer guide
 6. `VESSEL_DETECTION_INTEGRATION.md` - Integration examples
 
-**API Reference:** 
+**API Reference:**
+
 - Interactive: http://192.168.178.50:32442/docs
 - OpenAPI: http://192.168.178.50:32442/openapi.json
 
@@ -324,7 +342,7 @@ geoalchemy2>=0.14.0     # PostGIS (already present)
 ```python
 class User(Base):
     pricing_tier: str  # 'free', 'basic', 'premium', 'enterprise', 'maritime'
-    
+
     # À la carte feature flags
     has_maritime_vessel_detection: bool
     has_maritime_port_monitoring: bool
@@ -332,6 +350,7 @@ class User(Base):
 ```
 
 **Upgrade Process:**
+
 1. Customer requests via `sales@floodsight.com`
 2. Admin updates feature flags in database
 3. Features activate immediately (no deployment)
@@ -344,6 +363,7 @@ class User(Base):
 ## 🎯 Use Cases & Customers
 
 **Target Markets:**
+
 - 🇪🇺 Port authorities (Rotterdam, Hamburg, Duisburg)
 - 🚢 Shipping companies & maritime insurers
 - 🐟 Fisheries enforcement & environmental agencies
@@ -351,6 +371,7 @@ class User(Base):
 - 📊 Supply chain risk management
 
 **Early Adopters:**
+
 - German Federal Waterways (WSV)
 - Port of Rotterdam Authority
 - UK Environment Agency
@@ -361,6 +382,7 @@ class User(Base):
 ## 🧪 Testing & Verification
 
 **Endpoints Tested:**
+
 ```bash
 # Phase 1
 ✅ curl http://192.168.178.50:32367/v1/vessels | jq
@@ -384,12 +406,12 @@ class User(Base):
 
 ## 🚀 Deployment History
 
-| Date | Phase | Status |
-|------|-------|--------|
+| Date          | Phase                     | Status      |
+| ------------- | ------------------------- | ----------- |
 | Nov 19, 10:00 | Phase 1: Vessel Detection | ✅ Deployed |
-| Nov 19, 13:00 | Phase 2: Port Monitoring | ✅ Deployed |
-| Nov 19, 14:00 | Phase 3: Plume Tracking | ✅ Deployed |
-| Nov 19, 15:00 | FINAL: Grounding Risk | ✅ Deployed |
+| Nov 19, 13:00 | Phase 2: Port Monitoring  | ✅ Deployed |
+| Nov 19, 14:00 | Phase 3: Plume Tracking   | ✅ Deployed |
+| Nov 19, 15:00 | FINAL: Grounding Risk     | ✅ Deployed |
 
 **Total Downtime:** 0 minutes (rolling updates)
 
@@ -398,6 +420,7 @@ class User(Base):
 ## 📊 Migration Status
 
 **Database Migrations:**
+
 ```sql
 -- All applied successfully
 add_vessel_detections     ✅ (rev: add_vessel_detections)
@@ -425,6 +448,7 @@ All success criteria from specification **ACHIEVED:**
 ## 🔮 Future Enhancements (Optional)
 
 **Not in spec, but ready to implement:**
+
 - Offshore wind farm monitoring
 - Iceberg detection (Arctic regions)
 - Marine protected area compliance
@@ -454,6 +478,7 @@ c0ff394 feat: maritime phase 2 - port siltation & safe-draught monitoring
 ## 🏆 Final Statistics
 
 **Code Added:**
+
 - **7** new service modules
 - **13** new API endpoints
 - **4** new database tables
@@ -463,6 +488,7 @@ c0ff394 feat: maritime phase 2 - port siltation & safe-draught monitoring
 - **~1,500** lines of documentation
 
 **Implementation Time:**
+
 - Phase 1: ~2 hours
 - Phase 2: ~2 hours
 - Phase 3: ~2 hours
@@ -484,6 +510,7 @@ FloodSight now offers a comprehensive maritime intelligence platform built on ex
 ---
 
 **For Questions:**
+
 - Technical: maritime@floodsight.com
 - Sales: sales@floodsight.com
 - Support: support@floodsight.com
@@ -492,7 +519,6 @@ FloodSight now offers a comprehensive maritime intelligence platform built on ex
 
 ---
 
-*FloodSight Maritime Edition v1.0 – Because floods don't stop at the shore.*
+_FloodSight Maritime Edition v1.0 – Because floods don't stop at the shore._
 
 **Implementation Complete:** November 19, 2025 ✅
-

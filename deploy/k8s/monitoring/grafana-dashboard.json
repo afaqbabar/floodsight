@@ -7,7 +7,7 @@
     "panels": [
       {
         "id": 1,
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
         "type": "graph",
         "title": "HTTP Requests per Second",
         "targets": [
@@ -17,14 +17,11 @@
             "refId": "A"
           }
         ],
-        "yaxes": [
-          {"format": "reqps", "label": "Requests/s"},
-          {"format": "short"}
-        ]
+        "yaxes": [{ "format": "reqps", "label": "Requests/s" }, { "format": "short" }]
       },
       {
         "id": 2,
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
         "type": "graph",
         "title": "Request Duration (p95)",
         "targets": [
@@ -34,14 +31,11 @@
             "refId": "A"
           }
         ],
-        "yaxes": [
-          {"format": "s", "label": "Duration"},
-          {"format": "short"}
-        ]
+        "yaxes": [{ "format": "s", "label": "Duration" }, { "format": "short" }]
       },
       {
         "id": 3,
-        "gridPos": {"h": 7, "w": 8, "x": 0, "y": 8},
+        "gridPos": { "h": 7, "w": 8, "x": 0, "y": 8 },
         "type": "stat",
         "title": "Total Requests",
         "targets": [
@@ -53,13 +47,13 @@
         "fieldConfig": {
           "defaults": {
             "unit": "short",
-            "color": {"mode": "thresholds"},
+            "color": { "mode": "thresholds" },
             "thresholds": {
               "mode": "absolute",
               "steps": [
-                {"value": 0, "color": "green"},
-                {"value": 1000, "color": "yellow"},
-                {"value": 10000, "color": "red"}
+                { "value": 0, "color": "green" },
+                { "value": 1000, "color": "yellow" },
+                { "value": 10000, "color": "red" }
               ]
             }
           }
@@ -67,7 +61,7 @@
       },
       {
         "id": 4,
-        "gridPos": {"h": 7, "w": 8, "x": 8, "y": 8},
+        "gridPos": { "h": 7, "w": 8, "x": 8, "y": 8 },
         "type": "stat",
         "title": "Memory Usage",
         "targets": [
@@ -79,13 +73,13 @@
         "fieldConfig": {
           "defaults": {
             "unit": "decmbytes",
-            "color": {"mode": "thresholds"},
+            "color": { "mode": "thresholds" },
             "thresholds": {
               "mode": "absolute",
               "steps": [
-                {"value": 0, "color": "green"},
-                {"value": 200, "color": "yellow"},
-                {"value": 500, "color": "red"}
+                { "value": 0, "color": "green" },
+                { "value": 200, "color": "yellow" },
+                { "value": 500, "color": "red" }
               ]
             }
           }
@@ -93,7 +87,7 @@
       },
       {
         "id": 5,
-        "gridPos": {"h": 7, "w": 8, "x": 16, "y": 8},
+        "gridPos": { "h": 7, "w": 8, "x": 16, "y": 8 },
         "type": "stat",
         "title": "CPU Usage",
         "targets": [
@@ -105,13 +99,13 @@
         "fieldConfig": {
           "defaults": {
             "unit": "percent",
-            "color": {"mode": "thresholds"},
+            "color": { "mode": "thresholds" },
             "thresholds": {
               "mode": "absolute",
               "steps": [
-                {"value": 0, "color": "green"},
-                {"value": 50, "color": "yellow"},
-                {"value": 80, "color": "red"}
+                { "value": 0, "color": "green" },
+                { "value": 50, "color": "yellow" },
+                { "value": 80, "color": "red" }
               ]
             }
           }
@@ -119,7 +113,7 @@
       },
       {
         "id": 6,
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 15},
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
         "type": "graph",
         "title": "Memory Usage Over Time",
         "targets": [
@@ -129,14 +123,11 @@
             "refId": "A"
           }
         ],
-        "yaxes": [
-          {"format": "decmbytes", "label": "Memory"},
-          {"format": "short"}
-        ]
+        "yaxes": [{ "format": "decmbytes", "label": "Memory" }, { "format": "short" }]
       },
       {
         "id": 7,
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 15},
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
         "type": "graph",
         "title": "CPU Usage Over Time",
         "targets": [
@@ -146,14 +137,11 @@
             "refId": "A"
           }
         ],
-        "yaxes": [
-          {"format": "percent", "label": "CPU Usage"},
-          {"format": "short"}
-        ]
+        "yaxes": [{ "format": "percent", "label": "CPU Usage" }, { "format": "short" }]
       },
       {
         "id": 8,
-        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 23},
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 23 },
         "type": "table",
         "title": "HTTP Status Codes",
         "targets": [
@@ -168,7 +156,7 @@
           {
             "id": "organize",
             "options": {
-              "excludeByName": {"Time": true},
+              "excludeByName": { "Time": true },
               "indexByName": {},
               "renameByName": {
                 "endpoint": "Endpoint",
@@ -184,7 +172,7 @@
     "refresh": "5s",
     "schemaVersion": 27,
     "style": "dark",
-    "time": {"from": "now-1h", "to": "now"},
+    "time": { "from": "now-1h", "to": "now" },
     "timepicker": {
       "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
     },
@@ -193,4 +181,3 @@
   "folderId": 0,
   "overwrite": true
 }
-

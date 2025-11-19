@@ -14,6 +14,7 @@ This document summarizes the completion of Phase C (DevSecOps Integration) from 
 **File:** `.github/workflows/backend-ci.yml`
 
 **Features:**
+
 - **Linting & Code Quality**
   - Black (code formatting)
   - Ruff (Python linting)
@@ -44,6 +45,7 @@ This document summarizes the completion of Phase C (DevSecOps Integration) from 
   - Deployment notifications
 
 **Triggers:**
+
 - Push to `main` or `develop` branches (when backend files change)
 - Pull requests to `main` or `develop`
 - Manual workflow dispatch
@@ -57,12 +59,14 @@ This document summarizes the completion of Phase C (DevSecOps Integration) from 
 **File:** `.github/dependabot.yml`
 
 **Automated Updates For:**
+
 - **Frontend:** npm dependencies (weekly)
 - **Backend:** Python/Poetry dependencies (weekly)
 - **GitHub Actions:** Action version updates (weekly)
 - **Docker:** Base image updates for frontend and backend (weekly)
 
 **Configuration:**
+
 - Runs every Monday at 09:00
 - Automated PR creation
 - Semantic commit messages (`chore(deps):`, `chore(ci):`, `chore(docker):`)
@@ -76,6 +80,7 @@ This document summarizes the completion of Phase C (DevSecOps Integration) from 
 **Files Created:**
 
 #### a. `deploy/k8s/base/backend-deployment.yaml`
+
 - **Backend API Deployment**
   - 2 replicas (high availability)
   - Rolling updates (zero downtime)
@@ -92,6 +97,7 @@ This document summarizes the completion of Phase C (DevSecOps Integration) from 
   - Recreate strategy (no parallel runs)
 
 #### b. `deploy/k8s/base/backend-service.yaml`
+
 - **ClusterIP Service** (internal, port 8080)
 - **LoadBalancer Service** (external, MetalLB integration)
   - Ports: 80 (HTTP), 443 (HTTPS)
@@ -99,6 +105,7 @@ This document summarizes the completion of Phase C (DevSecOps Integration) from 
   - Shared IP with frontend (MetalLB)
 
 #### c. `deploy/k8s/base/backend-ingress.yaml`
+
 - **Host:** `api.floodsight.com`
 - **TLS/HTTPS:** cert-manager integration
 - **CORS:** Configured for frontend origins
@@ -107,6 +114,7 @@ This document summarizes the completion of Phase C (DevSecOps Integration) from 
 - **Timeouts:** 10-minute proxy timeouts for long-running requests
 
 #### d. `deploy/k8s/base/backend-configmap.yaml`
+
 - Environment variables for backend configuration
 - App settings (name, version, environment)
 - CORS origins (JSON array)
@@ -116,6 +124,7 @@ This document summarizes the completion of Phase C (DevSecOps Integration) from 
 - Rate limiting settings
 
 #### e. `deploy/k8s/base/backend-secrets.yaml.example`
+
 - Template for secrets (not committed to git)
 - Database connection string
 - Supabase JWT authentication
@@ -125,6 +134,7 @@ This document summarizes the completion of Phase C (DevSecOps Integration) from 
 - Redis connection (optional)
 
 #### f. `deploy/k8s/base/kustomization.yaml` (updated)
+
 - Added backend resources
 - Backend image reference
 - Comments for secrets handling
@@ -136,6 +146,7 @@ This document summarizes the completion of Phase C (DevSecOps Integration) from 
 **File:** `vercel.json` (updated)
 
 **Added Rewrites:**
+
 ```json
 { "source": "/api/v1/:path*", "destination": "https://api.floodsight.com/v1/:path*" },
 { "source": "/api/:path*", "destination": "https://api.floodsight.com/:path*" }
@@ -150,6 +161,7 @@ Now frontend can call `/api/v1/stations` and it will proxy to `https://api.flood
 **File:** `deploy/k8s/README_BACKEND.md`
 
 **Comprehensive guide covering:**
+
 - Architecture diagram
 - Prerequisites
 - Deployment steps (1-9)
@@ -173,16 +185,16 @@ Now frontend can call `/api/v1/stations` and it will proxy to `https://api.flood
 
 ## 📊 Implementation Status Summary
 
-| Requirement | Status | Implementation |
-|------------|--------|----------------|
-| `.github/workflows/backend-ci.yml` | ✅ Complete | Python linting, testing, Trivy scanning, Docker build/push |
-| Build & push to GHCR | ✅ Complete | Multi-arch images (amd64, arm64) |
-| K8s backend deployment manifests | ✅ Complete | Deployment, Service, Ingress, ConfigMap, Secrets template |
-| ReadinessProbe `/v1/health` | ✅ Complete | Implemented in deployment.yaml |
-| Trivy container scanning | ✅ Complete | Filesystem & Docker image scanning in CI |
-| Dependabot | ✅ Complete | Python, npm, GitHub Actions, Docker |
-| `vercel.json` API rewrite | ✅ Complete | `/api/:path*` → backend |
-| `.env.example` | ⚠️ Pre-existing | Already exists (filtered by .cursorignore) |
+| Requirement                        | Status          | Implementation                                             |
+| ---------------------------------- | --------------- | ---------------------------------------------------------- |
+| `.github/workflows/backend-ci.yml` | ✅ Complete     | Python linting, testing, Trivy scanning, Docker build/push |
+| Build & push to GHCR               | ✅ Complete     | Multi-arch images (amd64, arm64)                           |
+| K8s backend deployment manifests   | ✅ Complete     | Deployment, Service, Ingress, ConfigMap, Secrets template  |
+| ReadinessProbe `/v1/health`        | ✅ Complete     | Implemented in deployment.yaml                             |
+| Trivy container scanning           | ✅ Complete     | Filesystem & Docker image scanning in CI                   |
+| Dependabot                         | ✅ Complete     | Python, npm, GitHub Actions, Docker                        |
+| `vercel.json` API rewrite          | ✅ Complete     | `/api/:path*` → backend                                    |
+| `.env.example`                     | ⚠️ Pre-existing | Already exists (filtered by .cursorignore)                 |
 
 ---
 
@@ -232,52 +244,58 @@ See `deploy/k8s/README_BACKEND.md` for detailed instructions.
 ## 🎯 Next Steps & Recommendations
 
 ### 1. **Deploy to K3s Raspberry Pi** (Immediate)
-   - Apply K8s manifests to your K3s cluster
-   - Configure DNS for `api.floodsight.com`
-   - Set up TLS certificates with cert-manager
-   - Test end-to-end data flow
+
+- Apply K8s manifests to your K3s cluster
+- Configure DNS for `api.floodsight.com`
+- Set up TLS certificates with cert-manager
+- Test end-to-end data flow
 
 ### 2. **Real ECMWF GloFAS Integration** (High Priority)
-   - Already implemented in code! Just needs configuration
-   - Register at https://cds.climate.copernicus.eu/
-   - Add CDS API key to secrets
-   - Test real data ingestion
-   - Monitor data quality
+
+- Already implemented in code! Just needs configuration
+- Register at https://cds.climate.copernicus.eu/
+- Add CDS API key to secrets
+- Test real data ingestion
+- Monitor data quality
 
 ### 3. **Production Hardening** (Important)
-   - **Rate Limiting:** Already configured in Ingress (100 RPS)
-   - **Authentication:** Implement full Supabase JWT validation
-   - **API Keys:** Add API key support for public endpoints
-   - **Input Validation:** Add request validation with Pydantic
-   - **Error Handling:** Improve error messages and logging
+
+- **Rate Limiting:** Already configured in Ingress (100 RPS)
+- **Authentication:** Implement full Supabase JWT validation
+- **API Keys:** Add API key support for public endpoints
+- **Input Validation:** Add request validation with Pydantic
+- **Error Handling:** Improve error messages and logging
 
 ### 4. **Monitoring & Observability** (Recommended)
-   - **Prometheus:** Scrape `/metrics` endpoint
-   - **Grafana:** Create dashboards for:
-     - API request rates and latency
-     - Database connection pool
-     - Alert computation times
-     - Ingestion flow success/failure rates
-   - **Alertmanager:** Set up alerts for:
-     - API health check failures
-     - High error rates
-     - Ingestion failures
-     - Database connection issues
+
+- **Prometheus:** Scrape `/metrics` endpoint
+- **Grafana:** Create dashboards for:
+  - API request rates and latency
+  - Database connection pool
+  - Alert computation times
+  - Ingestion flow success/failure rates
+- **Alertmanager:** Set up alerts for:
+  - API health check failures
+  - High error rates
+  - Ingestion failures
+  - Database connection issues
 
 ### 5. **Additional Features** (Future)
-   - **Caching:** Add Redis for API response caching
-   - **Queue:** Add Celery/RQ for async tasks
-   - **Webhooks:** Test webhook notifications (Slack, Discord, Telegram)
-   - **WebSockets:** Add real-time updates for frontend
-   - **Advanced Alerts:** Implement rate-of-rise detection
-   - **Historical Data:** Add historical flood data ingestion
-   - **Data Export:** Add CSV/JSON export endpoints
+
+- **Caching:** Add Redis for API response caching
+- **Queue:** Add Celery/RQ for async tasks
+- **Webhooks:** Test webhook notifications (Slack, Discord, Telegram)
+- **WebSockets:** Add real-time updates for frontend
+- **Advanced Alerts:** Implement rate-of-rise detection
+- **Historical Data:** Add historical flood data ingestion
+- **Data Export:** Add CSV/JSON export endpoints
 
 ---
 
 ## 📈 What Changed from Original Prompt
 
 ### Modifications Made:
+
 1. **APScheduler instead of Prefect**
    - Reason: Dependency conflicts with FastAPI 0.109+
    - Impact: Functionally equivalent, simpler deployment
@@ -295,6 +313,7 @@ See `deploy/k8s/README_BACKEND.md` for detailed instructions.
    - Reason: Complete API surface for production use
 
 ### What Matches Prompt Exactly:
+
 ✅ Backend folder structure  
 ✅ FastAPI + SQLAlchemy + Postgres  
 ✅ Station, Forecast, Alert models  
@@ -307,13 +326,14 @@ See `deploy/k8s/README_BACKEND.md` for detailed instructions.
 ✅ K8s manifests with ReadinessProbe  
 ✅ CI/CD with Docker build/push  
 ✅ Trivy scanning  
-✅ Dependabot  
+✅ Dependabot
 
 ---
 
 ## 🎓 What You Learned
 
 This implementation demonstrates:
+
 - **Modern Python Backend:** FastAPI + async SQLAlchemy
 - **DevSecOps Practices:** CI/CD, security scanning, automated updates
 - **Kubernetes Orchestration:** Deployments, Services, Ingress, ConfigMaps, Secrets
@@ -326,6 +346,7 @@ This implementation demonstrates:
 ## 📦 Files Created/Modified
 
 ### Created:
+
 ```
 .github/workflows/backend-ci.yml
 .github/dependabot.yml
@@ -339,6 +360,7 @@ docs/PHASE_C_COMPLETE.md
 ```
 
 ### Modified:
+
 ```
 vercel.json (added API proxy rewrites)
 deploy/k8s/base/kustomization.yaml (added backend resources)
@@ -351,6 +373,7 @@ deploy/k8s/base/kustomization.yaml (added backend resources)
 **Phase C (DevSecOps Integration) is now COMPLETE!** 🎉
 
 The FloodSight backend is now:
+
 - ✅ Production-ready
 - ✅ Secure (Trivy scans, security contexts)
 - ✅ Automated (CI/CD, Dependabot)
@@ -367,6 +390,7 @@ The backend implementation is **~95% complete** according to the DEVELOPMENT_PRO
 ## 🙏 Acknowledgments
 
 Built following best practices from:
+
 - FastAPI documentation
 - Kubernetes documentation
 - 12-factor app methodology
@@ -376,4 +400,3 @@ Built following best practices from:
 ---
 
 **Happy Deploying! 🌊📊**
-

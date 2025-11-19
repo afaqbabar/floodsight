@@ -33,6 +33,7 @@ docker compose exec db psql -U floodsight -d floodsight -c \
 **Expected output:**
 
 **✅ REAL DATA:**
+
 ```
    source   | count
 ------------+-------
@@ -40,6 +41,7 @@ docker compose exec db psql -U floodsight -d floodsight -c \
 ```
 
 **❌ FAKE DATA:**
+
 ```
    source      | count
 ---------------+-------
@@ -60,6 +62,7 @@ docker compose logs api | grep -i "forecast ingestion" | tail -n 20
 ```
 
 **✅ REAL DATA logs:**
+
 ```
 Starting real GloFAS forecast ingestion...
 Requesting GloFAS forecast: {'system_version': 'operational', ...}
@@ -67,6 +70,7 @@ Ingested 360 GloFAS forecasts across 5 stations (model run 2025-11-12T00:00:00+0
 ```
 
 **❌ FAKE DATA logs:**
+
 ```
 Starting fake forecast ingestion...
 Ingested 60 fake forecasts for 5 stations
@@ -112,6 +116,7 @@ grep CDS_API_KEY docker-compose.yml
 ```
 
 **Should see:**
+
 ```yaml
 - CDS_API_KEY=ff5874bb-e24c-495f-878c-e206f74e0c36
 ```
@@ -125,6 +130,7 @@ grep GLOFAS_INGEST_MODE docker-compose.yml
 ```
 
 **Options:**
+
 - `auto` = Try real, fallback to fake if fails
 - `real` = Only real (fail if unavailable)
 - `fake` = Always synthetic
@@ -151,15 +157,15 @@ docker compose exec api python /app/verify_data_source.py
 
 ### Key differences:
 
-| Characteristic | Real GloFAS Data | Fake Synthetic Data |
-|----------------|------------------|---------------------|
-| **Source field** | `GloFAS` | `GloFAS-fake` |
-| **Model run** | Recent (< 24h old) | May be outdated |
-| **Discharge values** | Realistic (50-2000 m³/s) | Wide range (100-2500 m³/s) |
-| **Temporal pattern** | Smooth progression | Random jumps |
-| **Lead times** | Various (6h-240h) | Fixed intervals (6,12,18...72h) |
-| **Data gaps** | Possible | No gaps (perfect) |
-| **Value precision** | NetCDF precision | Rounded to 2 decimals |
+| Characteristic       | Real GloFAS Data         | Fake Synthetic Data             |
+| -------------------- | ------------------------ | ------------------------------- |
+| **Source field**     | `GloFAS`                 | `GloFAS-fake`                   |
+| **Model run**        | Recent (< 24h old)       | May be outdated                 |
+| **Discharge values** | Realistic (50-2000 m³/s) | Wide range (100-2500 m³/s)      |
+| **Temporal pattern** | Smooth progression       | Random jumps                    |
+| **Lead times**       | Various (6h-240h)        | Fixed intervals (6,12,18...72h) |
+| **Data gaps**        | Possible                 | No gaps (perfect)               |
+| **Value precision**  | NetCDF precision         | Rounded to 2 decimals           |
 
 ---
 
@@ -170,7 +176,7 @@ cd /home/lenovo/scrimba/floodsight/backend
 
 # Get full details of most recent forecast
 docker compose exec db psql -U floodsight -d floodsight -c \
-  "SELECT 
+  "SELECT
      f.id,
      f.source,
      f.model_run,
@@ -188,12 +194,14 @@ docker compose exec db psql -U floodsight -d floodsight -c \
 **Look for:**
 
 ✅ **Real data indicators:**
+
 - `source` = `GloFAS` (no "-fake" suffix)
 - `model_run` timestamp within last 24 hours
 - `discharge_m3s` values are realistic for the river
 - Multiple lead times (not just 6-hour intervals)
 
 ❌ **Fake data indicators:**
+
 - `source` = `GloFAS-fake`
 - `model_run` timestamp may be old
 - `discharge_m3s` values seem too variable
@@ -220,6 +228,7 @@ docker compose logs api | grep -i "error\|failed\|credentials"
 ```
 
 **Common issues:**
+
 - `GloFAS credentials missing` = API key not configured
 - `GloFAS ingestion failed` = CDS service unavailable
 - `Unable to locate discharge variable` = Wrong dataset parameters
@@ -242,6 +251,7 @@ docker compose exec api env | grep -E "CDS|GLOFAS"
 ```
 
 Should show:
+
 ```
 GLOFAS_INGEST_MODE=auto
 CDS_API_URL=https://ewds.climate.copernicus.eu/api
@@ -269,6 +279,7 @@ Use this checklist to confirm you have real data:
 ## 📊 Compare Real vs Fake Data Side-by-Side
 
 ### Real GloFAS Data Example:
+
 ```json
 {
   "id": 1234,
@@ -283,6 +294,7 @@ Use this checklist to confirm you have real data:
 ```
 
 ### Fake Synthetic Data Example:
+
 ```json
 {
   "id": 42,
@@ -324,11 +336,7 @@ That's it! 🎉
 ---
 
 **Questions?** Check the logs:
+
 ```bash
 docker compose logs api | grep -i glofas | tail -n 50
 ```
-
-
-
-
-

@@ -5,9 +5,10 @@
 **Frontend pods failing health checks** - Running but not passing readiness probes
 
 ### **Symptoms:**
+
 - Frontend pods: `0/1 Ready` with `1 restart`
 - Health check path: `/health.html` exists ✅
-- Nginx running on port 80 ✅  
+- Nginx running on port 80 ✅
 - Service exists ✅
 - **Problem:** Pods keep restarting due to failed liveness probes
 
@@ -16,15 +17,18 @@
 ## 🔍 Root Causes Fixed
 
 ### ✅ **Issue 1: Wrong Image Repository** (FIXED)
+
 - **Was:** `ghcr.io/yourusername/floodsight:latest` (placeholder)
 - **Now:** `ghcr.io/afaqbabar/floodsight-frontend:latest`
 - **Fix:** Updated kustomization.yaml (commit fb95055)
 
 ### ✅ **Issue 2: Image Pull Authentication** (FIXED)
+
 - **Problem:** 401 Unauthorized
 - **Fix:** Added `ghcr-creds` imagePullSecret to deployment
 
 ### ✅ **Issue 3: Wrong Container Port** (FIXED)
+
 - **Was:** containerPort 8080 (nginx not listening there)
 - **Now:** containerPort 80 (correct)
 - **Fix:** Updated deployment.yaml (commit d5e5efe)
@@ -36,11 +40,12 @@
 **Health Check Configuration May Need Adjustment**
 
 Current probe settings:
+
 ```yaml
 livenessProbe:
   httpGet:
     path: /health.html
-    port: http  # resolves to port 80
+    port: http # resolves to port 80
   initialDelaySeconds: 30
   periodSeconds: 10
   timeoutSeconds: 5
@@ -48,6 +53,7 @@ livenessProbe:
 ```
 
 **Testing shows:**
+
 - ✅ Inside container: `curl localhost:80/health.html` → HTTP 200
 - ❌ Via service: Connection fails
 - ❌ Pods restart after ~85 seconds
@@ -178,6 +184,7 @@ curl http://localhost:8082/ | head -20
 ## 📌 Summary
 
 **What's working:**
+
 - ✅ Correct image (`floodsight-frontend:latest`)
 - ✅ Image pulling with authentication
 - ✅ Nginx running on port 80
@@ -185,8 +192,8 @@ curl http://localhost:8082/ | head -20
 - ✅ Service configured
 
 **What needs fixing:**
+
 - ❌ Liveness probe causing continuous restarts
 - **Fix:** Remove or adjust health check timing
 
 **Time to fix:** ~2 minutes
-

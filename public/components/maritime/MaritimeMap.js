@@ -301,7 +301,9 @@ function addGroundingRiskLayer() {
     },
   });
 
-  console.log(`✅ Added grounding risk layer with ${layersData.groundingRisk.features.length} features`);
+  console.log(
+    `✅ Added grounding risk layer with ${layersData.groundingRisk.features.length} features`
+  );
 }
 
 function addPortsLayer() {
@@ -453,4 +455,3 @@ export function updateMapData(newData) {
 
   console.log('✅ Map data updated');
 }
-

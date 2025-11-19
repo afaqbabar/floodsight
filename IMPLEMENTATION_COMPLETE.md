@@ -9,25 +9,30 @@ All components successfully implemented for lightweight SAR vessel detection wit
 ## 📦 What Was Implemented
 
 ### 1. **Database Layer** ✅
+
 - **Model:** `VesselDetection` with PostGIS geometry support
 - **Migration:** `alembic/versions/20251119_1200-add_vessel_detections_table.py`
 - **Storage:** ~200 bytes per detection, optimized spatial indexes
 
 ### 2. **Service Layer** ✅
+
 - **CFAR Detector:** Production-ready vessel detection (~50ms per scene)
 - **Integration Function:** Drop-in after speckle-filtering step
 - **Tunable Parameters:** Threshold, window size, detector type
 
 ### 3. **API Layer** ✅
+
 - **GET /v1/vessels** - List detections with filters
 - **GET /v1/vessels/geojson** - Map-ready GeoJSON output
 - **POST /v1/vessels/ingest** - Manual trigger for testing
 
 ### 4. **Orchestration Layer** ✅
+
 - **Automated Scheduling:** Hourly runs via APScheduler
 - **Integrated Flow:** Forecasts → Alerts → Vessels
 
 ### 5. **Dependencies** ✅
+
 - scipy, shapely, numpy added to requirements.txt
 - No new external services required
 
@@ -84,32 +89,36 @@ async with AsyncSessionLocal() as db:
 
 ## 📂 Files Created/Modified
 
-| File | Action | Purpose |
-|------|--------|---------|
-| `backend/app/db/models.py` | Modified | Added `VesselDetection` model |
-| `backend/app/services/sentinel1.py` | **Created** | CFAR detector + integration |
-| `backend/app/workers/flows.py` | Modified | Added vessel detection to scheduler |
-| `backend/app/api/v1/endpoints.py` | Modified | Added 3 vessel endpoints |
-| `backend/app/api/v1/schemas.py` | Modified | Added vessel response schemas |
-| `backend/requirements.txt` | Modified | Added scipy, shapely, numpy |
-| `backend/alembic/versions/...` | **Created** | Database migration |
-| `MARITIME_EXTENSION_IMPLEMENTATION.md` | **Created** | Full documentation |
-| `docs/VESSEL_DETECTION_INTEGRATION.md` | **Created** | Integration guide |
+| File                                   | Action      | Purpose                             |
+| -------------------------------------- | ----------- | ----------------------------------- |
+| `backend/app/db/models.py`             | Modified    | Added `VesselDetection` model       |
+| `backend/app/services/sentinel1.py`    | **Created** | CFAR detector + integration         |
+| `backend/app/workers/flows.py`         | Modified    | Added vessel detection to scheduler |
+| `backend/app/api/v1/endpoints.py`      | Modified    | Added 3 vessel endpoints            |
+| `backend/app/api/v1/schemas.py`        | Modified    | Added vessel response schemas       |
+| `backend/requirements.txt`             | Modified    | Added scipy, shapely, numpy         |
+| `backend/alembic/versions/...`         | **Created** | Database migration                  |
+| `MARITIME_EXTENSION_IMPLEMENTATION.md` | **Created** | Full documentation                  |
+| `docs/VESSEL_DETECTION_INTEGRATION.md` | **Created** | Integration guide                   |
 
 ---
 
 ## 🎯 Maritime Use Cases (Now Enabled)
 
 ### 1. Dark Vessels in River Mouths
+
 Detect vessels near flood discharge peaks:
+
 ```sql
-SELECT * FROM vessel_detections 
-WHERE in_river_mouth = true 
+SELECT * FROM vessel_detections
+WHERE in_river_mouth = true
   AND detection_time > NOW() - INTERVAL '24 hours';
 ```
 
 ### 2. Port Accessibility Analysis
+
 Cross-reference with GloFAS high-discharge forecasts:
+
 ```python
 # Identify vessels near ports during predicted high water
 vessels_in_ports = db.query(VesselDetection).filter(
@@ -119,7 +128,9 @@ vessels_in_ports = db.query(VesselDetection).filter(
 ```
 
 ### 3. Grounding Risk Layers
+
 Flag vessels in shallow zones:
+
 ```python
 # Future: Enrich with bathymetry data
 vessels_at_risk = check_vessels_near_shoals(vessel_detections)
@@ -129,13 +140,13 @@ vessels_at_risk = check_vessels_near_shoals(vessel_detections)
 
 ## 📊 Performance Metrics
 
-| Metric | Value |
-|--------|-------|
-| **Detection Speed** | 50ms per 1000×1000 scene |
-| **Database Write** | <100ms for 100 vessels |
-| **API Response** | <50ms for 1000 records |
-| **Storage** | 200 bytes per detection |
-| **False Alarm Rate** | <5% (tuned for coastal) |
+| Metric               | Value                    |
+| -------------------- | ------------------------ |
+| **Detection Speed**  | 50ms per 1000×1000 scene |
+| **Database Write**   | <100ms for 100 vessels   |
+| **API Response**     | <50ms for 1000 records   |
+| **Storage**          | 200 bytes per detection  |
+| **False Alarm Rate** | <5% (tuned for coastal)  |
 
 ---
 
@@ -143,12 +154,12 @@ vessels_at_risk = check_vessels_near_shoals(vessel_detections)
 
 ### Detector Thresholds
 
-| Scene Type | `threshold_db` | Notes |
-|------------|----------------|-------|
-| Open coastal water | **12 dB** | Default, balanced |
-| Calm rivers | **10 dB** | More sensitive |
-| High-traffic ports | **15 dB** | Reduce false alarms |
-| Rough seas | **14 dB** | Higher threshold for waves |
+| Scene Type         | `threshold_db` | Notes                      |
+| ------------------ | -------------- | -------------------------- |
+| Open coastal water | **12 dB**      | Default, balanced          |
+| Calm rivers        | **10 dB**      | More sensitive             |
+| High-traffic ports | **15 dB**      | Reduce false alarms        |
+| Rough seas         | **14 dB**      | Higher threshold for waves |
 
 ### Context Flags (Future Enrichment)
 
@@ -167,6 +178,7 @@ near_flood_plume = check_distance_to_water_mask(lon, lat, water_mask) < 500m
 ## 🧪 Testing
 
 ### 1. Smoke Test (Synthetic Data)
+
 ```bash
 # Generates synthetic scene with 3 vessels
 curl -X POST http://localhost:8080/v1/vessels/ingest
@@ -180,19 +192,21 @@ curl -X POST http://localhost:8080/v1/vessels/ingest
 ```
 
 ### 2. Database Verification
+
 ```bash
 docker exec -it floodsight-db psql -U postgres -d floodsight
 
 floodsight=# SELECT COUNT(*) FROM vessel_detections;
- count 
+ count
 -------
      3
 
-floodsight=# SELECT scene_id, ST_AsText(geom), confidence 
+floodsight=# SELECT scene_id, ST_AsText(geom), confidence
              FROM vessel_detections LIMIT 1;
 ```
 
 ### 3. API Verification
+
 ```bash
 # List all vessels
 curl http://localhost:8080/v1/vessels
@@ -206,6 +220,7 @@ curl http://localhost:8080/v1/vessels/geojson > vessels.geojson
 ## 🔄 Deployment Workflow
 
 ### Development
+
 ```bash
 # Run backend locally
 cd backend
@@ -216,6 +231,7 @@ curl -X POST http://localhost:8080/v1/vessels/ingest
 ```
 
 ### Docker Compose
+
 ```bash
 # Start all services
 docker compose up -d
@@ -225,6 +241,7 @@ docker compose logs -f scheduler | grep vessel
 ```
 
 ### Kubernetes (k3s + FluxCD)
+
 ```bash
 # Apply migration
 kubectl exec -it deployment/floodsight-api -- alembic upgrade head
@@ -243,6 +260,7 @@ kubectl rollout restart deployment/floodsight-scheduler
 **Symptoms:** `vessel_count=0` after ingestion
 
 **Fixes:**
+
 1. Lower threshold: `threshold_db=10.0`
 2. Check data range: VV should be -25 to +5 dB
 3. Verify scene covers water (not all land)
@@ -252,6 +270,7 @@ kubectl rollout restart deployment/floodsight-scheduler
 **Symptoms:** 1000s of detections, many over land
 
 **Fixes:**
+
 1. Increase threshold: `threshold_db=15.0`
 2. Add land mask before detection
 3. Increase window size: `window_size=50`
@@ -259,6 +278,7 @@ kubectl rollout restart deployment/floodsight-scheduler
 ### Database Connection Errors
 
 **Check:**
+
 ```bash
 # Verify PostGIS extension
 docker exec -it floodsight-db psql -U postgres -d floodsight -c "SELECT PostGIS_Version();"
@@ -280,17 +300,20 @@ cd backend && alembic current
 ## 🎉 Next Steps
 
 ### Phase 1: Validation (Current)
+
 - ✅ Implementation complete
 - ✅ Demo mode working
 - ⏳ **Your Action:** Integrate with real Sentinel-1 pipeline
 
 ### Phase 2: Enrichment
+
 - [ ] Add river mouth / port zone geometries to database
 - [ ] Cross-reference vessels with GloFAS forecasts
 - [ ] Implement maritime alerts (vessel + flood context)
 - [ ] Add AIS data comparison (dark vessel detection)
 
 ### Phase 3: Advanced Features
+
 - [ ] Replace CFAR with SARfish/SUMO pre-trained models
 - [ ] Add vessel heading/length estimation
 - [ ] Implement wake detection for speed
@@ -303,6 +326,7 @@ cd backend && alembic current
 **Status:** ✅ **IMPLEMENTATION COMPLETE**
 
 **What you have now:**
+
 - Lightweight CFAR vessel detector (production-ready)
 - PostGIS storage with spatial indexes
 - RESTful API with GeoJSON support
@@ -310,6 +334,7 @@ cd backend && alembic current
 - Zero new infrastructure dependencies
 
 **What you need to do:**
+
 1. Run `alembic upgrade head` (apply migration)
 2. Run `pip install -r requirements.txt` (install deps)
 3. Insert 15-25 lines into your Sentinel-1 pipeline (see integration guide)
@@ -322,4 +347,3 @@ cd backend && alembic current
 **Questions?** Check the integration guide or test with the demo endpoint first.
 
 **Ready to go!** 🚀
-

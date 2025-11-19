@@ -30,7 +30,9 @@ The FloodSight alert system now includes:
 ## 🆕 New Features
 
 ### 1. Notification System
+
 Send alerts via multiple channels:
+
 - **Email** (SMTP-based: Gmail, SendGrid, Mailgun, etc.)
 - **SMS** (Twilio)
 - **Push Notifications** (Firebase, OneSignal)
@@ -39,30 +41,35 @@ Send alerts via multiple channels:
 - **Slack Webhooks**
 
 ### 2. Alert Webhooks
+
 - POST alerts to external systems
 - Automatic retry with configurable delays
 - Support for Slack, Discord, Telegram, Teams, and generic webhooks
 - Delivery tracking and logging
 
 ### 3. Alert Acknowledgment
+
 - Users can acknowledge/dismiss/resolve alerts
 - Track who acknowledged and when
 - Add notes to acknowledgments
 - Reduce alert fatigue
 
 ### 4. User Subscriptions
+
 - Users subscribe to specific stations
 - Set minimum alert level per subscription
 - Notification preferences per user
 - Support for email, SMS, and push tokens
 
 ### 5. Custom Alert Rules
+
 - **Threshold Rules**: Station-specific discharge thresholds
 - **Rate of Rise**: Trigger on rapid discharge increases
 - **Time Window**: Boost alert levels during critical hours (e.g., nighttime)
 - **Multi-Station**: Correlate alerts across related stations
 
 ### 6. Alert Analytics
+
 - Alert frequency and trends
 - Station risk ranking
 - Acknowledgment rates
@@ -201,6 +208,7 @@ CREATE INDEX idx_notification_logs_alert ON notification_logs(alert_id);
 #### 1. Email (SMTP)
 
 **Gmail Setup:**
+
 ```bash
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
@@ -210,6 +218,7 @@ SMTP_FROM="FloodSight Alerts <your-email@gmail.com>"
 ```
 
 **SendGrid Setup:**
+
 ```bash
 SMTP_HOST=smtp.sendgrid.net
 SMTP_PORT=587
@@ -369,6 +378,7 @@ curl -X POST http://localhost:8080/v1/webhooks \
 ### Creating Custom Alert Rules
 
 **Threshold Rule:**
+
 ```bash
 curl -X POST http://localhost:8080/v1/alert-rules \
   -H "Content-Type: application/json" \
@@ -389,6 +399,7 @@ curl -X POST http://localhost:8080/v1/alert-rules \
 ```
 
 **Rate of Rise Rule:**
+
 ```bash
 curl -X POST http://localhost:8080/v1/alert-rules \
   -H "Content-Type: application/json" \
@@ -406,6 +417,7 @@ curl -X POST http://localhost:8080/v1/alert-rules \
 ```
 
 **Time Window Rule:**
+
 ```bash
 curl -X POST http://localhost:8080/v1/alert-rules \
   -H "Content-Type": "application/json" \
@@ -490,6 +502,7 @@ curl -X POST http://localhost:8080/v1/alert-acknowledgments \
 ## 🎨 Dashboard Access
 
 ### Analytics Dashboard
+
 - URL: http://localhost:5173/analytics-dashboard.html
 - Features:
   - Alert statistics
@@ -498,6 +511,7 @@ curl -X POST http://localhost:8080/v1/alert-acknowledgments \
   - Station risk ranking
 
 ### Admin Dashboard
+
 - URL: http://localhost:5173/admin-dashboard.html
 - Features:
   - User management
@@ -548,6 +562,7 @@ docker compose exec api alembic upgrade head
 ## 🆘 Support
 
 For issues or questions:
+
 - Check logs: `docker compose logs -f api scheduler`
 - Review API docs: http://localhost:8080/docs
 - Check database: `docker compose exec db psql -U postgres -d floodsight`
@@ -557,6 +572,3 @@ For issues or questions:
 **System Status**: ✅ All 6 Features Implemented & Ready
 
 Enjoy your comprehensive flood alert system! 🌊
-
-
-

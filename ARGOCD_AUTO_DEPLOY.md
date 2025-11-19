@@ -9,6 +9,7 @@
 ## 🎯 Problem Solved
 
 **Before:** Manual deployments required after every code push
+
 ```bash
 # Manual steps (OLD WAY):
 git push origin main
@@ -18,6 +19,7 @@ kubectl wait --for=condition=ready pod -l component=backend
 ```
 
 **After:** Fully automated GitOps deployment
+
 ```bash
 # Automated (NEW WAY):
 git push origin main
@@ -31,6 +33,7 @@ git push origin main
 ### Step-by-Step Flow:
 
 1. **Developer pushes code** to `main` branch
+
    ```bash
    git commit -m "feat: add new feature"
    git push origin main
@@ -42,6 +45,7 @@ git push origin main
    - Pushes to GHCR as `ghcr.io/afaqbabar/floodsight-backend:latest`
 
 3. **Captures image digest** (SHA256)
+
    ```yaml
    - name: Build and push Docker image
      id: build-and-push
@@ -50,12 +54,13 @@ git push origin main
    ```
 
 4. **Updates kustomization.yaml** with digest
+
    ```bash
    # Before:
    images:
    - name: ghcr.io/afaqbabar/floodsight-backend
      newTag: latest
-   
+
    # After:
    images:
    - name: ghcr.io/afaqbabar/floodsight-backend
@@ -64,6 +69,7 @@ git push origin main
    ```
 
 5. **Commits and pushes** the kustomization change
+
    ```bash
    git commit -m "chore(k8s): update backend image digest to sha256:xxxxx"
    git push
@@ -95,32 +101,32 @@ git push origin main
 jobs:
   docker:
     permissions:
-      contents: write  # ← Allow pushing to repo
+      contents: write # ← Allow pushing to repo
       packages: write
       security-events: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # ← Fetch full history for git push
+          fetch-depth: 0 # ← Fetch full history for git push
           token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Build and push Docker image
-        id: build-and-push  # ← Capture digest in output
+        id: build-and-push # ← Capture digest in output
         uses: docker/build-push-action@v5
         # ... build config ...
-      
+
       - name: Update Kustomization with Image Digest
         if: github.ref == 'refs/heads/main'
         run: |
           IMAGE_DIGEST="${{ steps.build-and-push.outputs.digest }}"
           IMAGE_WITH_DIGEST="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest@${IMAGE_DIGEST}"
-          
+
           cd deploy/k8s/base
           kustomize edit set image \
             ghcr.io/afaqbabar/floodsight-backend=${IMAGE_WITH_DIGEST}
-      
+
       - name: Commit and Push Kustomization Changes
         if: github.ref == 'refs/heads/main'
         run: |
@@ -139,9 +145,9 @@ jobs:
 
 ```yaml
 images:
-- name: ghcr.io/afaqbabar/floodsight-backend
-  newTag: latest@sha256:2f0b2c587a6036afa03e2d80c2365a1a8a02b93be16e66b17b93f57b6536b5e2
-  # ↑ This line is automatically updated by GitHub Actions
+  - name: ghcr.io/afaqbabar/floodsight-backend
+    newTag: latest@sha256:2f0b2c587a6036afa03e2d80c2365a1a8a02b93be16e66b17b93f57b6536b5e2
+    # ↑ This line is automatically updated by GitHub Actions
 ```
 
 ---
@@ -151,6 +157,7 @@ images:
 ### Application Setup
 
 **Check if ArgoCD is installed:**
+
 ```bash
 kubectl get applications -A
 ```
@@ -174,10 +181,10 @@ spec:
     namespace: floodsight
   syncPolicy:
     automated:
-      prune: true      # Delete resources removed from Git
-      selfHeal: true   # Sync if cluster state drifts
+      prune: true # Delete resources removed from Git
+      selfHeal: true # Sync if cluster state drifts
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true
     retry:
       limit: 5
       backoff:
@@ -187,6 +194,7 @@ spec:
 ```
 
 **Apply ArgoCD Application:**
+
 ```bash
 kubectl apply -f argocd-application.yaml
 ```
@@ -196,26 +204,31 @@ kubectl apply -f argocd-application.yaml
 ## ✅ Benefits
 
 ### 1. GitOps Compliance
+
 - **Single source of truth:** Git repo
 - **Audit trail:** All deployments tracked in git commits
 - **Rollback:** `git revert` to roll back deployments
 
 ### 2. Zero Manual Intervention
+
 - **No kubectl commands needed**
 - **No SSH to cluster required**
 - **Fully automated pipeline**
 
 ### 3. Guaranteed Consistency
+
 - **Digest-based tags:** Exact image deployed, never cached
 - **No "latest" ambiguity:** SHA ensures correctness
 - **Reproducible deploys:** Same commit → same deployment
 
 ### 4. Safety & Reliability
+
 - **ArgoCD health checks:** Monitors pod status
 - **Automatic rollback:** If deployment fails
 - **Self-healing:** Reverts manual cluster changes
 
 ### 5. Multi-Environment Support
+
 - **Main branch** → Production (auto-deploy)
 - **Develop branch** → Staging (auto-deploy)
 - **PR branches** → Preview environments (optional)
@@ -235,6 +248,7 @@ git push origin main
 ```
 
 **Expected behavior:**
+
 1. GitHub Actions runs (~5-10 minutes)
 2. Kustomization.yaml auto-commits (~30 seconds later)
 3. ArgoCD syncs (~3 minutes)
@@ -280,12 +294,14 @@ kubectl describe pod -n floodsight $(kubectl get pods -n floodsight -l component
 **URL:** https://github.com/afaqbabar/floodsight/actions
 
 **Look for:**
+
 - ✅ Green checkmarks on all jobs
 - 🔄 "chore(k8s): update backend image digest" commits
 
 ### ArgoCD Dashboard
 
 **Access ArgoCD UI:**
+
 ```bash
 # Port-forward to ArgoCD server
 kubectl port-forward svc/argocd-server -n argocd 8081:443
@@ -295,6 +311,7 @@ kubectl port-forward svc/argocd-server -n argocd 8081:443
 ```
 
 **What to monitor:**
+
 - **Sync Status:** Should show "Synced" (green)
 - **Health Status:** Should show "Healthy" (green)
 - **Last Sync:** Timestamp should match recent deploy
@@ -318,6 +335,7 @@ kubectl logs -n floodsight deployment/floodsight-backend --tail=50 -f
 **Symptom:** No `chore(k8s)` commits after builds
 
 **Solution:**
+
 ```bash
 # Check workflow permissions
 cat .github/workflows/backend-ci.yml | grep -A3 permissions
@@ -355,6 +373,7 @@ kubectl get application floodsight -n argocd -o yaml | grep -A5 syncPolicy
 **Symptom:** "fatal: could not read Username for 'https://github.com'"
 
 **Solution:**
+
 ```yaml
 # Ensure checkout uses GITHUB_TOKEN:
 - name: Checkout code
@@ -368,6 +387,7 @@ kubectl get application floodsight -n argocd -o yaml | grep -A5 syncPolicy
 **Symptom:** New digest in kustomization but old code running
 
 **Solution:**
+
 ```bash
 # Force delete pods to pull fresh image
 kubectl delete pods -n floodsight -l component=backend
@@ -417,13 +437,13 @@ kubectl set image deployment/floodsight-backend \
 
 ## 📈 Performance Metrics
 
-| Metric | Before (Manual) | After (Auto) |
-|--------|----------------|--------------|
-| **Deployment Time** | ~15 min | ~15 min |
-| **Manual Steps** | 5 commands | 0 commands |
-| **Human Errors** | Common | Eliminated |
-| **Audit Trail** | None | Git commits |
-| **Rollback Time** | ~10 min | ~5 min |
+| Metric              | Before (Manual) | After (Auto) |
+| ------------------- | --------------- | ------------ |
+| **Deployment Time** | ~15 min         | ~15 min      |
+| **Manual Steps**    | 5 commands      | 0 commands   |
+| **Human Errors**    | Common          | Eliminated   |
+| **Audit Trail**     | None            | Git commits  |
+| **Rollback Time**   | ~10 min         | ~5 min       |
 
 **Key Improvement:** Zero manual intervention + Full audit trail
 
@@ -432,6 +452,7 @@ kubectl set image deployment/floodsight-backend \
 ## 🎓 Best Practices
 
 ### 1. Always Use Digest Tags in Production
+
 ```yaml
 # ✅ Good: Digest guarantees exact image
 newTag: latest@sha256:abc123...
@@ -441,18 +462,22 @@ newTag: latest
 ```
 
 ### 2. Monitor GitHub Actions
+
 - Set up Slack/email notifications for failed builds
 - Review security scan results (Trivy)
 
 ### 3. Test in Staging First
+
 - Use separate ArgoCD Application for `develop` branch
 - Validate changes before merging to `main`
 
 ### 4. Keep Kustomization Clean
+
 - Don't manually edit `kustomization.yaml` (let CI do it)
 - Review auto-commits to catch anomalies
 
 ### 5. Document Environment-Specific Config
+
 - Use overlays for prod vs staging differences
 - Keep secrets in Kubernetes Secrets, not Git
 
@@ -467,7 +492,6 @@ newTag: latest
 on:
   pull_request:
     branches: [main]
-
 # Deploy to namespace: floodsight-pr-123
 # Auto-delete on PR close
 ```
@@ -479,7 +503,7 @@ on:
   uses: 8398a7/action-slack@v3
   with:
     status: ${{ job.status }}
-    text: "Backend deployed: ${{ steps.build-and-push.outputs.digest }}"
+    text: 'Backend deployed: ${{ steps.build-and-push.outputs.digest }}'
 ```
 
 ### 3. Add Smoke Tests Post-Deploy
@@ -525,4 +549,3 @@ Just push to `main` and ArgoCD handles the rest. 🚀
 **Implemented by:** AI Assistant  
 **Date:** November 19, 2025  
 **Version:** 1.0
-

@@ -11,6 +11,7 @@ This guide shows how to make your Pi backend accessible to the Vercel frontend s
 ## Solution: Cloudflare Tunnel (Recommended)
 
 ### Why Cloudflare Tunnel?
+
 - ✅ **Free** (no cost)
 - ✅ **Secure** (no open ports, encrypted)
 - ✅ **Easy** (one command)
@@ -31,6 +32,7 @@ cloudflared tunnel --url http://localhost:8080
 ```
 
 **Output:**
+
 ```
 Your quick tunnel has been created! Visit it at:
 https://abc-xyz-random-123.trycloudflare.com
@@ -60,6 +62,7 @@ git push origin main
 4. Wait 2 minutes for Vercel to deploy
 
 5. Test:
+
 ```bash
 curl https://floodsight.vercel.app/api/healthz
 # Visit: https://floodsight.vercel.app/dashboard-figma.html
@@ -168,6 +171,7 @@ ngrok http 8080
 You'll get a URL like: `https://abc123.ngrok.io`
 
 Update frontend:
+
 ```javascript
 return 'https://abc123.ngrok.io/v1';
 ```
@@ -176,13 +180,13 @@ return 'https://abc123.ngrok.io/v1';
 
 ## Comparison
 
-| Method | Cost | Permanence | Setup Time | Security |
-|--------|------|------------|------------|----------|
-| **Cloudflare Quick** | Free | Temporary | 1 min | High |
-| **Cloudflare Named** | Free | Permanent | 5 min | High |
-| **ngrok Free** | Free | Temporary | 2 min | Medium |
-| **ngrok Paid** | $8/mo | Permanent | 2 min | Medium |
-| **Port Forward** | Free | Permanent | 10 min | **Low** ⚠️ |
+| Method               | Cost  | Permanence | Setup Time | Security   |
+| -------------------- | ----- | ---------- | ---------- | ---------- |
+| **Cloudflare Quick** | Free  | Temporary  | 1 min      | High       |
+| **Cloudflare Named** | Free  | Permanent  | 5 min      | High       |
+| **ngrok Free**       | Free  | Temporary  | 2 min      | Medium     |
+| **ngrok Paid**       | $8/mo | Permanent  | 2 min      | Medium     |
+| **Port Forward**     | Free  | Permanent  | 10 min     | **Low** ⚠️ |
 
 ---
 
@@ -205,6 +209,7 @@ curl https://your-tunnel-url/v1/stations
 Visit: https://floodsight.vercel.app/dashboard-figma.html
 
 You should see:
+
 - ✅ Map with 5 stations (not London demo)
 - ✅ Filters populated with real countries
 - ✅ Forecast data loading
@@ -215,6 +220,7 @@ You should see:
 Press F12 → Console tab
 
 Look for:
+
 ```
 🌐 Connecting to API: https://your-tunnel-url/v1
 ✅ API connected successfully
@@ -253,6 +259,7 @@ docker compose logs api | grep CORS
 ### Tunnel Disconnects
 
 For permanent tunnel:
+
 ```bash
 # Install as systemd service
 sudo cloudflared service install
@@ -301,12 +308,12 @@ sudo systemctl start cloudflared
 
 ## Cost Comparison
 
-| Setup | Monthly Cost |
-|-------|--------------|
-| **Your current setup** (Pi + Vercel + Cloudflare) | **$0** |
-| Fly.io (working backend + DB) | $0 (free tier) |
-| Vercel + Railway | ~$5/month |
-| Full AWS setup | ~$30+/month |
+| Setup                                             | Monthly Cost   |
+| ------------------------------------------------- | -------------- |
+| **Your current setup** (Pi + Vercel + Cloudflare) | **$0**         |
+| Fly.io (working backend + DB)                     | $0 (free tier) |
+| Vercel + Railway                                  | ~$5/month      |
+| Full AWS setup                                    | ~$30+/month    |
 
 **Recommendation**: Use Pi + Cloudflare Tunnel. It's free and works perfectly!
 
@@ -336,6 +343,7 @@ git push origin main
 ```
 
 Your Pi backend has:
+
 - ✅ 5 stations
 - ✅ Forecasts
 - ✅ Alerts
@@ -343,4 +351,3 @@ Your Pi backend has:
 - ✅ Database with real data
 
 No need to fix Fly.io - your local setup works perfectly!
-

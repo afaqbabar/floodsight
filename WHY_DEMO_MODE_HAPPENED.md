@@ -3,7 +3,9 @@
 ## 🔍 **Root Causes**
 
 ### **Issue 1: CORS Configuration (Port Change)**
+
 **What happened:**
+
 - Yesterday, frontend was on port **8080**
 - Today, I moved it to port **5173** due to port conflict
 - CORS configuration only had `localhost:5173`, not `192.168.178.50:5173`
@@ -13,12 +15,15 @@
 When the port changed, the CORS configuration wasn't automatically updated to include all variations.
 
 **How to prevent:**
+
 - Use wildcard CORS origins in development
 - Document port configuration clearly
 - Create a startup script that verifies CORS configuration
 
 ### **Issue 2: API Field Name Mismatch**
+
 **What happened:**
+
 - Database columns: `lat`, `lon`, `lead_hours`, `discharge_m3s`, `ts`
 - Frontend expected: `latitude`, `longitude`, `lead_time_hours`, `discharge_cumecs`, `forecast_timestamp`
 - Dashboard showed "Demo Mode" because it couldn't find the data (all values were undefined/null)
@@ -27,6 +32,7 @@ When the port changed, the CORS configuration wasn't automatically updated to in
 The frontend dashboard was created before the backend API was finalized, using placeholder field names. When the backend schema was set, the field names didn't match.
 
 **How to prevent:**
+
 - Use a single source of truth for API contract (OpenAPI/Swagger)
 - Add TypeScript/JSDoc types to catch mismatches
 - Test with real API responses, not mocked data
@@ -36,15 +42,18 @@ The frontend dashboard was created before the backend API was finalized, using p
 ## ✅ **What Was Fixed**
 
 ### **Fix 1: CORS Configuration**
+
 **File**: `deploy/k8s/base/backend-configmap.yaml`
 
 **Added**:
+
 ```json
 "http://192.168.178.50:5173",
 "http://192.168.178.50:8080"
 ```
 
 **Full CORS origins now**:
+
 ```json
 [
   "https://floodsight.vercel.app",
@@ -57,16 +66,20 @@ The frontend dashboard was created before the backend API was finalized, using p
 ```
 
 ### **Fix 2: Frontend Data Normalization**
-**Files**: 
+
+**Files**:
+
 - `public/dashboard-figma.html`
 - `public/assets/js/api-service.js`
 
 **What changed**:
+
 - Updated `normalizeForecast()` function to properly map API field names
 - Updated `transformStation()` to ensure lat/lon are available in both formats
 - Now handles both old and new field names for backwards compatibility
 
 **Normalization mapping**:
+
 ```javascript
 // API → Frontend
 lead_hours → lead_time_hours
@@ -83,6 +96,7 @@ lon → longitude
 ### **1. Always Update CORS When Changing Ports**
 
 **Create a CORS update script** (`scripts/update-cors.sh`):
+
 ```bash
 #!/bin/bash
 # Update CORS configuration for new port
@@ -107,31 +121,33 @@ kubectl rollout restart deployment floodsight-backend -n floodsight
 ### **2. Use a Single API Contract**
 
 **Create OpenAPI specification** (`backend/openapi.yaml`):
+
 ```yaml
 components:
   schemas:
     Station:
       type: object
       properties:
-        id: {type: integer}
-        code: {type: string}
-        name: {type: string}
-        lat: {type: number}  # Not latitude!
-        lon: {type: number}  # Not longitude!
-    
+        id: { type: integer }
+        code: { type: string }
+        name: { type: string }
+        lat: { type: number } # Not latitude!
+        lon: { type: number } # Not longitude!
+
     Forecast:
       type: object
       properties:
-        id: {type: integer}
-        station_id: {type: integer}
-        ts: {type: string, format: date-time}  # Not forecast_timestamp!
-        lead_hours: {type: integer}  # Not lead_time_hours!
-        discharge_m3s: {type: number}  # Not discharge_cumecs!
+        id: { type: integer }
+        station_id: { type: integer }
+        ts: { type: string, format: date-time } # Not forecast_timestamp!
+        lead_hours: { type: integer } # Not lead_time_hours!
+        discharge_m3s: { type: number } # Not discharge_cumecs!
 ```
 
 ### **3. Add Frontend Type Checking**
 
 **Create type definitions** (`public/assets/js/types.js`):
+
 ```javascript
 /**
  * @typedef {Object} Station
@@ -158,6 +174,7 @@ components:
 ### **4. Create Comprehensive Startup Script**
 
 **File**: `start-floodsight.sh`
+
 ```bash
 #!/bin/bash
 set -e
@@ -221,6 +238,7 @@ echo ""
 ### **5. Add Automated Tests**
 
 **Create API integration test** (`tests/test-api-frontend-integration.sh`):
+
 ```bash
 #!/bin/bash
 # Test that frontend can read API responses
@@ -266,30 +284,35 @@ echo "✅ All API integration tests passed!"
 **How to verify data is real:**
 
 1. **Check the source field**:
+
 ```bash
 curl http://192.168.178.50:30636/v1/forecasts?limit=1 | jq '.[0].source'
 # Should output: "GloFAS"
 ```
 
 2. **Check model_run timestamp**:
+
 ```bash
 curl http://192.168.178.50:30636/v1/forecasts?limit=1 | jq '.[0].model_run'
 # Should be a recent date (yesterday or today)
 ```
 
 3. **Check discharge values**:
+
 ```bash
 # Frankfurt Main discharge should be 60-100 m³/s typically
 curl http://192.168.178.50:30636/v1/forecasts | jq '.[] | select(.station_id == 5) | .discharge_m3s' | head -10
 ```
 
 **Real GloFAS data characteristics:**
+
 - `source`: "GloFAS"
 - `model_run`: Recent date (updated hourly)
 - Discharge values vary realistically (not constant)
 - Values are reasonable for the river (50-200 m³/s for Main river)
 
 **Fake data characteristics:**
+
 - `source`: "fake" or "demo"
 - `model_run`: null or very old
 - Discharge values might be constant or unrealistic
@@ -298,11 +321,13 @@ curl http://192.168.178.50:30636/v1/forecasts | jq '.[] | select(.station_id == 
 ### **How to Clean Fake Data**
 
 **Delete all fake/old forecasts:**
+
 ```bash
 kubectl exec -n floodsight postgres-0 -- psql -U postgres -d floodsight -c "DELETE FROM forecasts WHERE source != 'GloFAS' OR model_run < NOW() - INTERVAL '7 days';"
 ```
 
 **Verify only real data remains:**
+
 ```bash
 kubectl exec -n floodsight postgres-0 -- psql -U postgres -d floodsight -c "SELECT source, COUNT(*), MIN(model_run), MAX(model_run) FROM forecasts GROUP BY source;"
 ```
@@ -325,6 +350,7 @@ Before using the dashboard, verify:
 ## 🔧 **Monitoring & Debugging**
 
 ### **Check if frontend can reach backend:**
+
 ```bash
 # From your Pi
 curl -H "Origin: http://192.168.178.50:5173" \
@@ -334,22 +360,26 @@ curl -H "Origin: http://192.168.178.50:5173" \
 ```
 
 **Expected output:**
+
 ```
 access-control-allow-origin: http://192.168.178.50:5173
 access-control-allow-credentials: true
 ```
 
 ### **Check frontend logs:**
+
 ```bash
 tail -f /tmp/frontend-dev.log
 ```
 
 ### **Check backend logs:**
+
 ```bash
 kubectl logs -f -l component=backend -n floodsight
 ```
 
 ### **Check database directly:**
+
 ```bash
 kubectl exec -n floodsight postgres-0 -- psql -U postgres -d floodsight -c "SELECT source, COUNT(*), MAX(model_run) FROM forecasts GROUP BY source;"
 ```
@@ -369,13 +399,14 @@ kubectl exec -n floodsight postgres-0 -- psql -U postgres -d floodsight -c "SELE
    - **Prevent**: Use TypeScript and API contract
 
 **Data is REAL:**
+
 - All forecasts are from GloFAS (ECMWF)
 - Updated hourly automatically
 - Frankfurt data is legitimate (~60-90 m³/s for Main river)
 
 **To avoid future issues:**
+
 - Use the startup script
 - Run integration tests
 - Check CORS configuration when changing ports
 - Always hard-refresh browser after backend changes
-

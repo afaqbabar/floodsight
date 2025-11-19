@@ -56,12 +56,12 @@ store_flood_mask(water_mask, scene_id)
 
 ## 🔧 What You Need to Provide
 
-| Parameter | Your Variable | Notes |
-|-----------|--------------|-------|
-| `scene_id` | Your scene identifier | e.g., `"S1A_IW_GRDH_1SDV_20251119T..."` |
-| `sigma0_vv_filtered` | Output of speckle filter | 2D numpy array in dB |
-| `geotransform` | GDAL geotransform tuple | `(originX, pixelWidth, 0, originY, 0, pixelHeight)` |
-| `scene_timestamp` | Scene acquisition time | `datetime` object with timezone |
+| Parameter            | Your Variable            | Notes                                               |
+| -------------------- | ------------------------ | --------------------------------------------------- |
+| `scene_id`           | Your scene identifier    | e.g., `"S1A_IW_GRDH_1SDV_20251119T..."`             |
+| `sigma0_vv_filtered` | Output of speckle filter | 2D numpy array in dB                                |
+| `geotransform`       | GDAL geotransform tuple  | `(originX, pixelWidth, 0, originY, 0, pixelHeight)` |
+| `scene_timestamp`    | Scene acquisition time   | `datetime` object with timezone                     |
 
 ---
 
@@ -151,7 +151,7 @@ GROUP BY scene_id
 ORDER BY vessel_count DESC;
 
 -- Recent detections
-SELECT id, scene_id, detection_time, confidence, 
+SELECT id, scene_id, detection_time, confidence,
        ST_X(geom) as lon, ST_Y(geom) as lat
 FROM vessel_detections
 ORDER BY detection_time DESC
@@ -205,6 +205,7 @@ async def run_complete_flow():
 ```
 
 To enable:
+
 ```bash
 docker compose up scheduler
 ```
@@ -216,11 +217,13 @@ docker compose up scheduler
 ### No vessels detected
 
 **Possible causes:**
+
 1. **Threshold too high**: Lower `threshold_db` from 12 to 10
 2. **Land masking**: CFAR works on water; ensure scene covers water
 3. **Data range**: Verify `sigma0_vv_filtered` is in dB (not linear)
 
 **Check:**
+
 ```python
 print(f"VV range: {sigma0_vv_filtered.min():.1f} to {sigma0_vv_filtered.max():.1f} dB")
 # Expected: -25 dB (water) to +5 dB (bright targets)
@@ -229,6 +232,7 @@ print(f"VV range: {sigma0_vv_filtered.min():.1f} to {sigma0_vv_filtered.max():.1
 ### Too many false alarms
 
 **Solutions:**
+
 1. Increase `threshold_db` from 12 to 15
 2. Increase `window_size` from 40 to 50
 3. Add land mask to exclude detections over land
@@ -236,6 +240,7 @@ print(f"VV range: {sigma0_vv_filtered.min():.1f} to {sigma0_vv_filtered.max():.1
 ### Performance issues
 
 **Optimization:**
+
 - CFAR is already fast (~50ms per 1000×1000 scene)
 - For huge scenes, downsample before detection:
   ```python
@@ -280,7 +285,7 @@ print(f"VV range: {sigma0_vv_filtered.min():.1f} to {sigma0_vv_filtered.max():.1
    ```
 
 **Need help?** Check logs:
+
 ```bash
 docker compose logs -f scheduler | grep vessel
 ```
-

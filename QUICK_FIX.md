@@ -92,23 +92,27 @@ Step 7: Testing API endpoints...
 ## 🆘 If You Still See Errors
 
 1. **Check you're in the right directory:**
+
    ```bash
    pwd
    # Should show: /home/lenovo/scrimba/floodsight
    ```
 
 2. **Check script is executable:**
+
    ```bash
    ls -lh backend/test-local.sh
    # Should show: -rwxr-xr-x
    ```
 
 3. **If not executable:**
+
    ```bash
    chmod +x backend/test-local.sh
    ```
 
 4. **View detailed logs:**
+
    ```bash
    cd backend
    docker compose logs -f api
@@ -145,4 +149,3 @@ After running the script, verify:
 ---
 
 **Your issue has been fixed! Try running the script again now.** 🚀
-

@@ -213,7 +213,9 @@
   font-weight: 600;
   cursor: pointer;
   text-align: center;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
@@ -410,4 +412,3 @@
     min-width: 180px;
   }
 }
-

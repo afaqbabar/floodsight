@@ -130,12 +130,12 @@ open http://localhost:8080/docs
 
 ### Forecasts
 
-| Method | Endpoint                   | Description                                                        |
-| ------ | -------------------------- | ------------------------------------------------------------------ |
-| `GET`  | `/v1/forecasts`            | List forecasts (filter by station_id)                              |
-| `POST` | `/v1/forecasts`            | Create forecast                                                    |
-| `POST` | `/v1/forecasts/ingest`     | Trigger real GloFAS ingestion (auto fallback to fake)              |
-| `POST` | `/v1/forecasts/ingest-dev` | Manually trigger fake forecast ingestion (72h lead time)           |
+| Method | Endpoint                   | Description                                              |
+| ------ | -------------------------- | -------------------------------------------------------- |
+| `GET`  | `/v1/forecasts`            | List forecasts (filter by station_id)                    |
+| `POST` | `/v1/forecasts`            | Create forecast                                          |
+| `POST` | `/v1/forecasts/ingest`     | Trigger real GloFAS ingestion (auto fallback to fake)    |
+| `POST` | `/v1/forecasts/ingest-dev` | Manually trigger fake forecast ingestion (72h lead time) |
 
 ### Alerts
 
@@ -361,7 +361,7 @@ curl -X POST http://localhost:8080/v1/forecasts/ingest-dev
 
 The scheduler and `/v1/forecasts/ingest` endpoint now support real GloFAS data via the Copernicus Data Store (CDS).
 
-1. **Create a CDS account**: https://cds.climate.copernicus.eu/api-how-to  
+1. **Create a CDS account**: https://cds.climate.copernicus.eu/api-how-to
 2. **Generate API key** and add to `.env`:
 
    ```env
@@ -650,4 +650,5 @@ MIT License - see [LICENSE](../LICENSE)
 ---
 
 Built with ❤️ for climate resilience.
+
 # Backend updated for K8s deployment

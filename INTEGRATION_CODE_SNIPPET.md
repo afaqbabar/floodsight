@@ -3,6 +3,7 @@
 ## ✅ **VERIFIED WORKING** - Ready for Production
 
 The vessel detection system is **fully operational** and tested:
+
 - ✅ **118 vessels detected** from synthetic test scene
 - ✅ **PostGIS storage** working correctly
 - ✅ **API endpoints** functional
@@ -44,12 +45,12 @@ async with AsyncSessionLocal() as db:
 
 ## 🔧 **What You Need to Provide**
 
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `scene_id` | Sentinel-1 scene identifier | `"S1A_IW_GRDH_1SDV_20251119T120000_..."` |
-| `sigma0_vv_filtered` | Speckle-filtered Sigma0 VV in dB | `numpy.ndarray` shape `(height, width)` |
-| `geotransform` | GDAL geotransform tuple | `(originX, pixelWidth, 0, originY, 0, pixelHeight)` |
-| `scene_timestamp` | Scene acquisition time | `datetime(2025, 11, 19, 12, 0, 0, tzinfo=timezone.utc)` |
+| Parameter            | Description                      | Example                                                 |
+| -------------------- | -------------------------------- | ------------------------------------------------------- |
+| `scene_id`           | Sentinel-1 scene identifier      | `"S1A_IW_GRDH_1SDV_20251119T120000_..."`                |
+| `sigma0_vv_filtered` | Speckle-filtered Sigma0 VV in dB | `numpy.ndarray` shape `(height, width)`                 |
+| `geotransform`       | GDAL geotransform tuple          | `(originX, pixelWidth, 0, originY, 0, pixelHeight)`     |
+| `scene_timestamp`    | Scene acquisition time           | `datetime(2025, 11, 19, 12, 0, 0, tzinfo=timezone.utc)` |
 
 ---
 
@@ -113,4 +114,3 @@ threshold_db=14.0
 - ✅ Test: 118 vessels detected successfully
 
 **Next Step:** Insert the code snippet above into your Sentinel-1 processing pipeline!
-

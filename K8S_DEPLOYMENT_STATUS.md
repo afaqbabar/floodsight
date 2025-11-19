@@ -16,6 +16,7 @@ Your Kubernetes deployment is **correctly configured**! Here's what we accomplis
 **Error:** `ImagePullBackOff` - Can't pull `ghcr.io/afaqbabar/floodsight-backend:latest`
 
 **Why:** The Docker image doesn't exist in GitHub Container Registry yet because:
+
 - CI/CD workflow hasn't run (only triggers on push to `main` branch)
 - Image hasn't been built and pushed
 
@@ -31,6 +32,7 @@ cd /home/lenovo/scrimba/floodsight/backend
 ```
 
 This will:
+
 - ✅ Build the backend Docker image locally
 - ✅ Start PostgreSQL and backend
 - ✅ Run migrations
@@ -103,6 +105,7 @@ kubectl get pods -n floodsight
 ## ✅ Recommended Path Forward
 
 1. **Test locally first** (use Docker Compose)
+
    ```bash
    cd /home/lenovo/scrimba/floodsight/backend
    ./test-local.sh
@@ -136,12 +139,12 @@ kubectl delete deployment floodsight-backend floodsight-scheduler -n floodsight
 
 ## 📊 Summary
 
-| Component | Status | Action |
-|-----------|--------|--------|
-| **K8s Config** | ✅ Correct | None needed |
-| **Secrets** | ✅ Applied | None needed |
-| **PostgreSQL** | ✅ Running | None needed |
-| **Docker Image** | ❌ Missing | Build locally or wait for CI/CD |
+| Component        | Status               | Action                          |
+| ---------------- | -------------------- | ------------------------------- |
+| **K8s Config**   | ✅ Correct           | None needed                     |
+| **Secrets**      | ✅ Applied           | None needed                     |
+| **PostgreSQL**   | ✅ Running           | None needed                     |
+| **Docker Image** | ❌ Missing           | Build locally or wait for CI/CD |
 | **Backend Pods** | ⏳ Waiting for image | Will start once image available |
 
 ---
@@ -158,6 +161,7 @@ cd /home/lenovo/scrimba/floodsight/backend
 This is faster, easier to debug, and confirms everything works before dealing with K8s complexity.
 
 **Once local testing succeeds, you can:**
+
 - Use the working Docker image in K8s (Option A)
 - Or push to GitHub for automatic deployment (Option B)
 
@@ -166,6 +170,7 @@ This is faster, easier to debug, and confirms everything works before dealing wi
 ## 🆘 Need Help?
 
 **Current working setup:**
+
 - ✅ K8s cluster: Running
 - ✅ Secrets: Configured with your real CDS credentials
 - ✅ PostgreSQL: Running in K8s
@@ -176,4 +181,3 @@ This is faster, easier to debug, and confirms everything works before dealing wi
 ---
 
 **You're 95% there! Just need to build the Docker image.** 🚀
-

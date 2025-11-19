@@ -10,6 +10,7 @@
 A **stunning single-page maritime demo** that showcases all 4 phases of the FloodSight Maritime Edition:
 
 ### Backend API
+
 - **New Endpoint:** `GET /v1/maritime/demo-data?vessel_type=medium`
 - **Purpose:** Fast single-response endpoint (<1 second load time)
 - **Returns:** Combined JSON with:
@@ -23,12 +24,14 @@ A **stunning single-page maritime demo** that showcases all 4 phases of the Floo
 ### Frontend Components
 
 #### 1. **Maritime Demo Page** (`/maritime-demo.html`)
+
 - Full-screen MapLibre GL JS map
 - Responsive 2-column layout (sidebar + map)
 - Beautiful Tailwind-based design
 - Matches existing FloodSight aesthetic
 
 #### 2. **Interactive Map** (MaritimeMap.js)
+
 - **Layer 1:** Dark Vessels (red circle markers)
   - Click for details: confidence, length, detection time
 - **Layer 2:** Flood Plumes (semi-transparent orange polygons)
@@ -42,6 +45,7 @@ A **stunning single-page maritime demo** that showcases all 4 phases of the Floo
 - **Navigation Controls:** Zoom, pan, rotate
 
 #### 3. **Data Sidebar** (MaritimeSidebar.js)
+
 - **Summary Cards:**
   - Active vessels (24h)
   - Active plumes
@@ -60,6 +64,7 @@ A **stunning single-page maritime demo** that showcases all 4 phases of the Floo
   - Hidden if user already has maritime access
 
 ### CSS Styling
+
 - Custom `maritime-demo.css` with:
   - Responsive grid layout
   - Professional color scheme (green/yellow/red risk levels)
@@ -74,10 +79,12 @@ A **stunning single-page maritime demo** that showcases all 4 phases of the Floo
 ### Files Created/Modified
 
 **Backend:**
+
 - `backend/app/api/v1/endpoints.py` (+130 lines)
   - New `/maritime/demo-data` endpoint with optimized queries
 
 **Frontend:**
+
 - `public/maritime-demo.html` (new)
 - `public/components/maritime/MaritimeMap.js` (new, 450 lines)
 - `public/components/maritime/MaritimeSidebar.js` (new, 300 lines)
@@ -85,6 +92,7 @@ A **stunning single-page maritime demo** that showcases all 4 phases of the Floo
 - `vite.config.js` (updated with new build entry)
 
 **CI/CD:**
+
 - `.github/workflows/ci.yml` (fixed image name)
 
 ---
@@ -92,12 +100,14 @@ A **stunning single-page maritime demo** that showcases all 4 phases of the Floo
 ## 🚀 Deployment Status
 
 ### Backend
+
 - ✅ Committed: `e763347`
 - ✅ Pushed to GitHub
 - ⏳ GitHub Actions building Docker image...
 - ⏳ ArgoCD will auto-deploy when build completes (~5-8 min)
 
 ### Frontend
+
 - ✅ Committed: `e763347`
 - ✅ Pushed to GitHub
 - ⏳ GitHub Actions building Docker image...
@@ -109,6 +119,7 @@ A **stunning single-page maritime demo** that showcases all 4 phases of the Floo
 ## 🌐 How to Access
 
 ### Local Development
+
 ```bash
 # Start Vite dev server
 npm run dev
@@ -118,6 +129,7 @@ http://localhost:5173/maritime-demo.html
 ```
 
 ### Production (After Deployment Completes)
+
 ```bash
 # Via Kubernetes NodePort (your Pi)
 http://192.168.178.50:32367/maritime-demo.html
@@ -131,11 +143,13 @@ https://floodsight.vercel.app/maritime-demo.html
 ## 🧪 Testing the Demo
 
 ### 1. Check Backend Endpoint
+
 ```bash
 curl http://192.168.178.50:32367/v1/maritime/demo-data | jq
 ```
 
 Expected response:
+
 ```json
 {
   "timestamp": "2025-11-19T14:30:00Z",
@@ -157,6 +171,7 @@ Expected response:
 ```
 
 ### 2. Open Maritime Demo Page
+
 1. Navigate to `/maritime-demo.html`
 2. Wait for map to load (<1 second)
 3. Verify all 4 layers are visible
@@ -165,6 +180,7 @@ Expected response:
 6. Check sidebar for stats, alerts, and ports table
 
 ### 3. Monitor Deployment
+
 ```bash
 # Watch backend pods
 kubectl get pods -n floodsight -w | grep backend
@@ -196,16 +212,19 @@ The page displays **real data** from your PostGIS database:
 This demo page is perfect for:
 
 ✅ **Sales Presentations:**
+
 - Send to Duisburg, NorthStandard, viaDonau
 - Instantly shows value of Maritime Edition
 - All features visible in one page
 
 ✅ **Customer Demos:**
+
 - No login required
 - Fast loading (<1 second)
 - Beautiful, professional design
 
 ✅ **Internal Testing:**
+
 - Validate all 4 maritime phases work together
 - Debug map layers and data flows
 - Check performance with real data
@@ -238,11 +257,13 @@ graph LR
 ## 📱 Responsive Design
 
 The demo page works on:
+
 - 💻 Desktop (optimal: 1920x1080+)
 - 📱 Tablet (iPad, Surface)
 - 📱 Mobile (portrait/landscape)
 
 Breakpoints:
+
 - Large: `>1024px` - Full sidebar + map
 - Medium: `768-1024px` - Vertical layout
 - Small: `<768px` - Stacked, collapsible sidebar
@@ -252,6 +273,7 @@ Breakpoints:
 ## 🎨 Design Features
 
 ### Color Scheme
+
 - **Safe:** Green (#10b981)
 - **Warning:** Yellow/Orange (#f59e0b)
 - **Danger:** Red (#ef4444)
@@ -259,12 +281,14 @@ Breakpoints:
 - **Accent:** FloodSight Blue (#3b82f6)
 
 ### Typography
+
 - Headers: `font-weight: 600-700`
 - Body: `font-size: 13-14px`
 - Stats: `font-size: 32px` (large numbers)
 - Labels: `font-size: 11-12px` (uppercase)
 
 ### UI Elements
+
 - **Cards:** Rounded (`border-radius: 12px`), shadowed
 - **Tables:** Striped, hover effects
 - **Buttons:** Gradient, 3D lift on hover
@@ -298,11 +322,10 @@ Breakpoints:
 ### Integration with Main Dashboard
 
 If you want to add this to the main dashboard:
+
 ```html
 <!-- Add to public/dashboard.html -->
-<a href="/maritime-demo.html" class="nav-link">
-  🚢 Maritime Edition
-</a>
+<a href="/maritime-demo.html" class="nav-link"> 🚢 Maritime Edition </a>
 ```
 
 ---
@@ -312,11 +335,13 @@ If you want to add this to the main dashboard:
 **This page is production-ready!**
 
 Send to prospects:
+
 - **Duisburg Port Authority:** `http://your-domain.com/maritime-demo.html`
 - **NorthStandard P&I Club:** Same link
 - **viaDonau (Danube Commission):** Same link
 
 **Talking Points:**
+
 1. "All 4 maritime features in one view"
 2. "Live data from real satellite imagery"
 3. "Sub-second load times"
@@ -326,15 +351,15 @@ Send to prospects:
 
 ## ✅ Summary
 
-| Component | Status | URL |
-|-----------|--------|-----|
-| Backend Endpoint | ✅ Complete | `/v1/maritime/demo-data` |
-| Frontend Page | ✅ Complete | `/maritime-demo.html` |
-| MapLibre Map | ✅ Complete | 4 layers with toggles |
-| Data Sidebar | ✅ Complete | Stats, alerts, ports table |
-| CSS Styling | ✅ Complete | Responsive, professional |
-| CI/CD | ✅ Fixed | Auto-deploy to k8s |
-| Documentation | ✅ Complete | This file! |
+| Component        | Status      | URL                        |
+| ---------------- | ----------- | -------------------------- |
+| Backend Endpoint | ✅ Complete | `/v1/maritime/demo-data`   |
+| Frontend Page    | ✅ Complete | `/maritime-demo.html`      |
+| MapLibre Map     | ✅ Complete | 4 layers with toggles      |
+| Data Sidebar     | ✅ Complete | Stats, alerts, ports table |
+| CSS Styling      | ✅ Complete | Responsive, professional   |
+| CI/CD            | ✅ Fixed    | Auto-deploy to k8s         |
+| Documentation    | ✅ Complete | This file!                 |
 
 **Total Development Time:** ~2 hours
 **Lines of Code:** ~1,400 (backend + frontend)
@@ -343,4 +368,3 @@ Send to prospects:
 ---
 
 **🎉 READY TO SEND TO CUSTOMERS! 🎉**
-

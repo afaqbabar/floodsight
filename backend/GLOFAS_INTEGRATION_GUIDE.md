@@ -7,6 +7,7 @@ This guide explains how to integrate real ECMWF GloFAS (Global Flood Awareness S
 ## 📋 What is GloFAS?
 
 **GloFAS (Global Flood Awareness System)** provides:
+
 - Global river discharge forecasts
 - Up to 30-day lead time
 - 0.1° resolution (~11km at equator)
@@ -36,6 +37,7 @@ This guide explains how to integrate real ECMWF GloFAS (Global Flood Awareness S
 4. Copy your UID and API key
 
 **Format:**
+
 ```
 UID: 12345
 API Key: abcd1234-ef56-7890-ghij-klmnopqrstuv
@@ -63,12 +65,12 @@ services:
   api:
     environment:
       # ... existing vars ...
-      
+
       # GloFAS Configuration
-      - GLOFAS_INGEST_MODE=auto  # or 'real' to require real data
+      - GLOFAS_INGEST_MODE=auto # or 'real' to require real data
       - CDS_API_URL=https://cds.climate.copernicus.eu/api/v2
       - CDS_API_KEY=12345:abcd1234-ef56-7890-ghij-klmnopqrstuv
-      
+
       # GloFAS Data Selection
       - GLOFAS_SYSTEM_VERSION=version_4_0
       - GLOFAS_HYDROLOGICAL_MODEL=lisflood
@@ -90,18 +92,20 @@ metadata:
 type: Opaque
 stringData:
   # ... other secrets ...
-  
+
   # ECMWF CDS API credentials
-  cds-api-key: "12345:abcd1234-ef56-7890-ghij-klmnopqrstuv"
-  cds-api-url: "https://cds.climate.copernicus.eu/api/v2"
+  cds-api-key: '12345:abcd1234-ef56-7890-ghij-klmnopqrstuv'
+  cds-api-url: 'https://cds.climate.copernicus.eu/api/v2'
 ```
 
 Apply the secrets:
+
 ```bash
 kubectl apply -f deploy/k8s/base/backend-secrets.yaml
 ```
 
 Restart the backend:
+
 ```bash
 kubectl rollout restart deployment/floodsight-backend -n floodsight
 kubectl rollout restart deployment/floodsight-scheduler -n floodsight
@@ -122,6 +126,7 @@ curl -X POST https://api.floodsight.com/v1/forecasts/ingest
 ```
 
 **Expected Response:**
+
 ```json
 {
   "status": "success",
@@ -132,6 +137,7 @@ curl -X POST https://api.floodsight.com/v1/forecasts/ingest
 ```
 
 **Modes:**
+
 - `real` - Successfully downloaded from ECMWF CDS
 - `fake` - Fell back to synthetic data (if `GLOFAS_INGEST_MODE=auto`)
 
@@ -178,6 +184,7 @@ kubectl logs -f -l component=backend -n floodsight
 ```
 
 **Look for:**
+
 ```
 INFO: 🌍 Attempting real GloFAS ingestion via ECMWF CDS...
 INFO: ✅ CDS API credentials configured
@@ -202,6 +209,7 @@ curl http://localhost:8080/v1/forecasts | jq '.[] | {station_id, source, dischar
 ```
 
 **Real data should have:**
+
 - `source: "GloFAS"`
 - `model_run: "2025-11-13T00:00:00Z"` (recent timestamp)
 - Realistic discharge values based on actual river conditions
@@ -209,11 +217,13 @@ curl http://localhost:8080/v1/forecasts | jq '.[] | {station_id, source, dischar
 ### 4.2 Compare with Fake Data
 
 **Fake data characteristics:**
+
 - Random values between 500-2500 m³/s
 - Uniform distribution
 - No correlation with actual weather/hydrology
 
 **Real data characteristics:**
+
 - Based on numerical weather prediction (NWP)
 - Reflects actual hydrological conditions
 - May show trends (rising/falling discharge)
@@ -238,6 +248,7 @@ curl http://localhost:8080/v1/forecasts | jq 'group_by(.station_id) | map({stati
 The scheduler automatically runs ingestion every hour (configurable).
 
 **Check scheduler status:**
+
 ```bash
 # Docker Compose
 docker compose logs -f scheduler
@@ -247,6 +258,7 @@ kubectl logs -f -l component=scheduler -n floodsight
 ```
 
 **Expected logs:**
+
 ```
 🌊 FloodSight Scheduler Starting
 📅 Schedule: 0 * * * * (hourly at :00)
@@ -274,8 +286,9 @@ schedule = "0 * * * *"
 ```
 
 Or use environment variable:
+
 ```yaml
-- SCHEDULER_CRON=0 */3 * * *  # Every 3 hours
+- SCHEDULER_CRON=0 */3 * * * # Every 3 hours
 ```
 
 ---
@@ -285,11 +298,13 @@ Or use environment variable:
 ### Issue 1: "CDS API credentials not configured"
 
 **Error:**
+
 ```
 ERROR: CDS API credentials not configured
 ```
 
 **Solution:**
+
 - Verify `CDS_API_KEY` environment variable is set
 - Format: `{UID}:{API_KEY}` (no spaces)
 - Check if secret is properly mounted in K8s
@@ -297,11 +312,13 @@ ERROR: CDS API credentials not configured
 ### Issue 2: "CDS API request failed"
 
 **Error:**
+
 ```
 ERROR: CDS API request failed: {'error': {'code': 401, 'message': 'Invalid API key'}}
 ```
 
 **Solutions:**
+
 1. **Invalid credentials**
    - Verify UID and API key are correct
    - Check for extra spaces or quotes
@@ -318,11 +335,13 @@ ERROR: CDS API request failed: {'error': {'code': 401, 'message': 'Invalid API k
 ### Issue 3: "Timeout downloading GRIB data"
 
 **Error:**
+
 ```
 ERROR: Timeout waiting for CDS data retrieval
 ```
 
 **Solutions:**
+
 - CDS requests can take 5-15 minutes for large queries
 - The queue may be long during peak hours
 - Reduce the number of stations or time range
@@ -331,11 +350,13 @@ ERROR: Timeout waiting for CDS data retrieval
 ### Issue 4: "No stations configured"
 
 **Error:**
+
 ```
 WARNING: No stations found for GloFAS ingestion
 ```
 
 **Solution:**
+
 ```bash
 # Seed sample stations
 docker compose exec api python -m app.services.seed
@@ -347,11 +368,13 @@ kubectl exec deployment/floodsight-backend -n floodsight -- python -m app.servic
 ### Issue 5: Falling back to fake data
 
 **Log:**
+
 ```
 WARNING: Real GloFAS ingestion failed, falling back to fake data
 ```
 
 **When this happens:**
+
 - `GLOFAS_INGEST_MODE=auto` (default) allows fallback
 - Check logs for the actual error
 - Set `GLOFAS_INGEST_MODE=real` to require real data (will error instead of falling back)
@@ -388,11 +411,13 @@ GLOFAS_HYDROLOGICAL_MODEL options:
 ### Forecast Lead Times
 
 GloFAS provides forecasts for:
+
 - Lead times: 0 to 720 hours (0-30 days)
 - Temporal resolution: 24 hours
 - Ensemble members: 51 (1 control + 50 perturbed)
 
 FloodSight currently uses:
+
 - Lead times: 24, 48, 72 hours (configurable in code)
 - Ensemble: Control run (ensemble member 0)
 
@@ -454,12 +479,14 @@ FORECAST_LEAD_TIMES = [24, 48, 72, 96, 120, 144, 168]  # Up to 7 days
 ### Key Metrics to Monitor
 
 1. **Ingestion Success Rate**
+
    ```bash
    # Check recent ingestions
    kubectl logs -l component=scheduler -n floodsight | grep "Ingested"
    ```
 
 2. **Data Freshness**
+
    ```bash
    # Check latest forecast timestamp
    curl http://localhost:8080/v1/forecasts?limit=1 | jq '.[0].model_run'
@@ -478,6 +505,7 @@ FORECAST_LEAD_TIMES = [24, 48, 72, 96, 120, 144, 168]  # Up to 7 days
 ### Grafana Dashboard (if configured)
 
 Add panels for:
+
 - Real vs fake data ratio
 - CDS API response times
 - Ingestion error rate
@@ -541,4 +569,3 @@ If you encounter issues:
 ---
 
 **🌍 You're now ingesting real global flood forecast data! 🎉**
-

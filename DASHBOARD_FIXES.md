@@ -5,6 +5,7 @@
 ### **Issue 1: Red Bars for Cologne (Rhine) - FIXED**
 
 **Problem:**
+
 - Cologne Rhine showing **1400 m³/s** displayed with **red bars** in 7-day forecast chart
 - Hardcoded threshold: >= 1000 m³/s = Red
 - But 1400 m³/s is **NORMAL LOW WATER** for Rhine!
@@ -27,6 +28,7 @@ Spree/Berlin:      >= 80 = Red, >= 40 = Orange
 ```
 
 **Result:**
+
 - ✅ Cologne (1400 m³/s): **Blue bars** (normal)
 - ✅ Rhine at 5000 m³/s: **Orange bars** (high water)
 - ✅ Rhine at 7000 m³/s: **Red bars** (severe flood)
@@ -39,6 +41,7 @@ Spree/Berlin:      >= 80 = Red, >= 40 = Orange
 
 **Problem:**
 Left sidebar "Alert Levels" section showed:
+
 - Extreme: > 2000 m³/s
 - Severe: > 1600 m³/s
 - Warning: > 1200 m³/s
@@ -63,6 +66,7 @@ Before:                After:
 ```
 
 **Result:**
+
 - ✅ No confusing global values
 - ✅ Descriptive alert meanings
 - ✅ Note explaining variability
@@ -73,6 +77,7 @@ Before:                After:
 ## 📊 **How Station-Specific Thresholds Work**
 
 ### **Rhine at Cologne:**
+
 ```
 Current: 1400 m³/s
 Thresholds:
@@ -89,6 +94,7 @@ Historical Context:
 ```
 
 ### **Main at Frankfurt:**
+
 ```
 Current: 74 m³/s
 Thresholds:
@@ -109,6 +115,7 @@ Historical Context:
 ## 🎨 **Visual Changes**
 
 ### **Before (Global Thresholds):**
+
 ```
 7-Day Forecast for Cologne Rhine:
 Day   Discharge   Color
@@ -122,6 +129,7 @@ Alert Sidebar: > 2000 m³/s = Extreme  ← Confusing!
 ```
 
 ### **After (Station-Specific Thresholds):**
+
 ```
 7-Day Forecast for Cologne Rhine:
 Day   Discharge   Color
@@ -140,12 +148,14 @@ Alert Sidebar: Catastrophic flooding  ← Clear!
 ## 🧪 **Testing the Fixes**
 
 ### **Test 1: Refresh Dashboard**
+
 ```bash
 # Clear browser cache and refresh
 Press Ctrl + Shift + R
 ```
 
 **What to check:**
+
 1. Select Cologne Rhine station
 2. Look at 7-Day Forecast chart (right sidebar)
 3. Bars should be **BLUE** (not red!)
@@ -153,6 +163,7 @@ Press Ctrl + Shift + R
 5. Should show descriptive text (not "> 2000 m³/s")
 
 ### **Test 2: Compare Different Rivers**
+
 ```
 Select each station and check bar colors:
 
@@ -177,20 +188,20 @@ If Rhine were 5000 m³/s:
 
 ```javascript
 // 1. Get current selected station
-const currentStation = allStations.find(s => s.id == stationId);
+const currentStation = allStations.find((s) => s.id == stationId);
 const stationName = currentStation?.name;
 
 // 2. Set thresholds based on station name
 if (stationName.includes('Rhine')) {
-  severeThreshold = 6000;   // Red above this
-  warningThreshold = 3500;  // Orange above this
+  severeThreshold = 6000; // Red above this
+  warningThreshold = 3500; // Orange above this
 }
 
 // 3. Apply colors based on discharge vs thresholds
 const colors = values.map((discharge) => {
   if (discharge >= severeThreshold) return RED;
   if (discharge >= warningThreshold) return ORANGE;
-  return BLUE;  // Normal
+  return BLUE; // Normal
 });
 ```
 
@@ -205,8 +216,8 @@ const colors = values.map((discharge) => {
 
 <!-- Plus helpful note -->
 <div style="font-size: 11px; color: #6b7280;">
-  <strong>Note:</strong> Thresholds vary by river size.
-  Rhine/Danube: 3000-9000 m³/s, Main/Elbe: 400-2500 m³/s
+  <strong>Note:</strong> Thresholds vary by river size. Rhine/Danube: 3000-9000 m³/s, Main/Elbe:
+  400-2500 m³/s
 </div>
 ```
 
@@ -215,12 +226,14 @@ const colors = values.map((discharge) => {
 ## 💡 **Why This Matters**
 
 ### **Before (Confusing):**
+
 - User sees Rhine at 1400 m³/s with RED bars
 - Thinks: "Oh no! Severe flooding!"
 - Actually: Normal low water for Rhine
 - Sidebar says "> 1600 = Severe" - doesn't apply to Rhine!
 
 ### **After (Clear):**
+
 - User sees Rhine at 1400 m³/s with BLUE bars
 - Thinks: "Normal conditions"
 - Correct assessment!
@@ -230,13 +243,13 @@ const colors = values.map((discharge) => {
 
 ## 📋 **Station-Specific Thresholds Reference**
 
-| River | Normal Flow | Warning | Severe | Chart Colors |
-|-------|-------------|---------|--------|--------------|
-| **Spree (Berlin)** | 15-25 m³/s | 40 m³/s | 80 m³/s | Blue < 40 < Orange < 80 < Red |
-| **Main (Frankfurt)** | 150-250 m³/s | 400 m³/s | 800 m³/s | Blue < 400 < Orange < 800 < Red |
-| **Elbe (Dresden)** | 300-500 m³/s | 800 m³/s | 2000 m³/s | Blue < 800 < Orange < 2000 < Red |
-| **Danube (Vienna)** | 1900-2100 m³/s | 3000 m³/s | 5500 m³/s | Blue < 3000 < Orange < 5500 < Red |
-| **Rhine (Cologne)** | 2000-2500 m³/s | 3500 m³/s | 6000 m³/s | Blue < 3500 < Orange < 6000 < Red |
+| River                | Normal Flow    | Warning   | Severe    | Chart Colors                      |
+| -------------------- | -------------- | --------- | --------- | --------------------------------- |
+| **Spree (Berlin)**   | 15-25 m³/s     | 40 m³/s   | 80 m³/s   | Blue < 40 < Orange < 80 < Red     |
+| **Main (Frankfurt)** | 150-250 m³/s   | 400 m³/s  | 800 m³/s  | Blue < 400 < Orange < 800 < Red   |
+| **Elbe (Dresden)**   | 300-500 m³/s   | 800 m³/s  | 2000 m³/s | Blue < 800 < Orange < 2000 < Red  |
+| **Danube (Vienna)**  | 1900-2100 m³/s | 3000 m³/s | 5500 m³/s | Blue < 3000 < Orange < 5500 < Red |
+| **Rhine (Cologne)**  | 2000-2500 m³/s | 3500 m³/s | 6000 m³/s | Blue < 3500 < Orange < 6000 < Red |
 
 ---
 
@@ -248,11 +261,13 @@ The dashboard now shows correct colors, but the backend still uses global thresh
 
 **To fix this:**
 Run the alert threshold updater:
+
 ```bash
 ./update-alert-thresholds.sh
 ```
 
 Select **Preset #2** (Medium Rivers - Balanced):
+
 - Info: 600 m³/s
 - Warning: 1500 m³/s
 - Severe: 3000 m³/s
@@ -288,16 +303,17 @@ See `HOW_TO_SET_ALERT_LEVELS.md` for implementation guide.
 ## ✅ **Summary**
 
 **Fixed:**
+
 - ✅ Rhine forecast bars now show correct colors (blue at 1400 m³/s)
 - ✅ Alert levels legend shows descriptive text instead of confusing global values
 - ✅ Station-specific thresholds for all 5 rivers
 - ✅ Helpful note explaining threshold variability
 
 **To Apply:**
+
 ```bash
 # Just refresh your browser!
 Ctrl + Shift + R
 ```
 
 **Your dashboard now correctly visualizes flood risk based on river size!** 🎨✅
-

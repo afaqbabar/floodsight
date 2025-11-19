@@ -20,13 +20,14 @@ metadata:
 type: Opaque
 stringData:
   # Database - will be auto-created by deploy script
-  database-url: "postgresql+asyncpg://postgres:postgres@postgres.floodsight.svc.cluster.local:5432/floodsight"
-  
+  database-url: 'postgresql+asyncpg://postgres:postgres@postgres.floodsight.svc.cluster.local:5432/floodsight'
+
   # All other fields are optional - backend will use fake data
-  cds-api-key: "fake-key-for-testing"
+  cds-api-key: 'fake-key-for-testing'
 ```
 
 **What this gives you:**
+
 - ✅ Works immediately
 - ✅ Uses PostgreSQL deployed in K8s (script will deploy it for you)
 - ✅ Uses fake forecast data (no CDS API needed)
@@ -39,6 +40,7 @@ stringData:
 Use this if you've registered for ECMWF CDS and want real flood data.
 
 **First, get your CDS API key:**
+
 1. Register: https://cds.climate.copernicus.eu/
 2. Accept license: https://cds.climate.copernicus.eu/cdsapp#!/dataset/cems-glofas-forecast
 3. Get API key from your profile (format: `UID:API_KEY`)
@@ -57,11 +59,11 @@ metadata:
 type: Opaque
 stringData:
   # Database
-  database-url: "postgresql+asyncpg://postgres:postgres@postgres.floodsight.svc.cluster.local:5432/floodsight"
-  
+  database-url: 'postgresql+asyncpg://postgres:postgres@postgres.floodsight.svc.cluster.local:5432/floodsight'
+
   # ECMWF CDS API - REPLACE WITH YOUR ACTUAL VALUES
-  cds-api-key: "12345:abcd1234-ef56-7890-ghij-klmnopqrstuv"  # ← Your UID:API_KEY
-  cds-api-url: "https://cds.climate.copernicus.eu/api/v2"
+  cds-api-key: '12345:abcd1234-ef56-7890-ghij-klmnopqrstuv' # ← Your UID:API_KEY
+  cds-api-url: 'https://cds.climate.copernicus.eu/api/v2'
 ```
 
 ---
@@ -82,15 +84,16 @@ metadata:
 type: Opaque
 stringData:
   # External Database - REPLACE WITH YOUR VALUES
-  database-url: "postgresql+asyncpg://your_user:your_password@your_db_host:5432/floodsight"
-  
+  database-url: 'postgresql+asyncpg://your_user:your_password@your_db_host:5432/floodsight'
+
   # Optional: Real data
-  cds-api-key: "fake-key-for-testing"  # Or your real CDS key
+  cds-api-key: 'fake-key-for-testing' # Or your real CDS key
 ```
 
 **Example for local Raspberry Pi PostgreSQL:**
+
 ```yaml
-database-url: "postgresql+asyncpg://postgres:mypassword@192.168.1.100:5432/floodsight"
+database-url: 'postgresql+asyncpg://postgres:mypassword@192.168.1.100:5432/floodsight'
 ```
 
 ---
@@ -136,18 +139,19 @@ kubectl apply -f base/backend-secrets.yaml
 ## 🔍 Understanding the Database URL
 
 The database URL format is:
+
 ```
 postgresql+asyncpg://USER:PASSWORD@HOST:PORT/DATABASE
 ```
 
 **Examples:**
 
-| Scenario | URL |
-|----------|-----|
-| **K8s PostgreSQL** | `postgresql+asyncpg://postgres:postgres@postgres.floodsight.svc.cluster.local:5432/floodsight` |
-| **Local Raspberry Pi** | `postgresql+asyncpg://postgres:mypass@192.168.1.5:5432/floodsight` |
-| **External server** | `postgresql+asyncpg://user:pass@db.example.com:5432/floodsight` |
-| **Docker Compose** | `postgresql+asyncpg://postgres:postgres@db:5432/floodsight` |
+| Scenario               | URL                                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------------------- |
+| **K8s PostgreSQL**     | `postgresql+asyncpg://postgres:postgres@postgres.floodsight.svc.cluster.local:5432/floodsight` |
+| **Local Raspberry Pi** | `postgresql+asyncpg://postgres:mypass@192.168.1.5:5432/floodsight`                             |
+| **External server**    | `postgresql+asyncpg://user:pass@db.example.com:5432/floodsight`                                |
+| **Docker Compose**     | `postgresql+asyncpg://postgres:postgres@db:5432/floodsight`                                    |
 
 ---
 
@@ -246,6 +250,7 @@ cd /home/lenovo/scrimba/floodsight/deploy/k8s
 ```
 
 The script will:
+
 1. ✅ Create namespace
 2. ✅ Check for secrets (you just created them!)
 3. ✅ Ask if you want to deploy PostgreSQL (say **yes**)
@@ -285,4 +290,3 @@ This single command will create the secrets file with working values for you!
 ---
 
 **Now you have all the information you need!** 🎉
-

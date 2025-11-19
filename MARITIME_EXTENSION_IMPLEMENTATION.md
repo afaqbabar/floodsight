@@ -17,16 +17,16 @@ Added `VesselDetection` model with PostGIS geometry support:
 ```python
 class VesselDetection(Base):
     """SAR vessel detection from Sentinel-1 for maritime/dark-vessel monitoring."""
-    
+
     __tablename__ = "vessel_detections"
-    
+
     # Core fields
     id, geom (PostGIS POINT), scene_id, detection_time
     intensity_db, confidence, detector_type
-    
+
     # Optional vessel characteristics
     vessel_length_m, vessel_heading_deg
-    
+
     # Maritime context flags
     in_river_mouth, in_port_zone, near_flood_plume
 ```
@@ -34,6 +34,7 @@ class VesselDetection(Base):
 **Migration:** `alembic/versions/20251119_1200-add_vessel_detections_table.py`
 
 To apply:
+
 ```bash
 cd backend
 alembic upgrade head
@@ -48,6 +49,7 @@ alembic upgrade head
 #### Key Functions:
 
 ##### `detect_vessels_cfar()` - CFAR Vessel Detector
+
 - **Algorithm:** Constant False Alarm Rate (CFAR)
 - **Performance:** ~50ms per 1000×1000 pixel scene
 - **Input:** Speckle-filtered Sigma0 VV in dB
@@ -55,6 +57,7 @@ alembic upgrade head
 - **Tunable threshold:** 10-15 dB above background (coastal vs. river)
 
 ##### `process_sentinel1_scene()` - Integration Point
+
 Drop this into your existing Sentinel-1 flow **after speckle filtering**:
 
 ```python
@@ -85,13 +88,13 @@ Updated `run_complete_flow()` to include vessel detection:
 async def run_complete_flow():
     # Step 1: Ingest GloFAS forecasts
     forecast_count = await fetch_and_store_forecasts()
-    
+
     # Step 2: Compute flood alerts
     alerts_count = await compute_and_store_alerts()
-    
+
     # Step 3: Process Sentinel-1 for vessel detection (NEW)
     vessel_count = await process_sentinel1_vessels()
-    
+
     return forecast_count, alerts_count, vessel_count
 ```
 
@@ -107,13 +110,16 @@ Runs hourly via APScheduler (same as forecast ingestion).
 #### New Endpoints:
 
 ##### `GET /v1/vessels`
+
 List vessel detections with filtering:
+
 - `?scene_id=<id>` - Filter by Sentinel-1 scene
 - `?min_confidence=0.8` - Confidence threshold
 - `?in_river_mouth=true` - Maritime context filters
 - `?limit=100` - Pagination
 
 Response:
+
 ```json
 {
   "id": 1,
@@ -129,22 +135,26 @@ Response:
 ```
 
 ##### `GET /v1/vessels/geojson`
+
 GeoJSON FeatureCollection for map rendering:
+
 ```json
 {
   "type": "FeatureCollection",
   "features": [
     {
       "type": "Feature",
-      "geometry": {"type": "Point", "coordinates": [8.6821, 50.1109]},
-      "properties": {"confidence": 0.95, "scene_id": "..."}
+      "geometry": { "type": "Point", "coordinates": [8.6821, 50.1109] },
+      "properties": { "confidence": 0.95, "scene_id": "..." }
     }
   ]
 }
 ```
 
 ##### `POST /v1/vessels/ingest`
+
 Manually trigger vessel detection (for testing):
+
 ```bash
 curl -X POST http://localhost:8080/v1/vessels/ingest
 ```
@@ -156,6 +166,7 @@ curl -X POST http://localhost:8080/v1/vessels/ingest
 **File:** `backend/requirements.txt`
 
 Added:
+
 ```txt
 scipy==1.11.4        # CFAR filtering
 shapely==2.0.2       # Geometry operations
@@ -163,6 +174,7 @@ numpy==1.26.3        # Array processing
 ```
 
 Install:
+
 ```bash
 cd backend
 pip install -r requirements.txt
@@ -173,17 +185,20 @@ pip install -r requirements.txt
 ## 🚀 Quick Start
 
 ### 1. Apply Database Migration
+
 ```bash
 cd backend
 alembic upgrade head
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
 ### 3. Test Vessel Detection (Demo Mode)
+
 ```bash
 # Start the API
 docker compose up -d
@@ -219,7 +234,9 @@ vessel_count = await process_sentinel1_scene(
 ## 🎯 Maritime Use Cases (Ready to Implement)
 
 ### 1. Dark Vessels in River Mouths
+
 Detect vessels during flood discharge peaks:
+
 ```sql
 SELECT * FROM vessel_detections
 WHERE in_river_mouth = true
@@ -227,14 +244,18 @@ WHERE in_river_mouth = true
 ```
 
 ### 2. Port Accessibility Analysis
+
 Combine with GloFAS discharge forecasts:
+
 ```python
 # Future enhancement: cross-reference vessel detections
 # with forecasted high-discharge events near ports
 ```
 
 ### 3. Grounding Risk Layers
+
 Flag vessels near shallow zones during low water:
+
 ```python
 # Enrich detections with bathymetry data (future)
 ```
@@ -243,13 +264,13 @@ Flag vessels near shallow zones during low water:
 
 ## 📊 Performance
 
-| Metric | Value |
-|--------|-------|
-| CFAR detection speed | ~50ms per 1000×1000 scene |
+| Metric                       | Value                        |
+| ---------------------------- | ---------------------------- |
+| CFAR detection speed         | ~50ms per 1000×1000 scene    |
 | Database write (100 vessels) | <100ms (PostGIS bulk insert) |
-| API response (`/vessels`) | <50ms for 1000 records |
-| GeoJSON generation | <200ms for 1000 features |
-| Storage overhead | ~200 bytes per detection |
+| API response (`/vessels`)    | <50ms for 1000 records       |
+| GeoJSON generation           | <200ms for 1000 features     |
+| Storage overhead             | ~200 bytes per detection     |
 
 ---
 
@@ -259,12 +280,12 @@ Flag vessels near shallow zones during low water:
 
 Adjust `threshold_db` in `process_sentinel1_scene()`:
 
-| Scene Type | Recommended Threshold |
-|------------|----------------------|
-| Open coastal water | 12 dB |
-| Calm rivers | 10 dB |
+| Scene Type         | Recommended Threshold       |
+| ------------------ | --------------------------- |
+| Open coastal water | 12 dB                       |
+| Calm rivers        | 10 dB                       |
 | High-traffic ports | 15 dB (reduce false alarms) |
-| Rough seas | 14 dB |
+| Rough seas         | 14 dB                       |
 
 ### Context Flags (Future Enhancement)
 
@@ -280,12 +301,14 @@ in_river_mouth = check_point_in_polygon(lon, lat, river_mouth_geometries)
 ## 🧪 Testing
 
 ### Unit Test Vessel Detection
+
 ```bash
 cd backend
 pytest tests/ -k vessel -v
 ```
 
 ### Integration Test Full Flow
+
 ```bash
 # Run complete flow once
 python -m app.workers.flows once
@@ -299,18 +322,21 @@ docker compose logs -f scheduler
 ## 📝 Next Steps
 
 ### Phase 1: Validation (Current)
+
 - ✅ CFAR detector working
 - ✅ Database storage working
 - ✅ API endpoints functional
 - ⏳ Integrate with real Sentinel-1 scenes
 
 ### Phase 2: Enrichment
+
 - [ ] Add river mouth / port zone geometries
 - [ ] Cross-reference with AIS data (dark vessel detection)
 - [ ] Combine with GloFAS flood forecasts
 - [ ] Add maritime alerts (vessel + flood context)
 
 ### Phase 3: Advanced Detectors
+
 - [ ] Integrate SARfish or SUMO pre-trained models
 - [ ] Add vessel heading/length estimation
 - [ ] Implement wake detection for speed estimation
@@ -319,15 +345,15 @@ docker compose logs -f scheduler
 
 ## 🗂️ Files Changed
 
-| File | Change |
-|------|--------|
-| `backend/app/db/models.py` | Added `VesselDetection` model |
+| File                                | Change                                |
+| ----------------------------------- | ------------------------------------- |
+| `backend/app/db/models.py`          | Added `VesselDetection` model         |
 | `backend/app/services/sentinel1.py` | Created (CFAR detector + integration) |
-| `backend/app/workers/flows.py` | Added vessel detection to scheduler |
-| `backend/app/api/v1/endpoints.py` | Added 3 vessel endpoints |
-| `backend/app/api/v1/schemas.py` | Added vessel schemas |
-| `backend/requirements.txt` | Added scipy, shapely, numpy |
-| `backend/alembic/versions/...` | Created migration |
+| `backend/app/workers/flows.py`      | Added vessel detection to scheduler   |
+| `backend/app/api/v1/endpoints.py`   | Added 3 vessel endpoints              |
+| `backend/app/api/v1/schemas.py`     | Added vessel schemas                  |
+| `backend/requirements.txt`          | Added scipy, shapely, numpy           |
+| `backend/alembic/versions/...`      | Created migration                     |
 
 ---
 
@@ -354,4 +380,3 @@ docker compose logs -f scheduler
 **Zero new infrastructure.** Reuses existing Sentinel-1 data pipeline. Drop-in integration with ~250 lines of code. Ready for maritime extension use cases: dark vessels, port accessibility, grounding risk.
 
 **Status:** ✅ Implementation complete. Ready for production integration.
-

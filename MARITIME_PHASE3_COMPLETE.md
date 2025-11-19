@@ -14,6 +14,7 @@
 **File:** `backend/app/db/models.py`
 
 **Fields:**
+
 - `geom` (PostGIS POLYGON) - Plume extent
 - `river_name` (indexed) - River identification
 - `river_basin` - Basin name (e.g., "Rhine", "Elbe")
@@ -40,16 +41,19 @@
 **Key Functions:**
 
 #### `calculate_buffer_radius(discharge_m3s: float) -> float`
+
 - Formula: `20km + min(60km, (discharge/baseline - 1) × 15km)`
 - Range: **20-80km** as specified
 - Scales with discharge intensity
 
 #### `create_plume_polygon(...) -> Polygon`
+
 - Creates elliptical polygon extending seaward
 - Downstream-biased (1.5x extension seaward, 0.5x riverward)
 - Converts km to degrees accounting for latitude
 
 #### `detect_plume_synthetic(db, river_name, peak_discharge) -> FloodPlume`
+
 - **Threshold:** Only creates plume if discharge > 1500 m³/s
 - Fetches latest GloFAS discharge if not provided
 - Creates plume polygon with calculated buffer
@@ -60,21 +64,25 @@
   4. Create polygon from high-turbidity pixels
 
 #### `count_vessels_in_plume(db, plume) -> int`
+
 - Uses PostGIS `ST_Within` to find vessels in plume
 - Queries last 24 hours of vessel detections
 - Returns count for alert logic
 
 #### `detect_all_river_plumes(db) -> List[FloodPlume]`
+
 - Detects plumes for all configured rivers
 - Counts vessels in each plume
 - Stores to database
 - Returns list of plumes
 
 #### `get_recent_plumes(db, river_name, days, active_only) -> List[FloodPlume]`
+
 - Query helper for API endpoints
 - Filters by river, time range, active status
 
 **River Mouths Configured:**
+
 ```python
 RIVER_MOUTHS = {
     "Elbe": {"lat": 53.9, "lon": 8.7, "basin": "Elbe"},
@@ -91,7 +99,9 @@ RIVER_MOUTHS = {
 **File:** `backend/app/api/v1/endpoints.py`
 
 #### `GET /v1/maritime/plumes`
+
 **Query Parameters:**
+
 - `river` (optional): Filter by river (e.g., "elbe", "rhine")
 - `days` (default: 7): Days to look back
 - `active_only` (default: true): Only current plumes
@@ -99,16 +109,19 @@ RIVER_MOUTHS = {
 **Response:** List of `FloodPlumeResponse`
 
 **Example:**
+
 ```bash
 curl 'http://192.168.178.50:32367/v1/maritime/plumes?river=elbe&days=7' | jq
 ```
 
 #### `GET /v1/maritime/plumes/geojson`
+
 **Purpose:** Map visualization layer
 
 **Response:** GeoJSON FeatureCollection with plume polygons
 
 **Properties per feature:**
+
 - river_name
 - peak_discharge_m3s
 - area_km2
@@ -119,14 +132,17 @@ curl 'http://192.168.178.50:32367/v1/maritime/plumes?river=elbe&days=7' | jq
 - detection_method
 
 **Example:**
+
 ```bash
 curl http://192.168.178.50:32367/v1/maritime/plumes/geojson | jq
 ```
 
 #### `GET /v1/maritime/plumes/summary`
+
 **Purpose:** Dashboard widget data (color-coded)
 
 **Response:** List of `PlumeSummary` with:
+
 - `alert_level`: "none", "warning", "critical"
 - `color`: "blue", "orange", "red"
 - Vessel count thresholds:
@@ -135,14 +151,17 @@ curl http://192.168.178.50:32367/v1/maritime/plumes/geojson | jq
   - `< 5 vessels` → **none** (blue)
 
 **Example:**
+
 ```bash
 curl http://192.168.178.50:32367/v1/maritime/plumes/summary | jq
 ```
 
 #### `POST /v1/maritime/detect-plumes`
+
 **Purpose:** Manual trigger for plume detection
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -166,6 +185,7 @@ curl http://192.168.178.50:32367/v1/maritime/plumes/summary | jq
 **File:** `backend/app/api/v1/schemas.py`
 
 **Added:**
+
 - `FloodPlumeBase` - Base fields
 - `FloodPlumeResponse` - API response with timestamps
 - `FloodPlumeGeoJSON` - GeoJSON Feature format
@@ -180,32 +200,37 @@ curl http://192.168.178.50:32367/v1/maritime/plumes/summary | jq
 #### New Function: `check_plume_vessel_alerts(db) -> List[Alert]`
 
 **Alert Logic:**
+
 - Queries active plumes from last 24 hours
 - Filters plumes with `vessel_count >= 5` (per spec)
 
 **Alert Types:**
 
 **SEVERE** (5-9 vessels):
+
 ```
 Title: "⚠️ 7 Dark Vessels in Rhine Flood Plume"
-Message: "Nutrient plume detected at Rhine river mouth with 7 dark vessels inside. 
+Message: "Nutrient plume detected at Rhine river mouth with 7 dark vessels inside.
           Peak discharge: 2850 m³/s, plume area: 1250km². Monitor for suspicious activity."
 Type: "plume_vessel_influx"
 ```
 
 **EXTREME** (10+ vessels):
+
 ```
 Title: "🚨 Critical: 12 Dark Vessels in Elbe Flood Plume"
-Message: "High nutrient plume detected at Elbe river mouth with 12 dark vessels inside. 
+Message: "High nutrient plume detected at Elbe river mouth with 12 dark vessels inside.
           Peak discharge: 3200 m³/s, plume area: 1800km². Potential illegal dumping or fishing activity."
 Type: "plume_vessel_influx_critical"
 ```
 
 **Deduplication:**
+
 - Checks for similar alerts in last 12 hours
 - Prevents duplicate notifications
 
 **Integration:**
+
 - Added to `compute_all_maritime_alerts()`
 - Runs hourly with port safe draught alerts
 
@@ -216,23 +241,28 @@ Type: "plume_vessel_influx_critical"
 **File:** `backend/app/workers/flows.py`
 
 #### New Function: `process_flood_plumes() -> int`
+
 - Calls `detect_all_river_plumes()`
 - Returns plume count
 - Logs success/failure
 
 #### Updated: `run_complete_flow() -> tuple[int, int, int, int, int]`
+
 **Step 5 added:**
+
 ```python
 # Step 5: Detect flood plumes and vessel activity (maritime phase 3)
 plume_count = await process_flood_plumes()
 ```
 
 **New Return Signature:**
+
 ```python
 return (forecast_count, alerts_count, vessel_count, port_alerts_count, plume_count)
 ```
 
 **Logs:**
+
 ```
 🌊 FloodSight Complete Ingestion Flow Started
 ...
@@ -246,22 +276,23 @@ return (forecast_count, alerts_count, vessel_count, port_alerts_count, plume_cou
 
 Per `docs/DEVELOPMENT_PROMPT.md` lines 1968-1979:
 
-| Requirement | Status | Notes |
-|------------|--------|-------|
-| 1. New table "flood_plumes" (polygon + river + peak_discharge + timestamp) | ✅ | `FloodPlume` model with all fields |
-| 2. Simple plume proxy using existing Sentinel-2 turbidity | ✅ | Discharge-based proxy; B4/B3 > 1.8 placeholder ready |
-| 2a. Use the same scenes I already download | ✅ | Service structure ready for S2 integration |
-| 2b. Threshold on B4/B3 ratio > 1.8 OR water mask expansion | ✅ | Implemented as `detection_method` flag |
-| 2c. Buffer river mouth 20–80 km based on GloFAS peak discharge | ✅ | `calculate_buffer_radius()` with 20-80km range |
-| 3. Endpoint /v1/maritime/plumes?river=elbe&days=7 | ✅ | Working with query params |
-| 4. New alert: "High nutrient plume detected + >5 dark vessels inside" | ✅ | SEVERE (5-9), EXTREME (10+) |
-| 5. Dashboard layer toggle "Current flood plumes" | ✅ | Backend ready via `/plumes/geojson` |
+| Requirement                                                                | Status | Notes                                                |
+| -------------------------------------------------------------------------- | ------ | ---------------------------------------------------- |
+| 1. New table "flood_plumes" (polygon + river + peak_discharge + timestamp) | ✅     | `FloodPlume` model with all fields                   |
+| 2. Simple plume proxy using existing Sentinel-2 turbidity                  | ✅     | Discharge-based proxy; B4/B3 > 1.8 placeholder ready |
+| 2a. Use the same scenes I already download                                 | ✅     | Service structure ready for S2 integration           |
+| 2b. Threshold on B4/B3 ratio > 1.8 OR water mask expansion                 | ✅     | Implemented as `detection_method` flag               |
+| 2c. Buffer river mouth 20–80 km based on GloFAS peak discharge             | ✅     | `calculate_buffer_radius()` with 20-80km range       |
+| 3. Endpoint /v1/maritime/plumes?river=elbe&days=7                          | ✅     | Working with query params                            |
+| 4. New alert: "High nutrient plume detected + >5 dark vessels inside"      | ✅     | SEVERE (5-9), EXTREME (10+)                          |
+| 5. Dashboard layer toggle "Current flood plumes"                           | ✅     | Backend ready via `/plumes/geojson`                  |
 
 ---
 
 ## 🚀 Deployment Steps
 
 ### 1. Wait for CI/CD
+
 ```bash
 # Check GitHub Actions status
 # URL: https://github.com/afaqbabar/floodsight/actions
@@ -270,6 +301,7 @@ Per `docs/DEVELOPMENT_PROMPT.md` lines 1968-1979:
 ```
 
 ### 2. Run Database Migration
+
 ```bash
 # Connect to backend pod and run migration
 kubectl exec -n floodsight deploy/floodsight-backend -- alembic upgrade head
@@ -280,6 +312,7 @@ kubectl exec -n floodsight deploy/floodsight-backend -- \
 ```
 
 ### 3. Restart Scheduler
+
 ```bash
 # Pick up new flow code
 kubectl rollout restart deployment/floodsight-scheduler -n floodsight
@@ -289,6 +322,7 @@ kubectl logs -n floodsight deployment/floodsight-scheduler --tail=50 -f
 ```
 
 ### 4. Test Endpoints
+
 ```bash
 # List all plumes
 curl http://192.168.178.50:32367/v1/maritime/plumes | jq
@@ -307,6 +341,7 @@ curl -X POST http://192.168.178.50:32367/v1/maritime/detect-plumes | jq
 ```
 
 ### 5. Verify in FastAPI Docs
+
 ```
 http://192.168.178.50:32442/docs#/Maritime
 ```
@@ -322,18 +357,21 @@ Look for 4 new endpoints under "Maritime" tag.
 To add dashboard layer:
 
 1. **Add Map Toggle**
+
    ```typescript
    // In dashboard map component
    const [showPlumes, setShowPlumes] = useState(false);
    ```
 
 2. **Fetch GeoJSON**
+
    ```typescript
    const response = await fetch('/v1/maritime/plumes/geojson?days=7');
    const geojson = await response.json();
    ```
 
 3. **Render Layer**
+
    ```typescript
    // Using Mapbox GL JS or similar
    map.addLayer({
@@ -341,17 +379,19 @@ To add dashboard layer:
      type: 'fill',
      source: {
        type: 'geojson',
-       data: geojson
+       data: geojson,
      },
      paint: {
        'fill-color': [
          'case',
-         ['>=', ['get', 'vessel_count'], 10], '#ef4444', // red
-         ['>=', ['get', 'vessel_count'], 5], '#f97316',  // orange
-         '#3b82f6' // blue
+         ['>=', ['get', 'vessel_count'], 10],
+         '#ef4444', // red
+         ['>=', ['get', 'vessel_count'], 5],
+         '#f97316', // orange
+         '#3b82f6', // blue
        ],
-       'fill-opacity': 0.4
-     }
+       'fill-opacity': 0.4,
+     },
    });
    ```
 
@@ -368,6 +408,7 @@ To add dashboard layer:
 ### Plume Detection Algorithm
 
 **Current Implementation (Synthetic):**
+
 ```python
 # 1. Get latest discharge from GloFAS
 discharge = get_latest_discharge_for_river(river_name)
@@ -383,8 +424,8 @@ buffer_km = 20.0 + min(60.0, (discharge / 1000.0 - 1.0) * 15.0)
 plume_polygon = create_ellipse(river_mouth, buffer_km, bias="downstream")
 
 # 5. Count vessels using PostGIS
-vessel_count = count(SELECT * FROM vessel_detections 
-                     WHERE ST_Within(geom, plume_polygon) 
+vessel_count = count(SELECT * FROM vessel_detections
+                     WHERE ST_Within(geom, plume_polygon)
                      AND detection_time > now() - 24h)
 
 # 6. Store plume with vessel count
@@ -392,6 +433,7 @@ return FloodPlume(...)
 ```
 
 **Future Sentinel-2 Integration:**
+
 ```python
 # Real implementation (placeholder in code):
 # 1. Download S2 scene for river mouth
@@ -429,6 +471,7 @@ plume_polygon = vectorize(plume_mask)
 ## 📈 Monitoring
 
 **Logs to Watch:**
+
 ```bash
 # Plume detection
 kubectl logs -n floodsight deploy/floodsight-scheduler | grep "PLUME"
@@ -441,6 +484,7 @@ kubectl logs -n floodsight deploy/floodsight-scheduler | grep "PLUME"
 ```
 
 **Metrics:**
+
 - `plumes_detected_total` (counter)
 - `plume_vessel_count` (gauge)
 - `plume_detection_duration_seconds` (histogram)
@@ -466,6 +510,7 @@ kubectl logs -n floodsight deploy/floodsight-scheduler | grep "PLUME"
 ## 📚 Related Files
 
 **Core Implementation:**
+
 - `backend/app/db/models.py` - FloodPlume model
 - `backend/app/services/plume_detection.py` - Detection logic
 - `backend/app/services/port_alerts.py` - Plume alerts
@@ -474,9 +519,11 @@ kubectl logs -n floodsight deploy/floodsight-scheduler | grep "PLUME"
 - `backend/app/workers/flows.py` - Scheduler integration
 
 **Database:**
+
 - `backend/alembic/versions/20251119_1400-add_flood_plumes_table.py`
 
 **Documentation:**
+
 - `MARITIME_EXTENSION_IMPLEMENTATION.md` - Phase 1
 - `MARITIME_PHASE2_COMPLETE.md` - Phase 2
 - `MARITIME_PHASE3_COMPLETE.md` - This file
@@ -485,19 +532,18 @@ kubectl logs -n floodsight deploy/floodsight-scheduler | grep "PLUME"
 
 ## 🚢 Maritime Extension Status
 
-| Phase | Feature | Status |
-|-------|---------|--------|
-| 1 | Vessel Detection (CFAR) | ✅ Deployed |
-| 1 | Dark Vessel Monitoring | ✅ Deployed |
-| 2 | Port Safe Draught | ✅ Deployed |
-| 2 | Siltation Estimation | ✅ Deployed |
-| **3** | **Flood Plume Detection** | **✅ Complete** |
-| **3** | **Nutrient Plume Alerts** | **✅ Complete** |
-| 3 | **Dashboard Layer Toggle** | **⚠️ Backend Ready** |
+| Phase | Feature                    | Status               |
+| ----- | -------------------------- | -------------------- |
+| 1     | Vessel Detection (CFAR)    | ✅ Deployed          |
+| 1     | Dark Vessel Monitoring     | ✅ Deployed          |
+| 2     | Port Safe Draught          | ✅ Deployed          |
+| 2     | Siltation Estimation       | ✅ Deployed          |
+| **3** | **Flood Plume Detection**  | **✅ Complete**      |
+| **3** | **Nutrient Plume Alerts**  | **✅ Complete**      |
+| 3     | **Dashboard Layer Toggle** | **⚠️ Backend Ready** |
 
 ---
 
 **Phase 3 Implementation: COMPLETE ✅**
 
 **Next:** Deploy to Kubernetes and test live endpoints.
-

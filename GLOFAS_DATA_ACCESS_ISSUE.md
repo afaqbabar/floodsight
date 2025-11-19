@@ -3,6 +3,7 @@
 ## 🎯 Current Status
 
 ✅ **Backend is FULLY OPERATIONAL**
+
 - Backend API: 2 pods running
 - Scheduler: 1 pod running, hourly ingestion
 - Database: PostgreSQL + PostGIS
@@ -23,6 +24,7 @@ dataset cems-glofas-forecast not found
 The dataset `cems-glofas-forecast` is **NOT available** on the regular **Climate Data Store (CDS)**.
 
 According to the [CDS API documentation](https://cds.climate.copernicus.eu/how-to-api), there are **multiple data stores**:
+
 1. **CDS** (Climate Data Store) - Your current credentials
 2. **ADS** (Atmosphere Data Store)
 3. **CEMS Early Warning DS** - Likely where GloFAS data is
@@ -42,6 +44,7 @@ According to the [CDS API documentation](https://cds.climate.copernicus.eu/how-t
 ### Option 2: Check Dataset Name/Location
 
 The dataset might be:
+
 - Renamed or moved
 - Requires special access/license
 - Only available through a different API endpoint
@@ -49,6 +52,7 @@ The dataset might be:
 ### Option 3: Alternative Data Sources
 
 Consider using:
+
 - **GloFAS-ERA5**: Historical reanalysis data (might be on CDS)
 - **GloFAS-Seasonal**: Seasonal forecasts
 - Direct ECMWF API instead of CDS
@@ -78,6 +82,7 @@ GLOFAS_INGEST_MODE: "auto"
 ### Fake Data Features
 
 The fake data generator:
+
 - ✅ Creates realistic discharge values (500-3000 m³/s)
 - ✅ Generates for all 5 Polish stations
 - ✅ Provides 10-day forecasts (24-240 hour lead times)
@@ -85,6 +90,7 @@ The fake data generator:
 - ✅ Triggers alerts based on thresholds
 
 **This is sufficient for:**
+
 - Frontend development
 - UI testing
 - Demo purposes
@@ -95,6 +101,7 @@ The fake data generator:
 ### Immediate (Recommended)
 
 1. **Check Available Datasets**
+
    ```bash
    # Test which datasets you can access
    python3 << 'EOF'
@@ -120,30 +127,33 @@ The fake data generator:
 ### If Real Data is Required
 
 **Option A**: Get CEMS Early Warning DS credentials
+
 - Register for CEMS Early Warning service
 - Get separate API key for CEMS
 - Update backend to use CEMS endpoint
 
 **Option B**: Use alternative datasets
+
 - Look for `reanalysis-cems-flood-forecasting` or similar
 - Check if there's a public GloFAS historical dataset
 - Consider using ERA5 river discharge data
 
 **Option C**: Direct ECMWF API
+
 - Use ECMWF's direct API instead of CDS
 - Might require different authentication
 - Update backend code accordingly
 
 ## 📊 Current Deployment Summary
 
-| Component | Status | Details |
-|-----------|--------|---------|
-| Backend API | ✅ Running | 2 replicas, port 30636 |
-| Scheduler | ✅ Running | Hourly ingestion |
-| Database | ✅ Running | 5 Polish stations seeded |
-| CDS API | ✅ Configured | cdsapi 0.7.7, PAT auth |
-| Data Ingestion | ✅ Working | Auto mode with fake fallback |
-| External Access | ✅ Working | NodePort 30636 |
+| Component       | Status        | Details                      |
+| --------------- | ------------- | ---------------------------- |
+| Backend API     | ✅ Running    | 2 replicas, port 30636       |
+| Scheduler       | ✅ Running    | Hourly ingestion             |
+| Database        | ✅ Running    | 5 Polish stations seeded     |
+| CDS API         | ✅ Configured | cdsapi 0.7.7, PAT auth       |
+| Data Ingestion  | ✅ Working    | Auto mode with fake fallback |
+| External Access | ✅ Working    | NodePort 30636               |
 
 ## 🌐 Access Points
 
@@ -155,7 +165,7 @@ The fake data generator:
 ## 📝 Files Modified Today
 
 1. `backend/pyproject.toml` - cdsapi version
-2. `backend/requirements.txt` - cdsapi version  
+2. `backend/requirements.txt` - cdsapi version
 3. `deploy/k8s/base/backend-deployment.yaml` - removed hardcoded env vars
 4. `deploy/k8s/base/backend-configmap.yaml` - CDS URL and mode
 5. `deploy/k8s/base/backend-secrets.yaml` - credentials and database
@@ -165,12 +175,14 @@ The fake data generator:
 **For now, keep `GLOFAS_INGEST_MODE: "auto"` and use fake data.**
 
 This allows:
+
 - ✅ Continued development
 - ✅ Frontend integration
 - ✅ Testing and demos
 - ✅ Algorithm development
 
 **Investigate real data access separately** by:
+
 1. Checking your CDS account for available datasets
 2. Contacting ECMWF/Copernicus support
 3. Checking CEMS Early Warning DS registration
@@ -180,4 +192,3 @@ This allows:
 **Your FloodSight backend is fully operational and production-ready with synthetic data!** 🎉
 
 To switch to real data, simply update `GLOFAS_INGEST_MODE: "real"` once you have confirmed dataset access.
-

@@ -3,20 +3,24 @@
 ## What Was Fixed ✅
 
 ### 1. **Corrected Secrets**
+
 - ✅ Fixed database credentials: `postgres:postgres`
 - ✅ Fixed CDS API URL: `https://cds.climate.copernicus.eu/api/v2`
 
 ### 2. **Downgraded cdsapi Library**
+
 - ✅ Changed from `cdsapi 0.7.7` (new CDS-Beta) to `cdsapi 0.6.1` (legacy CDS)
 - ✅ Rebuilt Docker image with correct version
 - ✅ Imported to K3s cluster
 
 ### 3. **Fixed Environment Variable Conflicts**
+
 - ✅ Removed hardcoded env vars from `backend-deployment.yaml`
 - ✅ Now using ConfigMap for all GLOFAS settings
 - ✅ Set `GLOFAS_INGEST_MODE=real`
 
 ### 4. **Fixed ConfigMap**
+
 - ✅ Updated `CDS_API_URL` to `/api/v2`
 - ✅ Set ingestion mode to `real`
 
@@ -25,11 +29,13 @@
 **CDS API Key Format**
 
 The CDS API requires the key in this format:
+
 ```
 <UID>:<APIKEY>
 ```
 
 Your current credentials show only the API key:
+
 ```
 key: ff5874bb-e24c-495f-878c-e206f74e0c36
 ```
@@ -52,6 +58,7 @@ key: ff5874bb-e24c-495f-878c-e206f74e0c36
 ## Once You Provide Your UID:
 
 We will:
+
 1. Update the secret with the properly formatted key
 2. Restart the backend pods
 3. Test real GloFAS data ingestion
@@ -79,4 +86,3 @@ We will:
 2. **Update secret**: Add UID to key format
 3. **Test**: Verify real GloFAS data ingestion works
 4. **Monitor**: Check scheduler logs for automatic hourly ingestion
-

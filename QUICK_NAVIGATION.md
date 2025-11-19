@@ -22,6 +22,7 @@
 ## ⚡ Quick Commands
 
 ### **For Local Testing:**
+
 ```bash
 # From anywhere:
 cd /home/lenovo/scrimba/floodsight
@@ -29,6 +30,7 @@ cd /home/lenovo/scrimba/floodsight
 ```
 
 ### **For K8s Deployment:**
+
 ```bash
 # Step 1: Navigate to k8s directory
 cd /home/lenovo/scrimba/floodsight/deploy/k8s
@@ -47,13 +49,13 @@ nano base/backend-secrets.yaml
 
 ## 🎯 Where to Run Each Script
 
-| Script | Where to Run | Command |
-|--------|--------------|---------|
-| **Local Testing** | Anywhere in project | `./backend/test-local.sh` |
-| **K8s Deployment** | `deploy/k8s/` | `./deploy-backend.sh` |
-| **GloFAS Test** | Anywhere in project | `./backend/test-glofas-integration.sh` |
-| **API Testing** | Anywhere in project | `./backend/test-api-comprehensive.sh` |
-| **Health Monitor** | Anywhere in project | `./backend/monitor-health.sh` |
+| Script             | Where to Run        | Command                                |
+| ------------------ | ------------------- | -------------------------------------- |
+| **Local Testing**  | Anywhere in project | `./backend/test-local.sh`              |
+| **K8s Deployment** | `deploy/k8s/`       | `./deploy-backend.sh`                  |
+| **GloFAS Test**    | Anywhere in project | `./backend/test-glofas-integration.sh` |
+| **API Testing**    | Anywhere in project | `./backend/test-api-comprehensive.sh`  |
+| **Health Monitor** | Anywhere in project | `./backend/monitor-health.sh`          |
 
 ---
 
@@ -62,6 +64,7 @@ nano base/backend-secrets.yaml
 **Problem:** You're in `/deploy` but need to be in `/deploy/k8s`
 
 **Solution:**
+
 ```bash
 # From where you are now (/deploy):
 cd k8s
@@ -125,22 +128,26 @@ kubectl get pods -n floodsight
 ## 💡 Pro Tips
 
 ### Always Know Where You Are
+
 ```bash
 pwd  # Print Working Directory
 ```
 
 ### List Files in Current Directory
+
 ```bash
 ls -la
 ```
 
 ### Check if Script Exists
+
 ```bash
 ls -lh deploy-backend.sh
 # If you see it, you're in the right place!
 ```
 
 ### Go Back to Project Root
+
 ```bash
 cd /home/lenovo/scrimba/floodsight
 ```
@@ -149,13 +156,13 @@ cd /home/lenovo/scrimba/floodsight
 
 ## 🎯 Quick Reference
 
-| I want to... | Go here first |
-|--------------|---------------|
-| Test backend locally | `cd /home/lenovo/scrimba/floodsight` |
-| Deploy to K8s | `cd /home/lenovo/scrimba/floodsight/deploy/k8s` |
-| Edit backend code | `cd /home/lenovo/scrimba/floodsight/backend` |
-| View Docker Compose logs | `cd /home/lenovo/scrimba/floodsight/backend` |
-| Run API tests | Anywhere, script handles it |
+| I want to...             | Go here first                                   |
+| ------------------------ | ----------------------------------------------- |
+| Test backend locally     | `cd /home/lenovo/scrimba/floodsight`            |
+| Deploy to K8s            | `cd /home/lenovo/scrimba/floodsight/deploy/k8s` |
+| Edit backend code        | `cd /home/lenovo/scrimba/floodsight/backend`    |
+| View Docker Compose logs | `cd /home/lenovo/scrimba/floodsight/backend`    |
+| Run API tests            | Anywhere, script handles it                     |
 
 ---
 
@@ -180,4 +187,3 @@ find . -name "*.sh" -type f 2>/dev/null | head -5
 ---
 
 **Now you know exactly where to go!** 🎯
-

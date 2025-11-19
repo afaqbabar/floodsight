@@ -151,6 +151,7 @@ kubectl get secrets floodsight-backend-secrets
 ```
 
 **Example database-url format:**
+
 ```
 postgresql+asyncpg://postgres:password@postgres.floodsight.svc.cluster.local:5432/floodsight
 ```
@@ -209,6 +210,7 @@ curl http://localhost:8080/v1/health
 ```
 
 Expected health response:
+
 ```json
 {
   "status": "ok",
@@ -473,6 +475,6 @@ curl https://api.floodsight.com/v1/alerts
 ## 🆘 Support
 
 For issues or questions:
+
 - GitHub Issues: https://github.com/afaqbabar/floodsight/issues
 - Documentation: https://github.com/afaqbabar/floodsight/tree/main/docs
-

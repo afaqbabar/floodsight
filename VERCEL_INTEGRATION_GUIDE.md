@@ -31,6 +31,7 @@ ngrok http 192.168.178.50:30636
 ```
 
 You'll see output like:
+
 ```
 Session Status                online
 Forwarding                    https://abc123.ngrok-free.app -> http://192.168.178.50:30636
@@ -43,6 +44,7 @@ Forwarding                    https://abc123.ngrok-free.app -> http://192.168.17
 1. **Visit**: https://vercel.com/your-project/settings/environment-variables
 
 2. **Add/Update**:
+
    ```
    Variable Name: VITE_API_URL
    Value: https://abc123.ngrok-free.app
@@ -50,6 +52,7 @@ Forwarding                    https://abc123.ngrok-free.app -> http://192.168.17
    ```
 
    Or if your frontend uses `NEXT_PUBLIC_`:
+
    ```
    Variable Name: NEXT_PUBLIC_API_URL
    Value: https://abc123.ngrok-free.app
@@ -63,14 +66,16 @@ Forwarding                    https://abc123.ngrok-free.app -> http://192.168.17
 ### Step 5: Test the Connection
 
 Visit your Vercel app and check the browser console:
+
 ```javascript
 // In browser console
 fetch('https://your-vercel-app.vercel.app/api/v1/health')
-  .then(r => r.json())
-  .then(console.log)
+  .then((r) => r.json())
+  .then(console.log);
 ```
 
 Expected response:
+
 ```json
 {
   "status": "ok",
@@ -139,6 +144,7 @@ cloudflared tunnel run floodsight-api
 ```
 
 Or as a service:
+
 ```bash
 sudo cloudflared service install
 sudo systemctl start cloudflared
@@ -148,6 +154,7 @@ sudo systemctl enable cloudflared
 ### Step 7: Update Vercel
 
 Add environment variable:
+
 ```
 VITE_API_URL=https://api.yourdomain.com
 ```
@@ -163,6 +170,7 @@ VITE_API_URL=https://api.yourdomain.com
 ### Step 1: Configure Port Forwarding
 
 On your router:
+
 - External Port: 443
 - Internal IP: 192.168.178.50
 - Internal Port: 30636
@@ -171,6 +179,7 @@ On your router:
 ### Step 2: Setup Dynamic DNS
 
 Use a service like:
+
 - **DuckDNS**: https://www.duckdns.org/ (Free)
 - **No-IP**: https://www.noip.com/ (Free tier)
 - **Dynu**: https://www.dynu.com/ (Free)
@@ -180,6 +189,7 @@ Create a hostname like: `floodsight.duckdns.org`
 ### Step 3: SSL Certificate
 
 Install Cert-Manager on K3s:
+
 ```bash
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml
 ```
@@ -214,7 +224,7 @@ export const api = {
     const query = new URLSearchParams();
     if (params?.station_id) query.append('station_id', params.station_id.toString());
     if (params?.limit) query.append('limit', params.limit.toString());
-    
+
     const response = await fetch(`${API_BASE_URL}/v1/forecasts?${query}`);
     if (!response.ok) throw new Error('Failed to fetch forecasts');
     return response.json();
@@ -287,7 +297,7 @@ function Dashboard() {
         <ul>
           {forecasts.slice(0, 10).map((forecast, i) => (
             <li key={i}>
-              Discharge: {forecast.discharge_m3s} m³/s 
+              Discharge: {forecast.discharge_m3s} m³/s
               (Lead: {forecast.lead_hours}h)
             </li>
           ))}
@@ -309,10 +319,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const response = await fetch(`${API_BASE_URL}/v1/stations`);
     const data = await response.json();
@@ -348,18 +355,20 @@ curl https://your-ngrok-url.ngrok-free.app/v1/health
 ```javascript
 // In browser console on your Vercel app
 fetch('https://your-ngrok-url.ngrok-free.app/v1/stations')
-  .then(r => r.json())
+  .then((r) => r.json())
   .then(console.log)
-  .catch(console.error)
+  .catch(console.error);
 ```
 
 If you see CORS errors, the backend CORS is already configured for:
+
 - `https://floodsight.vercel.app`
 - `https://floodsight.com`
 - `http://localhost:3000`
 - `http://localhost:5173`
 
 Add your actual Vercel URL if different:
+
 ```bash
 kubectl edit configmap floodsight-backend-config -n floodsight
 
@@ -374,16 +383,24 @@ kubectl rollout restart deployment/floodsight-backend -n floodsight
 
 ```javascript
 // Stations
-fetch('https://your-url/v1/stations').then(r => r.json()).then(console.log)
+fetch('https://your-url/v1/stations')
+  .then((r) => r.json())
+  .then(console.log);
 
 // Forecasts
-fetch('https://your-url/v1/forecasts?limit=10').then(r => r.json()).then(console.log)
+fetch('https://your-url/v1/forecasts?limit=10')
+  .then((r) => r.json())
+  .then(console.log);
 
 // Alerts
-fetch('https://your-url/v1/alerts').then(r => r.json()).then(console.log)
+fetch('https://your-url/v1/alerts')
+  .then((r) => r.json())
+  .then(console.log);
 
 // Health
-fetch('https://your-url/v1/health').then(r => r.json()).then(console.log)
+fetch('https://your-url/v1/health')
+  .then((r) => r.json())
+  .then(console.log);
 ```
 
 ### 4. Test Real-Time Updates
@@ -410,6 +427,7 @@ fetch('https://your-url/v1/forecasts/ingest', {
 ## 🔐 Security Considerations
 
 ### For Development (ngrok)
+
 ✅ **Already Secure**: HTTPS included, temporary URL  
 ⚠️ **Warning**: URL changes on restart  
 💡 **Tip**: Use paid ngrok plan for stable subdomain
@@ -418,13 +436,13 @@ fetch('https://your-url/v1/forecasts/ingest', {
 
 1. **Enable Rate Limiting**: Already configured in backend
 2. **Use HTTPS**: Required (ngrok/Cloudflare provide this)
-3. **API Authentication**: 
+3. **API Authentication**:
    ```bash
    # Enable Supabase JWT in ConfigMap
    kubectl edit secret floodsight-backend-secrets -n floodsight
    # Add: supabase-jwt-secret: your-secret-here
    ```
-4. **Monitoring**: 
+4. **Monitoring**:
    ```bash
    # Watch API usage
    kubectl logs -f -l component=backend -n floodsight
@@ -457,13 +475,14 @@ ngrok http 192.168.178.50:30636 --log stdout
 ### Test from Vercel Build Logs
 
 In your frontend build:
+
 ```javascript
 // Add to your build script
 console.log('API URL:', process.env.VITE_API_URL);
 fetch(process.env.VITE_API_URL + '/v1/health')
-  .then(r => r.json())
-  .then(data => console.log('Backend health:', data))
-  .catch(err => console.error('Backend connection failed:', err));
+  .then((r) => r.json())
+  .then((data) => console.log('Backend health:', data))
+  .catch((err) => console.error('Backend connection failed:', err));
 ```
 
 ---
@@ -473,6 +492,7 @@ fetch(process.env.VITE_API_URL + '/v1/health')
 ### Issue: "Failed to fetch" or CORS error
 
 **Solution 1**: Add your Vercel URL to CORS whitelist
+
 ```bash
 kubectl edit configmap floodsight-backend-config -n floodsight
 # Add your Vercel URL to BACKEND_CORS_ORIGINS
@@ -480,6 +500,7 @@ kubectl rollout restart deployment/floodsight-backend -n floodsight
 ```
 
 **Solution 2**: Check ngrok is running
+
 ```bash
 # Make sure ngrok tunnel is active
 curl https://your-ngrok-url.ngrok-free.app/v1/health
@@ -492,6 +513,7 @@ curl https://your-ngrok-url.ngrok-free.app/v1/health
 ### Issue: "Connection refused"
 
 **Solution**: Check backend is running
+
 ```bash
 kubectl get pods -n floodsight
 curl http://192.168.178.50:30636/v1/health
@@ -500,6 +522,7 @@ curl http://192.168.178.50:30636/v1/health
 ### Issue: "404 Not Found"
 
 **Solution**: Check API path
+
 ```bash
 # Correct paths:
 /v1/health ✅
@@ -537,6 +560,7 @@ ngrok http 192.168.178.50:30636 \
 ```
 
 Run it:
+
 ```bash
 chmod +x start-ngrok.sh
 ./start-ngrok.sh
@@ -577,7 +601,7 @@ You'll know it's working when:
 **Your FloodSight backend is ready for frontend integration!** 🌊🚀
 
 For support, check:
+
 - Backend logs: `kubectl logs -f -l component=backend -n floodsight`
 - ngrok dashboard: http://127.0.0.1:4040
 - API documentation: http://192.168.178.50:30636/docs
-

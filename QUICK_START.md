@@ -9,18 +9,22 @@ Your FloodSight alert system is now fully deployed with all 6 advanced features.
 ## 📊 Access Your Dashboards
 
 ### 1. **Live Dashboard** (Main)
+
 **URL**: http://localhost:5173/dashboard-figma.html
 
 Features:
+
 - Real-time flood monitoring
 - Interactive map with station markers
 - Forecast visualization
 - Alert indicators
 
 ### 2. **Analytics Dashboard** (NEW! 📊)
+
 **URL**: http://localhost:5173/analytics-dashboard.html
 
 Features:
+
 - Alert statistics & trends
 - Notification performance metrics
 - Station risk ranking
@@ -28,9 +32,11 @@ Features:
 - Configurable time periods (7, 30, 90, 365 days)
 
 ### 3. **Admin Dashboard** (NEW! ⚙️)
+
 **URL**: http://localhost:5173/admin-dashboard.html
 
 Features:
+
 - User management (create, view, delete)
 - Subscription management
 - Webhook configuration
@@ -42,6 +48,7 @@ Features:
 ## 🔧 Quick Actions
 
 ### Test the API
+
 ```bash
 # Health check
 curl http://localhost:8080/v1/health
@@ -54,6 +61,7 @@ curl -X POST http://localhost:8080/v1/alerts/compute
 ```
 
 ### Create Your First User
+
 ```bash
 curl -X POST http://localhost:8080/v1/users \
   -H "Content-Type: application/json" \
@@ -65,6 +73,7 @@ curl -X POST http://localhost:8080/v1/users \
 ```
 
 ### Add a Subscription
+
 ```bash
 curl -X POST http://localhost:8080/v1/subscriptions \
   -H "Content-Type: application/json" \
@@ -76,6 +85,7 @@ curl -X POST http://localhost:8080/v1/subscriptions \
 ```
 
 ### Create a Webhook (Slack Example)
+
 ```bash
 curl -X POST http://localhost:8080/v1/webhooks \
   -H "Content-Type: application/json" \
@@ -94,6 +104,7 @@ curl -X POST http://localhost:8080/v1/webhooks \
 To enable email/SMS/push notifications, configure environment variables in `backend/.env`:
 
 ### Minimal Setup (Email Only)
+
 ```bash
 # Gmail with app password
 SMTP_HOST=smtp.gmail.com
@@ -106,13 +117,16 @@ SMTP_FROM="FloodSight <your-email@gmail.com>"
 **Get Gmail App Password**: https://myaccount.google.com/apppasswords
 
 ### Full Configuration
+
 See `ALERT_SYSTEM_SETUP.md` for:
+
 - SMS (Twilio)
 - Push notifications (Firebase, OneSignal)
 - Telegram bot
 - Discord/Slack webhooks
 
 After updating `.env`:
+
 ```bash
 cd backend
 docker compose restart api scheduler
@@ -145,6 +159,7 @@ docker compose restart api scheduler
 ## 🚨 Current Alerts
 
 Check active alerts:
+
 ```bash
 curl -s http://localhost:8080/v1/alerts?active_only=true | jq '.[] | {level, station_code, probability}'
 ```
@@ -154,24 +169,28 @@ curl -s http://localhost:8080/v1/alerts?active_only=true | jq '.[] | {level, sta
 ## 🔄 System Management
 
 ### View Logs
+
 ```bash
 cd backend
 docker compose logs -f api scheduler
 ```
 
 ### Restart Services
+
 ```bash
 cd backend
 docker compose restart api scheduler
 ```
 
 ### Check Database
+
 ```bash
 docker compose exec db psql -U postgres -d floodsight -c "SELECT COUNT(*) as total_forecasts FROM forecasts;"
 docker compose exec db psql -U postgres -d floodsight -c "SELECT level, COUNT(*) FROM alerts WHERE is_active = true GROUP BY level;"
 ```
 
 ### Monitor System
+
 ```bash
 ./backend/monitor.sh
 ```
@@ -181,6 +200,7 @@ docker compose exec db psql -U postgres -d floodsight -c "SELECT level, COUNT(*)
 ## 🆘 Troubleshooting
 
 ### API Not Responding
+
 ```bash
 # Wait 30 seconds after rebuild
 sleep 30
@@ -191,14 +211,17 @@ docker compose logs api
 ```
 
 ### No Notifications Sending
+
 1. Check environment variables are set
 2. Verify SMTP/Twilio credentials
 3. Check notification logs:
+
 ```bash
 docker compose exec db psql -U postgres -d floodsight -c "SELECT * FROM notification_logs ORDER BY created_at DESC LIMIT 10;"
 ```
 
 ### Database Migration Needed
+
 ```bash
 cd backend
 docker compose exec api alembic upgrade head
@@ -231,6 +254,3 @@ All 6 advanced alert features are ready to use!
 Navigate between dashboards using the top navigation menu.
 
 🌊 **Happy Flood Monitoring!**
-
-
-

@@ -10,6 +10,7 @@
 ## ✅ What's Working
 
 ### Backend Configuration
+
 - ✅ EWDS endpoint configured: `https://ewds.climate.copernicus.eu/api`
 - ✅ Personal Access Token working: `ff5874bb-e24c-495f-878c-e206f74e0c36`
 - ✅ cdsapi 0.7.7 installed
@@ -17,6 +18,7 @@
 - ✅ Scheduler active
 
 ### Progress Timeline
+
 1. ✅ Deployed backend to K8s
 2. ✅ Fixed database credentials
 3. ✅ Configured CDS API (wrong endpoint)
@@ -32,10 +34,12 @@
 **Error**: `400 Bad Request - Invalid parameter combination`
 
 **Status Change**:
+
 - ❌ Before: `404 Not Found` (dataset not on CDS)
 - ✅ Now: `400 Bad Request` (dataset found on EWDS, parameters invalid)
 
 **This is GOOD progress!** The endpoint is working, we just need to:
+
 1. Accept Terms of Use for the dataset, **OR**
 2. Fix parameter format
 
@@ -50,9 +54,11 @@
 **How to fix**:
 
 1. **Visit EWDS Portal**:
+
    ```
    https://ewds.climate.copernicus.eu/
    ```
+
    (May redirect to the main CDS portal with EWDS datasets)
 
 2. **Login**:
@@ -80,6 +86,7 @@
 If you've already accepted the Terms, the parameters might be wrong.
 
 **Run test script**:
+
 ```bash
 cd /home/lenovo/scrimba/floodsight
 python3 test_ewds_params.py
@@ -88,6 +95,7 @@ python3 test_ewds_params.py
 This will try different parameter combinations and show which works.
 
 **Or check the dataset page**:
+
 1. Go to the cems-glofas-forecast page on EWDS
 2. Use the download form to select your options
 3. Click **"Show API request"** button
@@ -99,22 +107,25 @@ This will try different parameter combinations and show which works.
 ## 🔧 Current Backend Configuration
 
 ### ConfigMap: `floodsight-backend-config`
+
 ```yaml
-CDS_API_URL: "https://ewds.climate.copernicus.eu/api"
-GLOFAS_INGEST_MODE: "auto"
-GLOFAS_SYSTEM_VERSION: "version_4_0"
-GLOFAS_HYDROLOGICAL_MODEL: "lisflood"
-GLOFAS_VARIABLE: "river_discharge_in_the_last_24_hours"
+CDS_API_URL: 'https://ewds.climate.copernicus.eu/api'
+GLOFAS_INGEST_MODE: 'auto'
+GLOFAS_SYSTEM_VERSION: 'version_4_0'
+GLOFAS_HYDROLOGICAL_MODEL: 'lisflood'
+GLOFAS_VARIABLE: 'river_discharge_in_the_last_24_hours'
 ```
 
 ### Secrets: `floodsight-backend-secrets`
+
 ```yaml
-cds-api-url: "https://ewds.climate.copernicus.eu/api"
-cds-api-key: "ff5874bb-e24c-495f-878c-e206f74e0c36"
-database-url: "postgresql+asyncpg://postgres:postgres@..."
+cds-api-url: 'https://ewds.climate.copernicus.eu/api'
+cds-api-key: 'ff5874bb-e24c-495f-878c-e206f74e0c36'
+database-url: 'postgresql+asyncpg://postgres:postgres@...'
 ```
 
 ### Current Request Parameters
+
 ```python
 {
     'system_version': 'version_4_0',
@@ -131,6 +142,7 @@ database-url: "postgresql+asyncpg://postgres:postgres@..."
 ```
 
 **Possible issues**:
+
 - `system_version` and `hydrological_model` might not be needed
 - Variable name might be different
 - Date might need to be older (data availability lag)
@@ -140,6 +152,7 @@ database-url: "postgresql+asyncpg://postgres:postgres@..."
 ## 🧪 Testing Commands
 
 ### Test Real Data Ingestion
+
 ```bash
 curl -X POST http://192.168.178.50:30636/v1/forecasts/ingest \
   -H "Content-Type: application/json" \
@@ -147,16 +160,19 @@ curl -X POST http://192.168.178.50:30636/v1/forecasts/ingest \
 ```
 
 ### Check Backend Logs
+
 ```bash
 kubectl logs -f -l component=backend -n floodsight
 ```
 
 ### Check Environment
+
 ```bash
 kubectl exec -n floodsight deployment/floodsight-backend -- env | grep CDS
 ```
 
 ### Restart Backend
+
 ```bash
 kubectl rollout restart deployment/floodsight-backend -n floodsight
 kubectl rollout restart deployment/floodsight-scheduler -n floodsight
@@ -168,15 +184,16 @@ kubectl rollout restart deployment/floodsight-scheduler -n floodsight
 
 All endpoints are **operational** with synthetic data fallback:
 
-| Endpoint | Status | Notes |
-|----------|--------|-------|
-| Health | ✅ Working | http://192.168.178.50:30636/v1/health |
-| Stations | ✅ Working | 5 European stations |
-| Forecasts | ✅ Working | 520+ synthetic forecasts |
-| Alerts | ✅ Working | Threshold-based alerts |
-| Ingest | ✅ Working | Falls back to fake if real fails |
+| Endpoint  | Status     | Notes                                 |
+| --------- | ---------- | ------------------------------------- |
+| Health    | ✅ Working | http://192.168.178.50:30636/v1/health |
+| Stations  | ✅ Working | 5 European stations                   |
+| Forecasts | ✅ Working | 520+ synthetic forecasts              |
+| Alerts    | ✅ Working | Threshold-based alerts                |
+| Ingest    | ✅ Working | Falls back to fake if real fails      |
 
 **Mode**: `AUTO`
+
 - Tries real GloFAS from EWDS
 - Falls back to realistic synthetic data
 - System remains operational
@@ -188,6 +205,7 @@ All endpoints are **operational** with synthetic data fallback:
 ### When Terms Accepted / Parameters Fixed:
 
 **Success Response**:
+
 ```json
 {
   "status": "success",
@@ -198,12 +216,14 @@ All endpoints are **operational** with synthetic data fallback:
 ```
 
 **What Changes**:
+
 1. `mode` will be `"real"` instead of `"fake"`
 2. Forecasts will be actual ECMWF GloFAS data
 3. Data will update hourly with real forecasts
 4. Discharge values will match real river conditions
 
 **What Stays the Same**:
+
 - API endpoints (no changes)
 - Database structure (compatible)
 - Frontend integration (works with both)
@@ -244,6 +264,7 @@ kubectl rollout restart deployment/floodsight-backend -n floodsight
 **You're 95% there!**
 
 The backend is:
+
 - ✅ Fully deployed
 - ✅ EWDS configured
 - ✅ Authentication working
@@ -278,6 +299,7 @@ curl http://192.168.178.50:30636/v1/forecasts | jq
 **Congratulations in advance!** 🎊
 
 Your FloodSight system will then have:
+
 - Real ECMWF meteorological forecasts
 - Actual GloFAS hydrological modeling
 - 10-day flood predictions for European rivers
@@ -287,4 +309,3 @@ Your FloodSight system will then have:
 ---
 
 **Last Step**: Visit https://ewds.climate.copernicus.eu/ and accept Terms of Use!
-

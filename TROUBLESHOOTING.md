@@ -3,15 +3,19 @@
 ## Issue: Docker Compose Building Wrong Service
 
 ### Symptom
+
 When running `backend/test-local.sh`, you see:
+
 ```
 npm error The `npm ci` command can only install with an existing package-lock.json
 ```
 
 ### Root Cause
+
 The script was running from the wrong directory and picking up the root `docker-compose.yaml` (frontend) instead of `backend/docker-compose.yml`.
 
 ### ✅ Solution (FIXED)
+
 The script has been updated to automatically change to the backend directory. Now you can run it from anywhere:
 
 ```bash
@@ -24,6 +28,7 @@ cd /home/lenovo/scrimba/floodsight
 ```
 
 ### Alternative: Run from Backend Directory
+
 ```bash
 cd /home/lenovo/scrimba/floodsight/backend
 ./test-local.sh
@@ -34,11 +39,13 @@ cd /home/lenovo/scrimba/floodsight/backend
 ## Issue: Permission Denied
 
 ### Symptom
+
 ```
 bash: ./test-local.sh: Permission denied
 ```
 
 ### Solution
+
 ```bash
 chmod +x backend/test-local.sh
 chmod +x backend/test-glofas-integration.sh
@@ -52,11 +59,13 @@ chmod +x deploy/k8s/deploy-backend.sh
 ## Issue: Docker Not Running
 
 ### Symptom
+
 ```
 Cannot connect to the Docker daemon
 ```
 
 ### Solution
+
 ```bash
 # Start Docker
 sudo systemctl start docker
@@ -73,11 +82,13 @@ docker info
 ## Issue: Port Already in Use
 
 ### Symptom
+
 ```
 Error: Bind for 0.0.0.0:8080 failed: port is already allocated
 ```
 
 ### Solution
+
 ```bash
 # Find what's using port 8080
 sudo lsof -i :8080
@@ -94,11 +105,13 @@ sudo kill -9 <PID>
 ## Issue: Database Connection Failed
 
 ### Symptom
+
 ```
 FATAL: password authentication failed
 ```
 
 ### Solution
+
 ```bash
 # Reset the database
 cd backend
@@ -117,11 +130,13 @@ docker compose exec api alembic upgrade head
 ## Issue: Migrations Fail
 
 ### Symptom
+
 ```
 sqlalchemy.exc.ProgrammingError: relation does not exist
 ```
 
 ### Solution
+
 ```bash
 cd backend
 
@@ -144,11 +159,13 @@ docker compose exec api python -m app.services.seed
 ## Issue: Backend Container Keeps Restarting
 
 ### Symptom
+
 ```
 STATUS: Restarting (1) 2 seconds ago
 ```
 
 ### Solution
+
 ```bash
 # Check logs
 docker compose logs api
@@ -166,11 +183,13 @@ docker compose up -d --build
 ## Issue: GloFAS Integration Fails
 
 ### Symptom
+
 ```
 ERROR: CDS API credentials not configured
 ```
 
 ### Solution
+
 ```bash
 # Option 1: Use fake data (default)
 # Just run without CDS credentials, it will use fake data
@@ -193,11 +212,13 @@ docker compose restart api scheduler
 ## Issue: Kubernetes Deployment Fails
 
 ### Symptom
+
 ```
 Error: secrets not found
 ```
 
 ### Solution
+
 ```bash
 cd deploy/k8s
 
@@ -219,11 +240,13 @@ kubectl apply -f base/backend-secrets.yaml -n floodsight
 ## Issue: Cannot Access API Docs
 
 ### Symptom
+
 ```
 curl: (7) Failed to connect to localhost port 8080
 ```
 
 ### Solution
+
 ```bash
 # Check if backend is running
 docker compose ps
@@ -247,11 +270,13 @@ docker compose logs api
 ## Issue: Frontend Cannot Connect to Backend
 
 ### Symptom
+
 Frontend shows "Connection error" or CORS errors
 
 ### Solution
 
 **For Local Development:**
+
 ```bash
 # 1. Ensure backend is running
 curl http://localhost:8080/v1/health
@@ -264,6 +289,7 @@ docker compose restart api
 ```
 
 **For Production:**
+
 ```bash
 # 1. Check vercel.json has API proxy
 cat vercel.json | grep api
@@ -342,10 +368,11 @@ cd backend
 ## Still Having Issues?
 
 1. **Check logs:**
+
    ```bash
    # Docker Compose
    docker compose logs -f api
-   
+
    # Kubernetes
    kubectl logs -l component=backend -n floodsight
    ```
@@ -371,6 +398,7 @@ cd backend
 ## Common Environment Issues
 
 ### macOS
+
 ```bash
 # If Docker Desktop is slow
 # Increase resources: Docker Desktop → Settings → Resources
@@ -382,6 +410,7 @@ sudo kill -9 <PID>
 ```
 
 ### Linux
+
 ```bash
 # If Docker permission denied
 sudo usermod -aG docker $USER
@@ -393,6 +422,7 @@ sudo systemctl start docker
 ```
 
 ### Windows (WSL2)
+
 ```bash
 # Ensure WSL2 is enabled
 wsl --status
@@ -402,6 +432,7 @@ wsl --status
 ```
 
 ### Raspberry Pi
+
 ```bash
 # If out of memory
 # Increase swap size in /etc/dphys-swapfile
@@ -431,4 +462,3 @@ You'll know everything is working when:
 
 **Last Updated:** 2025-11-13  
 **Status:** Living Document (updated as issues are discovered)
-
