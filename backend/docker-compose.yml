@@ -3,7 +3,9 @@ version: '3.9'
 services:
   # PostgreSQL with PostGIS extension
   db:
-    image: postgres:16-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.db
     container_name: floodsight-db
     restart: unless-stopped
     environment:
@@ -38,10 +40,32 @@ services:
       - DEBUG=true
       - LOG_LEVEL=INFO
       - BACKEND_CORS_ORIGINS=["http://localhost:3000","http://localhost:5173","http://192.168.178.50:5173","https://floodsight.vercel.app"]
-      - GLOFAS_INGEST_MODE=auto
-      - CDS_API_URL=https://ads.atmosphere.copernicus.eu/api
-      - CDS_API_EMAIL=user@example.com
+      - GLOFAS_INGEST_MODE=real
+      - CDS_API_URL=https://cds.climate.copernicus.eu/api/v2
       - CDS_API_KEY=ff5874bb-e24c-495f-878c-e206f74e0c36
+      - GLOFAS_SYSTEM_VERSION=version_4_0
+      - GLOFAS_HYDROLOGICAL_MODEL=lisflood
+      - GLOFAS_VARIABLE=river_discharge_in_the_last_24_hours
+      # Email Notifications (SMTP)
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      # SMS Notifications (Twilio)
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
+      - TWILIO_FROM_NUMBER=${TWILIO_FROM_NUMBER:-}
+      # Push Notifications (Firebase)
+      - FCM_SERVER_KEY=${FCM_SERVER_KEY:-}
+      # Push Notifications (OneSignal)
+      - ONESIGNAL_APP_ID=${ONESIGNAL_APP_ID:-}
+      - ONESIGNAL_API_KEY=${ONESIGNAL_API_KEY:-}
+      # Telegram Bot
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      # Discord & Slack Webhooks (optional defaults)
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
     depends_on:
       db:
         condition: service_healthy
@@ -70,10 +94,32 @@ services:
       - ENVIRONMENT=production
       - DEBUG=false
       - LOG_LEVEL=INFO
-      - GLOFAS_INGEST_MODE=auto
-      - CDS_API_URL=https://ads.atmosphere.copernicus.eu/api
-      - CDS_API_EMAIL=user@example.com
+      - GLOFAS_INGEST_MODE=real
+      - CDS_API_URL=https://cds.climate.copernicus.eu/api/v2
       - CDS_API_KEY=ff5874bb-e24c-495f-878c-e206f74e0c36
+      - GLOFAS_SYSTEM_VERSION=version_4_0
+      - GLOFAS_HYDROLOGICAL_MODEL=lisflood
+      - GLOFAS_VARIABLE=river_discharge_in_the_last_24_hours
+      # Email Notifications (SMTP)
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-}
+      # SMS Notifications (Twilio)
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
+      - TWILIO_FROM_NUMBER=${TWILIO_FROM_NUMBER:-}
+      # Push Notifications (Firebase)
+      - FCM_SERVER_KEY=${FCM_SERVER_KEY:-}
+      # Push Notifications (OneSignal)
+      - ONESIGNAL_APP_ID=${ONESIGNAL_APP_ID:-}
+      - ONESIGNAL_API_KEY=${ONESIGNAL_API_KEY:-}
+      # Telegram Bot
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      # Discord & Slack Webhooks
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
     depends_on:
       db:
         condition: service_healthy
