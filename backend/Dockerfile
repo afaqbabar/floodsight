@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for FloodSight Backend API
-FROM python:3.11-slim as builder
+FROM python:3.14-slim as builder
 
 # Set working directory
 WORKDIR /build
@@ -26,7 +26,7 @@ RUN poetry config virtualenvs.create false \
     && poetry install --no-root --no-dev --no-interaction --no-ansi
 
 # Production stage
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 LABEL maintainer="FloodSight Team"
 LABEL description="FloodSight Backend API - Real-time flood monitoring and forecasting"

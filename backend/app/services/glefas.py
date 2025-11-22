@@ -118,9 +118,9 @@ async def ingest_glofas_forecast(db: AsyncSession) -> int:
     """
     logger.info("Starting real GloFAS forecast ingestion...")
     
-    if not settings.CDS_API_KEY or not settings.CDS_API_EMAIL:
+    if not settings.CDS_API_KEY:
         raise GlofasCredentialsError(
-            "CDS_API_KEY and CDS_API_EMAIL must be configured for real GloFAS ingestion."
+            "CDS_API_KEY must be configured for real GloFAS ingestion (EWDS)."
         )
     
     result = await db.execute(select(Station))
@@ -233,29 +233,34 @@ def _download_and_prepare_glofas_forecasts(stations: Iterable[Station]) -> List[
     
     north, south, west, east = _compute_download_bounds(stations_list)
     
+    # EWDS API format (operational GloFAS)
     request = {
-        "system_version": settings.GLOFAS_SYSTEM_VERSION,
-        "product_type": settings.GLOFAS_PRODUCT_TYPE,
-        "variable": settings.GLOFAS_VARIABLE,
-        "format": "netcdf",
-        "date": model_run_dt.strftime("%Y-%m-%d"),
-        "time": model_run_dt.strftime("%H:%M"),
+        "system_version": settings.GLOFAS_SYSTEM_VERSION,  # "operational" for EWDS
+        "hydrological_model": settings.GLOFAS_HYDROLOGICAL_MODEL,  # "lisflood"
+        "product_type": settings.GLOFAS_PRODUCT_TYPE,  # "control_forecast"
+        "variable": settings.GLOFAS_VARIABLE,  # "river_discharge_in_the_last_24_hours"
+        "year": model_run_dt.strftime("%Y"),
+        "month": model_run_dt.strftime("%m"),  # MM format
+        "day": model_run_dt.strftime("%d"),    # DD format (not list)
         "leadtime_hour": [str(lt) for lt in leadtimes],
         "area": [north, west, south, east],
+        "data_format": "netcdf",  # Request NetCDF format (easier to parse)
     }
     
     logger.info("Requesting GloFAS forecast: %s", request)
     
     with TemporaryDirectory() as tmp_dir:
         target = Path(tmp_dir) / "glofas.nc"
+        # EWDS API client
         client = cdsapi.Client(
             url=settings.CDS_API_URL,
-            key=f"{settings.CDS_API_EMAIL}:{settings.CDS_API_KEY}",
+            key=settings.CDS_API_KEY,
             verify=settings.CDS_API_VERIFY,
             timeout=settings.CDS_API_TIMEOUT,
         )
         client.retrieve("cems-glofas-forecast", request, str(target))
         
+        # xarray reads NetCDF files natively
         ds = xr.open_dataset(target)
         try:
             variable_name = _resolve_variable_name(ds)
@@ -328,17 +333,30 @@ def _compute_download_bounds(stations: Iterable[Station]) -> Tuple[float, float,
 
 def _resolve_variable_name(dataset) -> str:
     """Attempt to find the discharge variable within the dataset."""
+    # First try configured variable
+    if settings.GLOFAS_VARIABLE in dataset.data_vars:
+        return settings.GLOFAS_VARIABLE
+    
+    # Try common variable names
     candidates = [
-        settings.GLOFAS_VARIABLE,
+        "dis24",  # GloFAS v4 24-hour discharge
+        "dis06",  # GloFAS v4 6-hour discharge  
         "discharge",
         "river_discharge_in_the_last_6_hours",
         "river_discharge_in_the_last_24_hours",
+        "dis",
     ]
+    
     for name in candidates:
         if name in dataset.data_vars:
+            logger.info(f"Found discharge variable: {name}")
             return name
+    
+    # If still not found, list what's available
+    available_vars = list(dataset.data_vars.keys())
+    logger.error(f"Available variables in dataset: {available_vars}")
     raise KeyError(
-        f"Unable to locate discharge variable in dataset. Tried: {', '.join(candidates)}"
+        f"Unable to locate discharge variable in dataset. Tried: {', '.join([settings.GLOFAS_VARIABLE] + candidates)}. Available: {available_vars}"
     )
 
 
@@ -377,8 +395,13 @@ def _normalize_station_series(series, station_id: int, model_run: datetime) -> L
             df["ts"] = df["time"]
     
     df = df.dropna(subset=["ts", "discharge"])
+    # Ensure ts is timezone-aware
+    if df["ts"].dt.tz is None:
+        df["ts"] = df["ts"].dt.tz_localize("UTC")
+    # Convert model_run to timestamp without passing tz if already timezone-aware
+    model_run_ts = pd.Timestamp(model_run) if model_run.tzinfo else pd.Timestamp(model_run, tz="UTC")
     df["lead_hours"] = (
-        (df["ts"] - pd.Timestamp(model_run, tz="UTC")) / pd.Timedelta(hours=1)
+        (df["ts"] - model_run_ts) / pd.Timedelta(hours=1)
     ).round().astype(int)
     df = df[df["lead_hours"] >= 0]
     df = df.sort_values("ts").drop_duplicates(subset="ts")
