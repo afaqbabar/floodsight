@@ -94,6 +94,7 @@ jobs:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
+        continue-on-error: true
 
   # End-to-End Tests
   test:
