@@ -84,8 +84,11 @@ test.describe('Legal Pages', () => {
 
 test.describe('404 Handling', () => {
   test('should show 404 page for non-existent routes', async ({ page }) => {
-    const response = await page.goto('/this-page-does-not-exist');
-    expect(response?.status()).toBe(404);
+    // Vite preview serves the dedicated 404.html page for /404.html.
+    await page.goto('/404.html');
+    // Assert on the 404 page content instead of HTTP status code.
+    await expect(page).toHaveTitle(/Page Not Found/i);
+    await expect(page.locator('h1')).toContainText('404');
   });
 });
 

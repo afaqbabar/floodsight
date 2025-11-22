@@ -12,7 +12,9 @@ async function runLighthouse() {
     port: chrome.port,
   };
 
-  const url = 'http://localhost:8000';
+  // Use LH_URL if provided (e.g. different port in local dev),
+  // otherwise default to Vite preview port (4173) used in CI.
+  const url = process.env.LH_URL || 'http://localhost:4173';
   console.log(`Running Lighthouse on ${url}...`);
 
   const runnerResult = await lighthouse(url, options);
