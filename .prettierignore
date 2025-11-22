@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+
+# Backend Python virtual environments
+backend/.venv/
+backend/venv/
+backend/**/__pycache__/
+backend/**/*.pyc
+
+# Testing
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Lighthouse
+lighthouse-report/
+*.lighthouse.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+tunnel.log
+
+# Data directories
+data/
+
