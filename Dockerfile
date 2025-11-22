@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for FloodSight
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:25-alpine AS builder
 
 LABEL maintainer="FloodSight Team"
 LABEL description="FloodSight - Real-time flood monitoring and forecasting"
@@ -11,8 +11,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production && \
+# Install dependencies (including devDependencies for build)
+RUN npm ci && \
     npm cache clean --force
 
 # Copy source code

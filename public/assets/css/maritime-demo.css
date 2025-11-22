@@ -1,0 +1,414 @@
+/**
+ * Maritime Demo Page Styles
+ * Full-screen map with layer toggles and maritime data sidebar
+ */
+
+/* Maritime Layout */
+.maritime-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 0;
+  height: calc(100vh - 60px); /* Account for header */
+  overflow: hidden;
+}
+
+/* Maritime Sidebar */
+.maritime-sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  padding: 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.maritime-sidebar__header {
+  margin-bottom: 8px;
+}
+
+.maritime-sidebar__title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--text);
+}
+
+.maritime-sidebar__subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* Summary Cards */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.summary-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.summary-card__value {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--accent);
+}
+
+.summary-card__label {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 4px 0 0 0;
+  font-weight: 500;
+}
+
+/* Section */
+.maritime-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.maritime-section__title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text);
+}
+
+/* Alerts List */
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.alert-item {
+  background: var(--bg);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+}
+
+.alert-item--warning {
+  border-left-color: #f59e0b;
+}
+
+.alert-item--severe {
+  border-left-color: #ef4444;
+}
+
+.alert-item--extreme {
+  border-left-color: #b91c1c;
+}
+
+.alert-item__level {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  color: var(--muted);
+}
+
+.alert-item__message {
+  margin: 0;
+  color: var(--text);
+}
+
+.alert-item__time {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* Ports Table */
+.ports-table {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ports-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ports-table th,
+.ports-table td {
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 13px;
+}
+
+.ports-table th {
+  background: var(--chip);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+
+.ports-table td {
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.ports-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ports-table__port-name {
+  font-weight: 600;
+}
+
+.ports-table__draught {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.ports-table__draught--safe {
+  color: #10b981;
+}
+
+.ports-table__draught--warning {
+  color: #f59e0b;
+}
+
+.ports-table__draught--danger {
+  color: #ef4444;
+}
+
+.ports-table__change {
+  font-size: 12px;
+}
+
+.ports-table__change--positive {
+  color: #10b981;
+}
+
+.ports-table__change--negative {
+  color: #ef4444;
+}
+
+/* Upgrade Button */
+.upgrade-button {
+  background: linear-gradient(135deg, var(--accent) 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.upgrade-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.upgrade-button:active {
+  transform: translateY(0);
+}
+
+.upgrade-button__title {
+  margin: 0 0 4px 0;
+}
+
+.upgrade-button__subtitle {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.9;
+  font-weight: 400;
+}
+
+/* Maritime Map Container */
+.maritime-map {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.maritime-map__container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Layer Toggles */
+.layer-toggles {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  min-width: 220px;
+}
+
+.layer-toggles__title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: var(--text);
+}
+
+.layer-toggles__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.layer-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.layer-toggle:hover {
+  background: var(--chip);
+}
+
+.layer-toggle__checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.layer-toggle__icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.layer-toggle__icon--vessels {
+  background: #ef4444;
+}
+
+.layer-toggle__icon--plumes {
+  background: #f59e0b;
+}
+
+.layer-toggle__icon--grounding {
+  background: #10b981;
+}
+
+.layer-toggle__icon--ports {
+  background: #3b82f6;
+}
+
+.layer-toggle__label {
+  font-size: 14px;
+  color: var(--text);
+  flex: 1;
+}
+
+/* Loading State */
+.maritime-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--muted);
+}
+
+.maritime-loading__spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 32px;
+  color: var(--muted);
+}
+
+.empty-state__icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  opacity: 0.5;
+}
+
+.empty-state__title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--text);
+}
+
+.empty-state__message {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .maritime-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .maritime-sidebar {
+    height: auto;
+    max-height: 40vh;
+  }
+
+  .summary-cards {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .maritime-sidebar {
+    padding: 16px;
+  }
+
+  .summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .layer-toggles {
+    top: 10px;
+    right: 10px;
+    min-width: 180px;
+  }
+}

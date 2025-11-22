@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Maritime Demo – FloodSight</title>
+    <meta
+      name="description"
+      content="FloodSight Maritime Edition - Live vessel tracking, port monitoring, and grounding risk analysis"
+    />
+    <link rel="icon" href="/favicon.ico" />
+
+    <!-- MapLibre GL JS -->
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.css" />
+    <script src="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.js"></script>
+
+    <!-- CSS: Design tokens + main styles + maritime demo styles -->
+    <link rel="stylesheet" href="/assets/css/tokens.css" />
+    <link rel="stylesheet" href="/assets/css/floodsight.css" />
+    <link rel="stylesheet" href="/assets/css/maritime-demo.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#maritime-map">Skip to map</a>
+
+    <!-- Header (will be injected) -->
+    <div id="header-mount"></div>
+
+    <!-- Maritime Layout -->
+    <div class="maritime-layout">
+      <!-- Sidebar (will be injected) -->
+      <div id="sidebar-mount"></div>
+
+      <!-- Map (will be injected) -->
+      <div id="map-mount"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module">
+      import { createSiteHeader, initSiteHeader } from '/components/site/SiteHeader.js';
+      import {
+        createMaritimeSidebar,
+        initMaritimeSidebar,
+      } from '/components/maritime/MaritimeSidebar.js';
+      import { createMaritimeMap, initMaritimeMap } from '/components/maritime/MaritimeMap.js';
+
+      // Get API base URL from config or fallback to current origin + proxy
+      const API_BASE_URL = '/v1'; // Proxied through Nginx
+
+      // Inject header
+      document.getElementById('header-mount').innerHTML = createSiteHeader();
+      initSiteHeader();
+
+      // Inject sidebar and map (empty initially)
+      document.getElementById('sidebar-mount').innerHTML = createMaritimeSidebar();
+      document.getElementById('map-mount').innerHTML = createMaritimeMap();
+
+      // Show loading state
+      const loadingEl = document.getElementById('map-loading');
+      if (loadingEl) loadingEl.style.display = 'block';
+
+      // Fetch maritime demo data
+      console.log('🚀 Fetching maritime demo data from:', `${API_BASE_URL}/maritime/demo-data`);
+
+      fetch(`${API_BASE_URL}/maritime/demo-data?vessel_type=medium`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then((demoData) => {
+          console.log('✅ Demo data received:', demoData);
+
+          // Hide loading state
+          if (loadingEl) loadingEl.style.display = 'none';
+
+          // Initialize components with data
+          initMaritimeSidebar(demoData, true); // true = user has maritime access
+          initMaritimeMap(demoData);
+
+          console.log('✅ Maritime Demo page initialized successfully');
+        })
+        .catch((error) => {
+          console.error('❌ Failed to load maritime data:', error);
+
+          // Hide loading, show error
+          if (loadingEl) {
+            loadingEl.innerHTML = `
+              <div style="text-align: center; padding: 32px; color: #ef4444;">
+                <p style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Failed to Load Data</p>
+                <p style="font-size: 14px; margin-bottom: 16px;">${error.message}</p>
+                <button
+                  onclick="location.reload()"
+                  style="background: var(--accent); color: white; border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; font-size: 14px;"
+                >
+                  Retry
+                </button>
+              </div>
+            `;
+          }
+
+          // Initialize sidebar with empty data
+          const emptyData = {
+            summary: {
+              active_vessels_24h: 0,
+              active_plumes: 0,
+              high_risk_ports: 0,
+              recent_alerts: 0,
+            },
+            alerts: [],
+            ports: [],
+            vessels: { type: 'FeatureCollection', features: [] },
+            plumes: { type: 'FeatureCollection', features: [] },
+            grounding_risk: { type: 'FeatureCollection', features: [] },
+          };
+          initMaritimeSidebar(emptyData, true);
+        });
+    </script>
+  </body>
+</html>

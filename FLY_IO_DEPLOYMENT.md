@@ -3,6 +3,7 @@
 ## Why Fly.io?
 
 Perfect for FloodSight because:
+
 - ✅ **Persistent containers** - Scheduler works!
 - ✅ **No cold starts** - Always-on instance
 - ✅ **Free PostgreSQL** - Included in free tier
@@ -10,6 +11,7 @@ Perfect for FloodSight because:
 - ✅ **Simple deployment** - One command to deploy
 
 Unlike Vercel Functions:
+
 - ✅ Can run background workers (scheduler)
 - ✅ No 10-second timeout limits
 - ✅ Full control over the runtime
@@ -62,6 +64,7 @@ flyctl launch
 ```
 
 This creates:
+
 - ✅ Fly.io app
 - ✅ PostgreSQL database (free tier)
 - ✅ Database connection credentials (auto-set as secrets)
@@ -97,6 +100,7 @@ flyctl deploy
 ```
 
 This will:
+
 1. Build Docker image using `Dockerfile.fly`
 2. Push to Fly.io registry
 3. Deploy to Frankfurt region
@@ -164,6 +168,7 @@ exit
 ```
 
 You should see:
+
 - Main API process (uvicorn)
 - Scheduler process (if enabled)
 
@@ -176,6 +181,7 @@ Update the API URL in your deployed frontend:
 1. **Option A: Update code (recommended)**
 
 Already done! The API config points to:
+
 ```javascript
 https://floodsight-api.fly.dev/v1
 ```
@@ -302,6 +308,7 @@ flyctl regions add lhr  # London
 - ✅ **No credit card required**
 
 FloodSight fits within free tier:
+
 - 1 VM for API + scheduler (256MB)
 - 1 PostgreSQL database (free tier)
 - Bandwidth: Typically <1GB/month for MVP
@@ -311,7 +318,6 @@ FloodSight fits within free tier:
 - **Hobby Plan**: $5/month
   - Production PostgreSQL (1GB)
   - More bandwidth
-  
 - **Scale Plan**: Pay as you go
   - Auto-scaling
   - 24/7 support
@@ -395,9 +401,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      
+
       - name: Deploy to Fly.io
         run: flyctl deploy --remote-only
         working-directory: backend
@@ -454,6 +460,7 @@ flyctl apps destroy              # Delete app (careful!)
    - Force HTTPS redirects enabled
 
 3. **Keep dependencies updated**
+
    ```bash
    pip list --outdated
    pip install -U package-name
@@ -514,8 +521,8 @@ curl https://floodsight-api.fly.dev/v1/health
 ```
 
 Your complete stack:
+
 - **Frontend**: Vercel (floodsight.vercel.app)
 - **Backend API**: Fly.io (floodsight-api.fly.dev)
 - **Database**: Fly Postgres (included)
 - **Scheduler**: Running on Fly.io ✅
-

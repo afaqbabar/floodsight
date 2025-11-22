@@ -154,4 +154,3 @@ if (document.readyState === 'loading') {
 
 // Export configuration for testing
 export { config };
-

@@ -7,12 +7,12 @@
 
 ## 🎯 Production URLs
 
-| Service | URL | Status |
-|---------|-----|--------|
-| **Frontend** | https://floodsight.vercel.app | ✅ Live |
-| **Dashboard** | https://floodsight.vercel.app/dashboard-figma.html | ✅ Live |
-| **API (Public)** | https://verde-silver-front-changed.trycloudflare.com/v1 | ✅ Live |
-| **API (Local)** | http://192.168.178.50:8080/v1 | ✅ Running |
+| Service          | URL                                                     | Status     |
+| ---------------- | ------------------------------------------------------- | ---------- |
+| **Frontend**     | https://floodsight.vercel.app                           | ✅ Live    |
+| **Dashboard**    | https://floodsight.vercel.app/dashboard-figma.html      | ✅ Live    |
+| **API (Public)** | https://verde-silver-front-changed.trycloudflare.com/v1 | ✅ Live    |
+| **API (Local)**  | http://192.168.178.50:8080/v1                           | ✅ Running |
 
 ---
 
@@ -49,6 +49,7 @@ Internet Users
 ## 📊 Current Data
 
 ### Stations
+
 - **Total**: 5 stations
 - **Sources**: GloFAS (Global Flood Awareness System)
 - **Update Frequency**: Hourly via scheduler
@@ -56,12 +57,14 @@ Internet Users
 - **Basins**: Multiple river basins
 
 ### Forecasts
+
 - **Update**: Hourly (via APScheduler)
 - **Lead Time**: Up to 10 days
 - **Parameters**: Discharge (m³/s)
 - **Quality**: Live data from GloFAS
 
 ### Alerts
+
 - **Monitoring**: Active
 - **Thresholds**: Configurable
 - **Types**: High/Medium/Low risk
@@ -71,6 +74,7 @@ Internet Users
 ## 🚀 Deployment Info
 
 ### Frontend (Vercel)
+
 - **Framework**: Vite (static site)
 - **Build Time**: ~2 minutes
 - **Deployment**: Automatic on `git push`
@@ -78,6 +82,7 @@ Internet Users
 - **Region**: Frankfurt (fra1)
 
 ### Backend (Raspberry Pi)
+
 - **Container**: Docker Compose
 - **Database**: PostgreSQL 17
 - **API**: FastAPI + Uvicorn
@@ -85,6 +90,7 @@ Internet Users
 - **Logs**: `docker compose logs -f api`
 
 ### Tunnel (Cloudflare)
+
 - **Type**: Quick Tunnel (temporary)
 - **URL**: https://verde-silver-front-changed.trycloudflare.com
 - **Process PID**: 702456
@@ -95,15 +101,16 @@ Internet Users
 
 ## 💰 Cost Breakdown
 
-| Component | Service | Monthly Cost |
-|-----------|---------|--------------|
-| Frontend | Vercel Free | **$0.00** |
-| Tunnel | Cloudflare Free | **$0.00** |
-| Backend | Raspberry Pi | **~$2.00** (electricity) |
-| Database | PostgreSQL (self-hosted) | **$0.00** |
-| **TOTAL** | | **~$2.00/month** |
+| Component | Service                  | Monthly Cost             |
+| --------- | ------------------------ | ------------------------ |
+| Frontend  | Vercel Free              | **$0.00**                |
+| Tunnel    | Cloudflare Free          | **$0.00**                |
+| Backend   | Raspberry Pi             | **~$2.00** (electricity) |
+| Database  | PostgreSQL (self-hosted) | **$0.00**                |
+| **TOTAL** |                          | **~$2.00/month**         |
 
 ### vs. Cloud Alternatives
+
 - AWS ECS + RDS: ~$30-60/month
 - Azure App Service + DB: ~$40-80/month
 - Vercel + Railway: ~$10-20/month
@@ -116,14 +123,16 @@ Internet Users
 ## 🔒 Security
 
 ### Implemented
+
 ✅ **HTTPS**: Everywhere (Vercel + Cloudflare)  
 ✅ **No Open Ports**: Tunnel inbound only  
 ✅ **CORS**: Configured for Vercel domain  
 ✅ **CSP Headers**: Content Security Policy  
 ✅ **Environment Variables**: Secrets not in code  
-✅ **SQL Injection Protection**: SQLAlchemy ORM  
+✅ **SQL Injection Protection**: SQLAlchemy ORM
 
 ### Future Enhancements
+
 - [ ] JWT Authentication
 - [ ] Rate Limiting (API level)
 - [ ] IP Whitelisting
@@ -134,34 +143,40 @@ Internet Users
 ## 📈 Performance
 
 ### Frontend (Measured)
+
 - **First Contentful Paint**: < 1s
 - **Time to Interactive**: < 2s
 - **Lighthouse Score**: 95+ (Desktop)
 - **Global CDN**: Vercel Edge Network
 
 ### Backend (Measured)
+
 - **Local Response**: ~50ms
 - **Through Tunnel**: ~200ms (global average)
 - **Database Queries**: < 100ms
 - **Concurrent Users**: 50+ (tested)
 
 ### API Endpoints
-| Endpoint | Avg Response Time |
-|----------|-------------------|
-| `/v1/health` | 10ms |
-| `/v1/stations` | 50ms |
-| `/v1/forecasts` | 100ms |
-| `/v1/alerts` | 80ms |
+
+| Endpoint        | Avg Response Time |
+| --------------- | ----------------- |
+| `/v1/health`    | 10ms              |
+| `/v1/stations`  | 50ms              |
+| `/v1/forecasts` | 100ms             |
+| `/v1/alerts`    | 80ms              |
 
 ---
 
 ## ✅ Verification Tests
 
 ### 1. Backend Health
+
 ```bash
 curl https://verde-silver-front-changed.trycloudflare.com/v1/health
 ```
-**Expected**: 
+
+**Expected**:
+
 ```json
 {
   "status": "ok",
@@ -171,15 +186,19 @@ curl https://verde-silver-front-changed.trycloudflare.com/v1/health
 ```
 
 ### 2. Stations Data
+
 ```bash
 curl https://verde-silver-front-changed.trycloudflare.com/v1/stations | jq length
 ```
+
 **Expected**: `5`
 
 ### 3. Frontend Dashboard
+
 **URL**: https://floodsight.vercel.app/dashboard-figma.html
 
 **Expected to See**:
+
 - ✅ Map centered on real station locations (not London)
 - ✅ 5 station markers on the map
 - ✅ Country filter populated with real countries
@@ -188,9 +207,11 @@ curl https://verde-silver-front-changed.trycloudflare.com/v1/stations | jq lengt
 - ✅ Clicking a station shows forecast chart
 
 ### 4. Tunnel Status
+
 ```bash
 ps aux | grep cloudflared
 ```
+
 **Expected**: Process running (PID: 702456)
 
 ---
@@ -198,15 +219,18 @@ ps aux | grep cloudflared
 ## 🛠️ Maintenance
 
 ### Daily Tasks
+
 - [ ] Check tunnel is running: `ps aux | grep cloudflared`
 - [ ] Verify backend health: `curl http://localhost:8080/v1/health`
 
 ### Weekly Tasks
+
 - [ ] Review backend logs: `docker compose logs api | grep ERROR`
 - [ ] Check scheduler runs: `docker compose logs scheduler`
 - [ ] Verify data ingestion: Check station count hasn't changed
 
 ### Monthly Tasks
+
 - [ ] Update dependencies: `cd backend && poetry update`
 - [ ] Check disk space: `df -h`
 - [ ] Database backup: `./scripts/backup-db.sh`
@@ -219,11 +243,13 @@ ps aux | grep cloudflared
 ### Issue: Dashboard shows "API Unavailable"
 
 **Possible Causes**:
+
 1. Tunnel stopped
 2. Backend crashed
 3. Database connection lost
 
 **Solution**:
+
 ```bash
 # 1. Check tunnel
 ps aux | grep cloudflared
@@ -250,16 +276,19 @@ Quick tunnels generate new URLs on restart. If tunnel restarted:
 4. Wait 2 min for Vercel to deploy
 
 **Better Solution**: Set up named tunnel (permanent URL)
+
 - See: `EXPOSE_PI_BACKEND.md` → "Named Tunnel" section
 
 ### Issue: Dashboard Shows Old/Demo Data
 
 **Possible Causes**:
+
 1. Browser cache
 2. Vercel deployment pending
 3. Wrong API URL
 
 **Solution**:
+
 ```bash
 # 1. Hard refresh browser (Ctrl+Shift+R)
 
@@ -273,11 +302,13 @@ curl -s https://floodsight.vercel.app/assets/js/api-service.js | grep trycloudfl
 ### Issue: Slow Performance
 
 **Check**:
+
 1. Pi CPU/memory: `top` or `htop`
 2. Network speed: `speedtest-cli`
 3. Tunnel latency: `curl -w "@-" -o /dev/null -s https://verde-silver-front-changed.trycloudflare.com/v1/health`
 
 **Solutions**:
+
 - Restart Docker containers: `docker compose restart`
 - Optimize database: `docker compose exec db vacuumdb -U floodsight -d floodsight -z`
 - Consider named tunnel for better performance
@@ -311,6 +342,7 @@ Current tunnel is temporary (URL changes on restart).
 See detailed guide: `EXPOSE_PI_BACKEND.md`
 
 **Quick Steps**:
+
 ```bash
 # 1. Login to Cloudflare
 cloudflared tunnel login
@@ -330,6 +362,7 @@ sudo systemctl enable cloudflared
 ```
 
 **Benefits**:
+
 - ✅ Permanent URL (no changes on restart)
 - ✅ Auto-start on boot
 - ✅ Better reliability
@@ -339,21 +372,22 @@ sudo systemctl enable cloudflared
 
 ## 📚 Documentation
 
-| File | Purpose |
-|------|---------|
-| `README.md` | Project overview |
-| `DEPLOYMENT_STRATEGY.md` | Architecture decisions |
-| `EXPOSE_PI_BACKEND.md` | Cloudflare Tunnel setup |
-| `PRODUCTION_STATUS.md` | This file - current status |
-| `QUICK_START_CLOUDFLARE.sh` | Quick tunnel script |
-| `backend/README.md` | Backend development |
-| `FLY_IO_DEPLOYMENT.md` | Fly.io alternative (suspended) |
+| File                        | Purpose                        |
+| --------------------------- | ------------------------------ |
+| `README.md`                 | Project overview               |
+| `DEPLOYMENT_STRATEGY.md`    | Architecture decisions         |
+| `EXPOSE_PI_BACKEND.md`      | Cloudflare Tunnel setup        |
+| `PRODUCTION_STATUS.md`      | This file - current status     |
+| `QUICK_START_CLOUDFLARE.sh` | Quick tunnel script            |
+| `backend/README.md`         | Backend development            |
+| `FLY_IO_DEPLOYMENT.md`      | Fly.io alternative (suspended) |
 
 ---
 
 ## 🎉 Success Metrics
 
 ### Technical
+
 - ✅ Zero downtime deployments
 - ✅ Sub-second page loads
 - ✅ API response < 200ms (global)
@@ -361,6 +395,7 @@ sudo systemctl enable cloudflared
 - ✅ Real-time data updates (hourly)
 
 ### Business
+
 - 💰 **$2/month** total cost
 - 🌍 **Global availability** via CDN
 - 🔒 **Enterprise-grade security** (Cloudflare)
@@ -372,6 +407,7 @@ sudo systemctl enable cloudflared
 ## 🚀 Next Steps
 
 ### Immediate (This Week)
+
 - [x] ✅ Deploy with real data
 - [x] ✅ Set up Cloudflare Tunnel
 - [x] ✅ Verify all endpoints working
@@ -379,6 +415,7 @@ sudo systemctl enable cloudflared
 - [ ] Share with test users
 
 ### Short Term (Next Month)
+
 - [ ] Set up named tunnel (permanent URL)
 - [ ] Add monitoring/alerting (Uptime Kuma)
 - [ ] Configure automated database backups
@@ -386,12 +423,14 @@ sudo systemctl enable cloudflared
 - [ ] Implement user authentication
 
 ### Medium Term (3 Months)
+
 - [ ] Custom domain (e.g., floodsight.com)
 - [ ] Mobile apps (React Native)
 - [ ] WebSocket for real-time updates
 - [ ] Multi-region redundancy
 
 ### Long Term (6+ Months)
+
 - [ ] ML-based predictions
 - [ ] Public API for developers
 - [ ] Integration with emergency services
@@ -427,7 +466,6 @@ sudo systemctl enable cloudflared
 **Real Data**: ✅ Live  
 **Cost**: ~$2/month  
 **Performance**: Excellent  
-**Security**: High  
+**Security**: High
 
 **🎊 Congratulations! Your flood monitoring system is now live!**
-
