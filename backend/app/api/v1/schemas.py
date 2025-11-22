@@ -318,3 +318,141 @@ class NotificationAnalytics(BaseModel):
     failed_count: int
     by_provider: Dict[str, Dict[str, int]]
 
+
+# Vessel Detection schemas (Maritime Extension)
+class VesselDetectionBase(BaseModel):
+    """Base vessel detection schema."""
+    scene_id: str = Field(..., min_length=1, max_length=255)
+    detection_time: datetime
+    intensity_db: float
+    confidence: float = Field(..., ge=0, le=1)
+    vessel_length_m: Optional[float] = Field(None, ge=0)
+    vessel_heading_deg: Optional[float] = Field(None, ge=0, le=360)
+    in_river_mouth: bool = False
+    in_port_zone: bool = False
+    near_flood_plume: bool = False
+    detector_type: str = Field(default="cfar", max_length=50)
+
+
+class VesselDetectionCreate(VesselDetectionBase):
+    """Schema for creating a vessel detection (requires lon/lat)."""
+    lon: float = Field(..., ge=-180, le=180)
+    lat: float = Field(..., ge=-90, le=90)
+
+
+class VesselDetectionResponse(VesselDetectionBase):
+    """Schema for vessel detection response."""
+    id: int
+    lon: float
+    lat: float
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class VesselDetectionGeoJSON(BaseModel):
+    """GeoJSON Feature response for vessel detection."""
+    type: str = "Feature"
+    geometry: Dict[str, Any]
+    properties: Dict[str, Any]
+
+
+# Port Fairway schemas
+class PortFairwayBase(BaseModel):
+    """Base port fairway schema."""
+    name: str = Field(..., min_length=1, max_length=255)
+    port_code: str = Field(..., min_length=1, max_length=50)
+    reference_draught_m: float = Field(..., gt=0)
+    baseline_discharge_m3s: float = Field(..., gt=0)
+    country: Optional[str] = Field(None, max_length=2)
+    river_name: Optional[str] = Field(None, max_length=255)
+    is_active: bool = True
+
+
+class PortFairwayResponse(PortFairwayBase):
+    """Schema for port fairway response."""
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+# Port Safe Draught schemas
+class PortSafeDraughtResponse(BaseModel):
+    """Schema for port safe draught calculation response."""
+    port_name: str
+    port_code: str
+    calculation_time: datetime
+    reference_draught_m: float
+    current_discharge_m3s: float
+    baseline_discharge_m3s: float
+    siltation_depth_m: float
+    safe_draught_m: float
+    draught_change_24h_m: Optional[float] = None
+    risk_level: str  # "normal", "reduced", "critical"
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PortRiskSummary(BaseModel):
+    """Schema for port risk summary (for dashboard widget)."""
+    port_name: str
+    port_code: str
+    safe_draught_m: float
+    risk_level: str
+    draught_change_24h_m: Optional[float] = None
+    status_message: str  # Human-readable status
+    color: str  # Color code for UI: "green", "yellow", "red"
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+# Flood Plume schemas
+class FloodPlumeBase(BaseModel):
+    """Base flood plume schema."""
+    river_name: str = Field(..., min_length=1, max_length=255)
+    river_basin: Optional[str] = Field(None, max_length=255)
+    peak_discharge_m3s: float = Field(..., gt=0)
+    current_discharge_m3s: Optional[float] = Field(None, gt=0)
+    detection_time: datetime
+    turbidity_index: Optional[float] = None
+    area_km2: Optional[float] = Field(None, gt=0)
+    buffer_radius_km: float = Field(..., gt=0)
+    detection_method: str = Field(default="turbidity", max_length=50)
+    is_active: bool = True
+    has_vessel_activity: bool = False
+    vessel_count: int = Field(default=0, ge=0)
+
+
+class FloodPlumeResponse(FloodPlumeBase):
+    """Schema for flood plume response."""
+    id: int
+    source_scene_id: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FloodPlumeGeoJSON(BaseModel):
+    """GeoJSON Feature response for flood plume."""
+    type: str = "Feature"
+    geometry: Dict[str, Any]
+    properties: Dict[str, Any]
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PlumeSummary(BaseModel):
+    """Schema for plume summary (for dashboard widget)."""
+    river_name: str
+    peak_discharge_m3s: float
+    area_km2: Optional[float]
+    vessel_count: int
+    detection_time: datetime
+    is_active: bool
+    alert_level: str  # "none", "warning", "critical"
+    color: str  # Color code for UI: "blue", "orange", "red"
+    
+    model_config = ConfigDict(from_attributes=True)
