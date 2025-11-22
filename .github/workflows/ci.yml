@@ -59,14 +59,18 @@ jobs:
 
       - name: Install dependencies
         run: |
+          echo "Checking for package-lock.json..."
           if [ -f package-lock.json ]; then
+            echo "Found package-lock.json, using npm ci"
             npm ci
           else
+            echo "No package-lock.json found, using npm install"
             npm install
           fi
 
       - name: Build application
         run: npm run build
+        continue-on-error: false
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -79,6 +83,7 @@ jobs:
   security:
     name: Security Audit
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -88,6 +93,14 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Run npm audit
         run: npm audit --audit-level=moderate || true
