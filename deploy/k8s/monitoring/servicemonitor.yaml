@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: floodsight-backend-metrics
+  namespace: floodsight
+  labels:
+    app: floodsight
+    component: backend
+    prometheus: enabled
+spec:
+  type: ClusterIP
+  ports:
+    - name: metrics
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: floodsight
+    component: backend
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: floodsight-backend
+  namespace: monitoring
+  labels:
+    app: floodsight
+    component: backend
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: floodsight
+      component: backend
+      prometheus: enabled
+  namespaceSelector:
+    matchNames:
+      - floodsight
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+
