@@ -1,7 +1,8 @@
 FROM node:20-alpine AS build
 WORKDIR /site
 COPY package*.json ./
-RUN npm ci || npm i
+# Use npm install if package-lock.json doesn't exist, otherwise use npm ci
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 COPY . .
 
 # Build args for metadata injection
