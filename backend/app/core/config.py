@@ -65,37 +65,28 @@ class Settings(BaseSettings):
     # Metrics
     METRICS_ENABLED: bool = True
 
-    # GloFAS / ECMWF Copernicus Data Store
+    # GloFAS / ECMWF Copernicus Data Store (Legacy CDS API)
     GLOFAS_INGEST_MODE: str = "auto"  # Options: auto, real, fake
     CDS_API_URL: str = "https://cds.climate.copernicus.eu/api/v2"
     CDS_API_KEY: str = ""
     CDS_API_EMAIL: str = ""
     CDS_API_VERIFY: bool = True
     CDS_API_TIMEOUT: int = 900  # seconds
-    GLOFAS_SYSTEM_VERSION: str = "version_4_0"
+    GLOFAS_SYSTEM_VERSION: str = "version_4_0"  # Legacy CDS uses "version_4_0"
+    GLOFAS_HYDROLOGICAL_MODEL: str = "lisflood"  # Required by GloFAS
     GLOFAS_PRODUCT_TYPE: str = "control_forecast"
-    GLOFAS_VARIABLE: str = "river_discharge_in_the_last_6_hours"
+    GLOFAS_VARIABLE: str = "river_discharge_in_the_last_24_hours"
     GLOFAS_LEADTIMES: List[int] = [
-        6,
-        12,
-        18,
         24,
-        30,
-        36,
-        42,
         48,
-        54,
-        60,
-        66,
         72,
-        78,
-        84,
-        90,
         96,
-        102,
-        108,
-        114,
         120,
+        144,
+        168,
+        192,
+        216,
+        240,
     ]
     GLOFAS_BUFFER_DEGREES: float = 1.5
     GLOFAS_MAX_RECORDS_PER_STATION: int = 120
