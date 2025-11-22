@@ -119,8 +119,10 @@ floodsight/
 ├── .dockerignore           # Docker build exclusions
 ├── vercel.json             # Vercel config (routes, headers, CSP)
 ├── vite.config.js          # Vite build configuration
-├── Dockerfile              # Multi-stage production container
-├── docker-compose.yaml     # Local Docker development
+├── docker/
+│   ├── Dockerfile          # Multi-stage production container
+│   ├── Dockerfile.nginx    # Nginx-based production container
+│   └── docker-compose.yaml  # Local Docker development
 └── package.json            # Dependencies & scripts
 ```
 
@@ -568,13 +570,13 @@ Build and run the containerized site with nginx:
 
 ```bash
 # Build image
-docker build -f Dockerfile.nginx -t ghcr.io/afaqbabar/floodsight-frontend:dev-local .
+docker build -f docker/Dockerfile.nginx -t ghcr.io/afaqbabar/floodsight-frontend:dev-local .
 
 # Run container
 docker run -p 8080:80 ghcr.io/afaqbabar/floodsight-frontend:dev-local
 
 # Or use docker-compose
-docker-compose up
+docker-compose -f docker/docker-compose.yaml up
 ```
 
 Visit http://localhost:8080

@@ -54,13 +54,13 @@ npm run preview  # Preview build at http://localhost:4173
 
 ```bash
 # Build image
-docker build -f Dockerfile.nginx -t ghcr.io/afaqbabar/floodsight-frontend:dev-local .
+docker build -f docker/Dockerfile.nginx -t ghcr.io/afaqbabar/floodsight-frontend:dev-local .
 
 # Run container
 docker run -p 8080:80 ghcr.io/afaqbabar/floodsight-frontend:dev-local
 
 # Or use docker-compose
-docker-compose up
+docker-compose -f docker/docker-compose.yaml up
 ```
 
 Visit: http://localhost:8080
