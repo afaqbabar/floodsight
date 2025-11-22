@@ -18,7 +18,7 @@ email-validator = "^2.1.0"
 httpx = "^0.26.0"
 pyjwt = {extras = ["crypto"], version = "^2.8.0"}
 python-multipart = "^0.0.9"
-prometheus-client = "^0.19.0"
+prometheus-client = "^0.23.1"
 psutil = "^5.9.6"  # Process and system metrics
 aiohttp = "^3.9.1"
 aiosmtplib = "^3.0.1"
@@ -29,6 +29,9 @@ cdsapi = "^0.7.7"  # New CDS API with Personal Access Tokens
 xarray = "^2024.11.0"
 netCDF4 = "^1.7.3"
 pandas = "^2.2.2"
+scipy = "^1.11.4"  # SAR vessel detection (CFAR)
+shapely = "^2.0.2"  # Geometry operations
+numpy = "^1.26.3"  # Array processing
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"
