@@ -16,10 +16,12 @@ from app.api.v1.schemas import (
     StationResponse,
     TelemetryEvent,
     TelemetryResponse,
+    VesselDetectionResponse,
+    VesselDetectionGeoJSON,
 )
 from app.core.config import settings
 from app.core.logging import get_logger
-from app.db.models import Alert, Forecast, Station
+from app.db.models import Alert, Forecast, Station, VesselDetection
 from app.db.session import get_db
 from app.services.glefas import (
     GlofasCredentialsError,
@@ -28,6 +30,7 @@ from app.services.glefas import (
     ingest_forecasts,
 )
 from app.services.alerts import compute_alerts_from_forecasts, create_alerts_from_forecasts
+from app.services.sentinel1 import ingest_sentinel1_with_vessels
 
 logger = get_logger(__name__)
 
@@ -445,3 +448,503 @@ async def compute_alerts(
             detail=f"Alert computation failed: {str(e)}",
         )
 
+
+# Vessel Detection endpoints (Maritime Extension)
+@router.get("/vessels", response_model=List[VesselDetectionResponse], tags=["Vessels"])
+async def list_vessel_detections(
+    scene_id: str | None = None,
+    min_confidence: float = 0.0,
+    in_river_mouth: bool | None = None,
+    in_port_zone: bool | None = None,
+    near_flood_plume: bool | None = None,
+    skip: int = 0,
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db),
+) -> List[dict]:
+    """
+    List vessel detections from Sentinel-1 SAR processing.
+    
+    - **scene_id**: Filter by Sentinel-1 scene ID (optional)
+    - **min_confidence**: Minimum detection confidence (0-1, default: 0.0)
+    - **in_river_mouth**: Filter vessels in river mouths (optional)
+    - **in_port_zone**: Filter vessels in port zones (optional)
+    - **near_flood_plume**: Filter vessels near flood plumes (optional)
+    - **skip**: Number of records to skip (pagination)
+    - **limit**: Maximum number of records to return
+    
+    Returns vessel detections with lon/lat extracted from PostGIS geometry.
+    """
+    from sqlalchemy import func, cast, String
+    
+    query = select(
+        VesselDetection,
+        func.ST_X(VesselDetection.geom).label('lon'),
+        func.ST_Y(VesselDetection.geom).label('lat')
+    ).order_by(VesselDetection.detection_time.desc())
+    
+    if scene_id:
+        query = query.where(VesselDetection.scene_id == scene_id)
+    
+    if min_confidence > 0:
+        query = query.where(VesselDetection.confidence >= min_confidence)
+    
+    if in_river_mouth is not None:
+        query = query.where(VesselDetection.in_river_mouth == in_river_mouth)
+    
+    if in_port_zone is not None:
+        query = query.where(VesselDetection.in_port_zone == in_port_zone)
+    
+    if near_flood_plume is not None:
+        query = query.where(VesselDetection.near_flood_plume == near_flood_plume)
+    
+    query = query.offset(skip).limit(limit)
+    result = await db.execute(query)
+    rows = result.all()
+    
+    # Convert to response format
+    detections = []
+    for vessel, lon, lat in rows:
+        detection_dict = {
+            "id": vessel.id,
+            "scene_id": vessel.scene_id,
+            "detection_time": vessel.detection_time,
+            "intensity_db": vessel.intensity_db,
+            "confidence": vessel.confidence,
+            "vessel_length_m": vessel.vessel_length_m,
+            "vessel_heading_deg": vessel.vessel_heading_deg,
+            "in_river_mouth": vessel.in_river_mouth,
+            "in_port_zone": vessel.in_port_zone,
+            "near_flood_plume": vessel.near_flood_plume,
+            "detector_type": vessel.detector_type,
+            "lon": lon,
+            "lat": lat,
+            "created_at": vessel.created_at,
+        }
+        detections.append(detection_dict)
+    
+    return detections
+
+
+@router.get("/vessels/geojson", response_model=dict, tags=["Vessels"])
+async def list_vessel_detections_geojson(
+    scene_id: str | None = None,
+    min_confidence: float = 0.0,
+    limit: int = 1000,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    List vessel detections as GeoJSON FeatureCollection.
+    
+    Optimized for map rendering in frontend dashboards.
+    
+    - **scene_id**: Filter by Sentinel-1 scene ID (optional)
+    - **min_confidence**: Minimum detection confidence (0-1, default: 0.0)
+    - **limit**: Maximum number of features to return (default: 1000)
+    
+    Returns GeoJSON FeatureCollection compatible with Mapbox/Leaflet.
+    """
+    from sqlalchemy import func
+    
+    query = select(
+        VesselDetection,
+        func.ST_X(VesselDetection.geom).label('lon'),
+        func.ST_Y(VesselDetection.geom).label('lat')
+    ).order_by(VesselDetection.detection_time.desc())
+    
+    if scene_id:
+        query = query.where(VesselDetection.scene_id == scene_id)
+    
+    if min_confidence > 0:
+        query = query.where(VesselDetection.confidence >= min_confidence)
+    
+    query = query.limit(limit)
+    result = await db.execute(query)
+    rows = result.all()
+    
+    # Build GeoJSON FeatureCollection
+    features = []
+    for vessel, lon, lat in rows:
+        feature = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [lon, lat]
+            },
+            "properties": {
+                "id": vessel.id,
+                "scene_id": vessel.scene_id,
+                "detection_time": vessel.detection_time.isoformat(),
+                "intensity_db": vessel.intensity_db,
+                "confidence": vessel.confidence,
+                "vessel_length_m": vessel.vessel_length_m,
+                "vessel_heading_deg": vessel.vessel_heading_deg,
+                "in_river_mouth": vessel.in_river_mouth,
+                "in_port_zone": vessel.in_port_zone,
+                "near_flood_plume": vessel.near_flood_plume,
+                "detector_type": vessel.detector_type,
+            }
+        }
+        features.append(feature)
+    
+    return {
+        "type": "FeatureCollection",
+        "features": features,
+        "metadata": {
+            "count": len(features),
+            "scene_id": scene_id,
+            "min_confidence": min_confidence,
+        }
+    }
+
+
+@router.post(
+    "/vessels/ingest",
+    status_code=status.HTTP_201_CREATED,
+    tags=["Vessels"],
+)
+async def ingest_vessels_api(
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Trigger Sentinel-1 vessel detection ingestion.
+    
+    This endpoint:
+    - Processes latest Sentinel-1 scene(s)
+    - Runs CFAR vessel detection on speckle-filtered SAR data
+    - Stores vessel detections as PostGIS points
+    - Returns count of vessels detected
+    
+    In production, this runs automatically via scheduled Prefect flows.
+    Use this endpoint for manual testing or on-demand processing.
+    """
+    logger.info("Manual Sentinel-1 vessel detection triggered")
+    
+    try:
+        vessel_count = await ingest_sentinel1_with_vessels(db)
+        
+        return {
+            "status": "success",
+            "message": f"Detected {vessel_count} vessels",
+            "vessels_detected": vessel_count,
+        }
+    except Exception as e:
+        logger.error(f"Sentinel-1 vessel detection failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Sentinel-1 vessel detection failed: {str(e)}",
+        )
+
+
+
+# ==================== Maritime: Port Siltation & Safe Draught ====================
+
+from app.services.port_siltation import calculate_port_safe_draught, calculate_all_ports
+from app.api.v1.schemas import PortSafeDraughtResponse, PortRiskSummary, PortFairwayResponse
+from app.db.models import PortFairway, PortSafeDraughtLog
+
+
+@router.get("/maritime/port-risk", response_model=PortSafeDraughtResponse, tags=["Maritime"])
+async def get_port_risk(
+    port: str = "Port of Duisburg",
+    db: AsyncSession = Depends(get_db),
+) -> PortSafeDraughtResponse:
+    """
+    Get current safe draught and risk assessment for a port.
+    
+    **Example:** `/v1/maritime/port-risk?port=Port of Duisburg`
+    
+    Returns:
+        Current safe draught, siltation depth, and risk level
+    """
+    logger.info(f"Port risk request: {port}")
+    
+    calculation = await calculate_port_safe_draught(db, port)
+    
+    if not calculation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Port not found or no discharge data available: {port}"
+        )
+    
+    return PortSafeDraughtResponse(**calculation)
+
+
+@router.get("/maritime/port-risk/summary", response_model=List[PortRiskSummary], tags=["Maritime"])
+async def get_all_ports_risk_summary(
+    db: AsyncSession = Depends(get_db),
+) -> List[PortRiskSummary]:
+    """
+    Get risk summary for all active ports (for dashboard widget).
+    
+    Returns:
+        List of port risk summaries with color-coded status
+    """
+    logger.info("Fetching risk summary for all ports")
+    
+    calculations = await calculate_all_ports(db)
+    
+    summaries = []
+    for calc in calculations:
+        # Determine color based on risk level
+        color_map = {
+            "normal": "green",
+            "reduced": "yellow",
+            "critical": "red"
+        }
+        
+        # Generate status message
+        status_messages = {
+            "normal": f"Safe draught: {calc['safe_draught_m']:.1f}m (Normal)",
+            "reduced": f"⚠️ Reduced draught: {calc['safe_draught_m']:.1f}m",
+            "critical": f"🚨 Critical: {calc['safe_draught_m']:.1f}m - Navigation restricted"
+        }
+        
+        summary = PortRiskSummary(
+            port_name=calc["port_name"],
+            port_code=calc["port_code"],
+            safe_draught_m=calc["safe_draught_m"],
+            risk_level=calc["risk_level"],
+            draught_change_24h_m=calc.get("draught_change_24h_m"),
+            status_message=status_messages.get(calc["risk_level"], "Unknown status"),
+            color=color_map.get(calc["risk_level"], "gray")
+        )
+        
+        summaries.append(summary)
+    
+    logger.info(f"Returning risk summary for {len(summaries)} ports")
+    
+    return summaries
+
+
+@router.get("/maritime/ports", response_model=List[PortFairwayResponse], tags=["Maritime"])
+async def list_ports(
+    db: AsyncSession = Depends(get_db),
+    active_only: bool = True,
+) -> List[PortFairwayResponse]:
+    """
+    List all port fairways.
+    
+    Args:
+        active_only: Only return active ports (default: True)
+    
+    Returns:
+        List of port fairways
+    """
+    query = select(PortFairway)
+    
+    if active_only:
+        query = query.where(PortFairway.is_active == True)
+    
+    result = await db.execute(query)
+    ports = result.scalars().all()
+    
+    logger.info(f"Returning {len(ports)} ports")
+    
+    return [PortFairwayResponse.model_validate(port) for port in ports]
+
+
+@router.post("/maritime/calculate-all-ports", status_code=status.HTTP_200_OK, tags=["Maritime"])
+async def trigger_port_calculations(
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Manually trigger safe draught calculations for all ports.
+    
+    Returns:
+        Summary of calculations performed
+    """
+    logger.info("Manual trigger: calculating safe draught for all ports")
+    
+    try:
+        calculations = await calculate_all_ports(db)
+        
+        return {
+            "status": "success",
+            "message": f"Calculated safe draught for {len(calculations)} ports",
+            "ports_calculated": len(calculations),
+            "calculations": calculations
+        }
+    except Exception as e:
+        logger.error(f"Failed to calculate port safe draughts: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to calculate port safe draughts: {str(e)}"
+        )
+
+
+# ==================== Maritime: Flood Plumes & Nutrient Monitoring ====================
+
+from app.services.plume_detection import detect_all_river_plumes, get_recent_plumes
+from app.api.v1.schemas import FloodPlumeResponse, FloodPlumeGeoJSON, PlumeSummary
+from app.db.models import FloodPlume
+from geoalchemy2.shape import to_shape
+
+
+@router.get("/maritime/plumes", response_model=List[FloodPlumeResponse], tags=["Maritime"])
+async def list_flood_plumes(
+    river: Optional[str] = None,
+    days: int = 7,
+    active_only: bool = True,
+    db: AsyncSession = Depends(get_db),
+) -> List[FloodPlumeResponse]:
+    """
+    List flood plumes for nutrient/sediment monitoring.
+    
+    **Example:** `/v1/maritime/plumes?river=elbe&days=7`
+    
+    Args:
+        river: Filter by river name (e.g., "elbe", "rhine", "danube")
+        days: Number of days to look back (default: 7)
+        active_only: Only return currently active plumes (default: true)
+    
+    Returns:
+        List of flood plumes with vessel activity
+    """
+    logger.info(f"Plume list request: river={river}, days={days}, active_only={active_only}")
+    
+    plumes = await get_recent_plumes(db, river, days, active_only)
+    
+    return [FloodPlumeResponse.model_validate(plume) for plume in plumes]
+
+
+@router.get("/maritime/plumes/geojson", response_model=dict, tags=["Maritime"])
+async def list_flood_plumes_geojson(
+    river: Optional[str] = None,
+    days: int = 7,
+    active_only: bool = True,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Get flood plumes as GeoJSON FeatureCollection for map visualization.
+    
+    Args:
+        river: Filter by river name
+        days: Number of days to look back
+        active_only: Only return active plumes
+    
+    Returns:
+        GeoJSON FeatureCollection with plume polygons
+    """
+    logger.info(f"Plume GeoJSON request: river={river}, days={days}")
+    
+    plumes = await get_recent_plumes(db, river, days, active_only)
+    
+    features = []
+    for plume in plumes:
+        geom = to_shape(plume.geom)
+        
+        feature = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [list(geom.exterior.coords)]
+            },
+            "properties": {
+                "id": plume.id,
+                "river_name": plume.river_name,
+                "peak_discharge_m3s": plume.peak_discharge_m3s,
+                "area_km2": plume.area_km2,
+                "vessel_count": plume.vessel_count,
+                "has_vessel_activity": plume.has_vessel_activity,
+                "detection_time": plume.detection_time.isoformat(),
+                "is_active": plume.is_active,
+                "detection_method": plume.detection_method,
+            }
+        }
+        
+        features.append(feature)
+    
+    geojson = {
+        "type": "FeatureCollection",
+        "features": features
+    }
+    
+    logger.info(f"Returning {len(features)} plume features as GeoJSON")
+    
+    return geojson
+
+
+@router.get("/maritime/plumes/summary", response_model=List[PlumeSummary], tags=["Maritime"])
+async def get_plumes_summary(
+    db: AsyncSession = Depends(get_db),
+    days: int = 7,
+) -> List[PlumeSummary]:
+    """
+    Get plume summary for dashboard widget (color-coded alerts).
+    
+    Args:
+        days: Number of days to look back
+    
+    Returns:
+        List of plume summaries with alert levels
+    """
+    logger.info(f"Plume summary request: days={days}")
+    
+    plumes = await get_recent_plumes(db, river_name=None, days=days, active_only=True)
+    
+    summaries = []
+    for plume in plumes:
+        # Determine alert level based on vessel count
+        if plume.vessel_count >= 10:
+            alert_level = "critical"
+            color = "red"
+        elif plume.vessel_count >= 5:
+            alert_level = "warning"
+            color = "orange"
+        else:
+            alert_level = "none"
+            color = "blue"
+        
+        summary = PlumeSummary(
+            river_name=plume.river_name,
+            peak_discharge_m3s=plume.peak_discharge_m3s,
+            area_km2=plume.area_km2,
+            vessel_count=plume.vessel_count,
+            detection_time=plume.detection_time,
+            is_active=plume.is_active,
+            alert_level=alert_level,
+            color=color
+        )
+        
+        summaries.append(summary)
+    
+    logger.info(f"Returning summary for {len(summaries)} plumes")
+    
+    return summaries
+
+
+@router.post("/maritime/detect-plumes", status_code=status.HTTP_200_OK, tags=["Maritime"])
+async def trigger_plume_detection(
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Manually trigger plume detection for all rivers.
+    
+    Returns:
+        Summary of plumes detected
+    """
+    logger.info("Manual trigger: detecting flood plumes for all rivers")
+    
+    try:
+        plumes = await detect_all_river_plumes(db)
+        
+        return {
+            "status": "success",
+            "message": f"Detected {len(plumes)} flood plumes",
+            "plumes_detected": len(plumes),
+            "plumes": [
+                {
+                    "river": p.river_name,
+                    "discharge": p.peak_discharge_m3s,
+                    "area_km2": p.area_km2,
+                    "vessels": p.vessel_count
+                }
+                for p in plumes
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Failed to detect plumes: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to detect plumes: {str(e)}"
+        )
