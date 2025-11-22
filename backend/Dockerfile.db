@@ -1,0 +1,9 @@
+# Use pre-built PostGIS image with ARM64 support
+# nickblah/postgis provides multi-arch images (amd64 + arm64)
+FROM nickblah/postgis:16-postgis-3.4
+
+# Copy initialization script
+COPY init-postgis.sql /docker-entrypoint-initdb.d/
+
+EXPOSE 5432
+
