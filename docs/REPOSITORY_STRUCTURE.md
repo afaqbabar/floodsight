@@ -165,3 +165,5 @@ docker-compose -f docker/docker-compose.yaml up
 3. **Document structure** - Update this file when adding new directories
 4. **Use .gitignore** - Exclude build artifacts and dependencies
 
+
+
