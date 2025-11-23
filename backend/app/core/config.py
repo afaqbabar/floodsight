@@ -45,12 +45,12 @@ class Settings(BaseSettings):
         return v
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/floodsight"
+    DATABASE_URL: str = "postgresql+asyncpg://user:password@localhost:5432/floodsight"
     DATABASE_POOL_SIZE: int = 20
     DATABASE_MAX_OVERFLOW: int = 0
 
     # Security
-    SECRET_KEY: str = "change-this-in-production"
+    SECRET_KEY: str = "CHANGE_THIS_TO_A_SECURE_RANDOM_STRING_IN_PRODUCTION"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 

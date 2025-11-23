@@ -14,9 +14,14 @@ backend/**/.pytest_cache/
 # Data directories (large files)
 data/
 
-# Environment
+# Environment Variables (NEVER COMMIT THESE!)
 .env
-.env.local
+.env.*
+!.env.example
+*.env
+backend/.env
+backend/.env.*
+!backend/.env.example
 
 # Testing
 test-results/
@@ -44,3 +49,29 @@ build/
 # Logs
 tunnel.log
 *.log
+
+# Secrets & Credentials (NEVER COMMIT THESE!)
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+*secret*.yaml
+*secret*.json
+*secret*.txt
+*credential*.yaml
+*credential*.json
+*credential*.txt
+.cloudflared/*.json
+.cloudflared/cert.pem
+
+# Kubernetes Secrets
+*-secret.yaml
+*-secrets.yaml
+
+# Allow security-related scripts and docs
+!scripts/*secret*.sh
+!*SECURITY*.md
+!docs/*secret*.md
