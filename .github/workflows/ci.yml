@@ -30,7 +30,12 @@ jobs:
         run: |
           rm -rf node_modules package-lock.json
           npm install
-          npm install --force @rollup/rollup-linux-x64-gnu || true
+          echo "🔍 Checking for Rollup binary..."
+          if [ ! -f "node_modules/@rollup/rollup-linux-x64-gnu/rollup.linux-x64-gnu.node" ]; then
+            echo "⚠️ Rollup x64 binary not found, installing explicitly..."
+            npm install --save-optional @rollup/rollup-linux-x64-gnu
+          fi
+          ls -la node_modules/@rollup/rollup-linux-x64-gnu/ || echo "❌ Rollup binary still missing!"
 
       - name: Run ESLint
         run: npm run lint
@@ -62,7 +67,12 @@ jobs:
         run: |
           rm -rf node_modules package-lock.json
           npm install
-          npm install --force @rollup/rollup-linux-x64-gnu || true
+          echo "🔍 Checking for Rollup binary..."
+          if [ ! -f "node_modules/@rollup/rollup-linux-x64-gnu/rollup.linux-x64-gnu.node" ]; then
+            echo "⚠️ Rollup x64 binary not found, installing explicitly..."
+            npm install --save-optional @rollup/rollup-linux-x64-gnu
+          fi
+          ls -la node_modules/@rollup/rollup-linux-x64-gnu/ || echo "❌ Rollup binary still missing!"
 
       - name: Build application
         run: npm run build
@@ -93,7 +103,12 @@ jobs:
         run: |
           rm -rf node_modules package-lock.json
           npm install
-          npm install --force @rollup/rollup-linux-x64-gnu || true
+          echo "🔍 Checking for Rollup binary..."
+          if [ ! -f "node_modules/@rollup/rollup-linux-x64-gnu/rollup.linux-x64-gnu.node" ]; then
+            echo "⚠️ Rollup x64 binary not found, installing explicitly..."
+            npm install --save-optional @rollup/rollup-linux-x64-gnu
+          fi
+          ls -la node_modules/@rollup/rollup-linux-x64-gnu/ || echo "❌ Rollup binary still missing!"
 
       - name: Run npm audit
         run: npm audit --audit-level=moderate || true
@@ -125,7 +140,12 @@ jobs:
         run: |
           rm -rf node_modules package-lock.json
           npm install
-          npm install --force @rollup/rollup-linux-x64-gnu || true
+          echo "🔍 Checking for Rollup binary..."
+          if [ ! -f "node_modules/@rollup/rollup-linux-x64-gnu/rollup.linux-x64-gnu.node" ]; then
+            echo "⚠️ Rollup x64 binary not found, installing explicitly..."
+            npm install --save-optional @rollup/rollup-linux-x64-gnu
+          fi
+          ls -la node_modules/@rollup/rollup-linux-x64-gnu/ || echo "❌ Rollup binary still missing!"
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -160,7 +180,12 @@ jobs:
         run: |
           rm -rf node_modules package-lock.json
           npm install
-          npm install --force @rollup/rollup-linux-x64-gnu || true
+          echo "🔍 Checking for Rollup binary..."
+          if [ ! -f "node_modules/@rollup/rollup-linux-x64-gnu/rollup.linux-x64-gnu.node" ]; then
+            echo "⚠️ Rollup x64 binary not found, installing explicitly..."
+            npm install --save-optional @rollup/rollup-linux-x64-gnu
+          fi
+          ls -la node_modules/@rollup/rollup-linux-x64-gnu/ || echo "❌ Rollup binary still missing!"
 
       - name: Build and serve
         run: |
@@ -194,12 +219,27 @@ jobs:
         run: |
           rm -rf node_modules package-lock.json
           npm install
-          npm install --force @rollup/rollup-linux-x64-gnu || true
+          echo "🔍 Checking for Rollup binary..."
+          if [ ! -f "node_modules/@rollup/rollup-linux-x64-gnu/rollup.linux-x64-gnu.node" ]; then
+            echo "⚠️ Rollup x64 binary not found, installing explicitly..."
+            npm install --save-optional @rollup/rollup-linux-x64-gnu
+          fi
+          ls -la node_modules/@rollup/rollup-linux-x64-gnu/ || echo "❌ Rollup binary still missing!"
 
       - name: Build static site
         run: |
+          echo "🏗️ Building static site..."
           npm run build
-          ls -la dist/ || echo "⚠️ dist folder not created!"
+          echo "📦 Build completed. Checking dist folder..."
+          if [ -d "dist" ]; then
+            echo "✅ dist folder exists"
+            ls -lah dist/ | head -20
+            echo "📊 Total files in dist:"
+            find dist -type f | wc -l
+          else
+            echo "❌ ERROR: dist folder not created!"
+            exit 1
+          fi
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -241,7 +281,7 @@ jobs:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
     needs: [build]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.VERCEL_TOKEN != ''
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     continue-on-error: true
     environment:
       name: production
@@ -251,6 +291,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to Vercel
+        if: ${{ secrets.VERCEL_TOKEN != '' }}
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}

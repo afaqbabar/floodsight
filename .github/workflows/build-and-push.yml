@@ -23,12 +23,27 @@ jobs:
         run: |
           rm -rf node_modules package-lock.json
           npm install
-          npm install --force @rollup/rollup-linux-x64-gnu || true
+          echo "🔍 Checking for Rollup binary..."
+          if [ ! -f "node_modules/@rollup/rollup-linux-x64-gnu/rollup.linux-x64-gnu.node" ]; then
+            echo "⚠️ Rollup x64 binary not found, installing explicitly..."
+            npm install --save-optional @rollup/rollup-linux-x64-gnu
+          fi
+          ls -la node_modules/@rollup/rollup-linux-x64-gnu/ || echo "❌ Rollup binary still missing!"
 
       - name: Build static site
         run: |
+          echo "🏗️ Building static site..."
           npm run build
-          ls -la dist/ || echo "⚠️ dist folder not created!"
+          echo "📦 Build completed. Checking dist folder..."
+          if [ -d "dist" ]; then
+            echo "✅ dist folder exists"
+            ls -lah dist/ | head -20
+            echo "📊 Total files in dist:"
+            find dist -type f | wc -l
+          else
+            echo "❌ ERROR: dist folder not created!"
+            exit 1
+          fi
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
