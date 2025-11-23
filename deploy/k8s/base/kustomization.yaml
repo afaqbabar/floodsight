@@ -30,7 +30,7 @@ resources:
 
 # Image configuration
 images:
-- name: ghcr.io/yourusername/floodsight
+- name: ghcr.io/afaqbabar/floodsight-frontend
   newTag: latest
 
 # ConfigMap generator (optional)

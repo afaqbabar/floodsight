@@ -28,6 +28,8 @@ spec:
         prometheus.io/path: "/metrics"
     spec:
       serviceAccountName: floodsight
+      imagePullSecrets:
+      - name: ghcr-creds
       securityContext:
         runAsNonRoot: true
         runAsUser: 1001
