@@ -6,7 +6,7 @@
   "scripts": {
     "prebuild": "node scripts/build-meta.js",
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/ensure-rollup-binary.js && vite build",
     "preview": "vite preview",
     "tokens:apply": "node scripts/apply-tokens.js",
     "update-design": "./scripts/update-design.sh",
