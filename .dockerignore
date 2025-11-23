@@ -6,7 +6,7 @@ yarn-error.log
 yarn.lock
 
 # Build output
-dist
+# dist - REMOVED: We now build outside Docker and COPY dist/ into the image
 .cache
 
 # Development files
