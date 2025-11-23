@@ -31,8 +31,19 @@ jobs:
           ls -la node_modules/@rollup/rollup-linux-x64-gnu/ || echo "❌ Rollup binary still missing!"
 
       - name: Build static site
+        env:
+          VITE_API_BASE_URL: https://api.floodsight.com
+          VITE_MAP_PROVIDER: openstreetmap
+          VITE_MAP_DEFAULT_LAT: "51.5074"
+          VITE_MAP_DEFAULT_LNG: "-0.1278"
+          VITE_MAP_DEFAULT_ZOOM: "11"
+          VITE_ENABLE_ALERTS: "true"
+          VITE_ENABLE_FORECASTING: "true"
+          VITE_ENABLE_HISTORICAL_DATA: "true"
+          VITE_FLOOD_DATA_API: https://environment.data.gov.uk/flood-monitoring
         run: |
-          echo "🏗️ Building static site..."
+          echo "🏗️ Building static site with production API URL..."
+          echo "VITE_API_BASE_URL=$VITE_API_BASE_URL"
           npm run build || {
             echo "❌ Build failed! Checking for Rollup error..."
             npm run build 2>&1 | grep -i rollup || true
