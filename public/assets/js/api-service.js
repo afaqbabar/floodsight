@@ -8,11 +8,11 @@
 const API_CONFIG = {
   // Use environment variable if available, otherwise detect based on hostname
   BASE_URL: (() => {
-    // Priority 1: Use build-time environment variable if set
-    // @ts-ignore - VITE_API_BASE_URL is injected at build time
-    if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) {
-      // @ts-ignore
-      return import.meta.env.VITE_API_BASE_URL;
+    // Priority 1: Use build-time injected API URL (replaced by Vite at build time)
+    // __API_BASE_URL__ is replaced with actual URL during build via vite.config.js define
+    if (typeof __API_BASE_URL__ !== 'undefined' && __API_BASE_URL__ !== 'https://api.floodsight.com/v1') {
+      console.log('🌐 Using build-time API URL:', __API_BASE_URL__);
+      return __API_BASE_URL__;
     }
 
     // Priority 2: Fallback to hostname-based detection for local development
@@ -24,15 +24,18 @@ const API_CONFIG = {
       hostname.startsWith('10.') ||
       hostname.startsWith('172.')
     ) {
+      console.log('🌐 Using local network API');
       return 'http://192.168.178.50:30636/v1';
     }
 
     // If accessing via localhost, use Raspberry Pi backend API
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      console.log('🌐 Using localhost API');
       return 'http://192.168.178.50:30636/v1';
     }
 
-    // Priority 3: Default production API (should not reach here if env var is set)
+    // Priority 3: Default production API (fallback if nothing else works)
+    console.warn('⚠️ Using fallback API URL - this may not work!');
     return 'https://api.floodsight.com/v1';
   })(),
 

@@ -4,6 +4,9 @@ export default {
   root: 'public', // HTML files now in public/ directory
   base: './', // keep relative paths for nginx or any hosting
   publicDir: false, // disable default public handling since we're using it as root
+  define: {
+    '__API_BASE_URL__': JSON.stringify(process.env.VITE_API_BASE_URL || 'https://api.floodsight.com/v1')
+  },
   build: {
     outDir: '../dist', // output relative to public/ (back to repo root then dist)
     emptyOutDir: true,
