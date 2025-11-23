@@ -33,7 +33,11 @@ jobs:
       - name: Build static site
         run: |
           echo "🏗️ Building static site..."
-          npm run build
+          npm run build || {
+            echo "❌ Build failed! Checking for Rollup error..."
+            npm run build 2>&1 | grep -i rollup || true
+            exit 1
+          }
           echo "📦 Build completed. Checking dist folder..."
           if [ -d "dist" ]; then
             echo "✅ dist folder exists"
@@ -42,6 +46,8 @@ jobs:
             find dist -type f | wc -l
           else
             echo "❌ ERROR: dist folder not created!"
+            echo "📁 Current directory contents:"
+            ls -la
             exit 1
           fi
 
@@ -51,6 +57,18 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify Docker build context
+        run: |
+          echo "🔍 Verifying Docker build context..."
+          echo "Contents of .dockerignore:"
+          cat .dockerignore | grep -A2 -B2 "dist" || echo "No dist entry in .dockerignore"
+          echo ""
+          echo "Checking if dist/ exists in current directory:"
+          ls -la dist/ || echo "dist/ not found!"
+          echo ""
+          echo "Files that will be sent to Docker:"
+          tar -czf - . --exclude='.git' 2>/dev/null | tar -tz | grep "^dist/" | head -10 || echo "No dist files in context"
 
       - name: Setup Buildx
         uses: docker/setup-buildx-action@v3
