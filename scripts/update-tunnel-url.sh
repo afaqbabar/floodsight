@@ -14,12 +14,12 @@ fi
 
 echo "🔍 Found tunnel URL: $TUNNEL_URL"
 
-# Update CI workflow
-sed -i "s|https://[a-z0-9-]*\.trycloudflare\.com/v1|${TUNNEL_URL}/v1|g" .github/workflows/ci.yml
+# Update CI workflow (without /v1 suffix - api-service.js adds it)
+sed -i "s|https://[a-z0-9-]*\.trycloudflare\.com|${TUNNEL_URL}|g" .github/workflows/ci.yml
 echo "✅ Updated .github/workflows/ci.yml"
 
-# Update build-and-push workflow
-sed -i "s|https://[a-z0-9-]*\.trycloudflare\.com/v1|${TUNNEL_URL}/v1|g" .github/workflows/build-and-push.yml
+# Update build-and-push workflow (without /v1 suffix - api-service.js adds it)
+sed -i "s|https://[a-z0-9-]*\.trycloudflare\.com|${TUNNEL_URL}|g" .github/workflows/build-and-push.yml
 echo "✅ Updated .github/workflows/build-and-push.yml"
 
 # Update backend CORS config

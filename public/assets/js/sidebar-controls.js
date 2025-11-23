@@ -105,7 +105,7 @@ class SidebarControls {
    */
   async populateFilters() {
     try {
-      const response = await fetch(`${BASE_URL}/v1/stations`);
+      const response = await fetch(`${BASE_URL}/stations`);
       const stations = await response.json();
       this.stations = stations;
 
