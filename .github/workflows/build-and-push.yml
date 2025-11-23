@@ -23,9 +23,12 @@ jobs:
         run: |
           rm -rf node_modules package-lock.json
           npm install
+          npm install --force @rollup/rollup-linux-x64-gnu || true
 
       - name: Build static site
-        run: npm run build
+        run: |
+          npm run build
+          ls -la dist/ || echo "⚠️ dist folder not created!"
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
