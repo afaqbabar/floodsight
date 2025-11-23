@@ -76,7 +76,7 @@ jobs:
 
       - name: Build application
         env:
-          VITE_API_BASE_URL: https://shoe-mere-livestock-mild.trycloudflare.com/v1
+          VITE_API_BASE_URL: https://expired-merry-sure-circus.trycloudflare.com/v1
           VITE_MAP_PROVIDER: openstreetmap
           VITE_MAP_DEFAULT_LAT: "51.5074"
           VITE_MAP_DEFAULT_LNG: "-0.1278"
@@ -238,7 +238,7 @@ jobs:
 
       - name: Build static site
         env:
-          VITE_API_BASE_URL: https://shoe-mere-livestock-mild.trycloudflare.com/v1
+          VITE_API_BASE_URL: https://expired-merry-sure-circus.trycloudflare.com/v1
           VITE_MAP_PROVIDER: openstreetmap
           VITE_MAP_DEFAULT_LAT: "51.5074"
           VITE_MAP_DEFAULT_LNG: "-0.1278"
