@@ -6,8 +6,16 @@
 
 // API Configuration
 const API_CONFIG = {
-  // Automatically detect the correct API URL based on current hostname
+  // Use environment variable if available, otherwise detect based on hostname
   BASE_URL: (() => {
+    // Priority 1: Use build-time environment variable if set
+    // @ts-ignore - VITE_API_BASE_URL is injected at build time
+    if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL) {
+      // @ts-ignore
+      return import.meta.env.VITE_API_BASE_URL;
+    }
+
+    // Priority 2: Fallback to hostname-based detection for local development
     const hostname = window.location.hostname;
 
     // If accessing via local network IP (192.168.x.x), use backend API on port 30636
@@ -24,10 +32,8 @@ const API_CONFIG = {
       return 'http://192.168.178.50:30636/v1';
     }
 
-    // For production/deployed version - Using Cloudflare Tunnel for backend API
-    // Backend API Tunnel: https://shoe-mere-livestock-mild.trycloudflare.com
-    // Backend: Kubernetes on Raspberry Pi (port 30636) via Cloudflare Tunnel
-    return 'https://shoe-mere-livestock-mild.trycloudflare.com/v1';
+    // Priority 3: Default production API (should not reach here if env var is set)
+    return 'https://api.floodsight.com/v1';
   })(),
 
   TIMEOUT: 10000, // 10 seconds
