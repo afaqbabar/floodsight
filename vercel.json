@@ -3,6 +3,17 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "regions": ["fra1"],
+  "env": {
+    "VITE_API_BASE_URL": "https://api.floodsight.com",
+    "VITE_MAP_PROVIDER": "openstreetmap",
+    "VITE_MAP_DEFAULT_LAT": "51.5074",
+    "VITE_MAP_DEFAULT_LNG": "-0.1278",
+    "VITE_MAP_DEFAULT_ZOOM": "11",
+    "VITE_ENABLE_ALERTS": "true",
+    "VITE_ENABLE_FORECASTING": "true",
+    "VITE_ENABLE_HISTORICAL_DATA": "true",
+    "VITE_FLOOD_DATA_API": "https://environment.data.gov.uk/flood-monitoring"
+  },
   "headers": [
     {
       "source": "/(.*)",
